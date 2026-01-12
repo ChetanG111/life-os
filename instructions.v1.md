@@ -1,263 +1,193 @@
-# PROJECT: Personal AI OS (PWA)
+# DESIGN SYSTEM – DARK CONTROL PANEL
 
-You are designing a **mobile-first Progressive Web App** that functions as a personal operating system for one user.  
-It is NOT a productivity SaaS.  
-It is NOT a public product.  
-It is a private control panel for thoughts, tasks, memory, and decisions.
+This app is a **personal operating system**, not a toy.  
+Aesthetic: modern, sleek, surgical.
 
-The app must feel:
-- premium
-- tactile
-- playful
-- alive
-- slightly chaotic but intentional
+Vibe:
+– dark mode only  
+– serious  
+– zero gimmicks  
+– premium hardware feel  
 
----
-
-# CORE TABS
-
-Bottom navigation only.  
-NO sidebars on mobile.
-
-Tabs (max 4):
-
-1. Chat  
-2. Inbox  
-3. Tasks  
-4. Notes / Voice  
-
-Memory lives inside Tasks (tagged, not separate).
+Think:
+Apple + Raycast + Linear  
+Not neon SaaS trash.
 
 ---
 
-# GLOBAL MOTION RULES
+# COLOR SYSTEM
 
-ALL animations must:
-- be non-linear
-- use easing (no linear motion)
-- overshoot slightly
-- slow settle at the end
-- feel springy, elastic, slime-like
+Theme:
+– Pure dark UI  
+– Deep charcoal backgrounds  
+– Soft gray surfaces  
 
-Detached elements (cards, bubbles, notes):
-- stretch when dragged
-- wobble on release
-- snap back with bounce
+Accent:
+⚠️ **WHITE is the ONLY accent color.**
+No blues.
+No gradients.
+No vibe-coded bullshit.
+
+White is used for:
+– primary actions  
+– focused elements  
+– highlights  
+– selected states  
+
+Everything else:
+– grayscale only
+
+---
+
+# TYPOGRAPHY
+
+Fonts:
+– Inter / SF Pro / Geist  
+– clean, modern  
+– no handwritten nonsense  
+
+Rules:
+– hierarchy through size + weight  
+– no decorative fonts  
+– no playful rotations  
+
+---
+
+# SHAPE & RADIUS
+
+– subtle rounding only  
+– 10–16px radius  
+– consistent everywhere  
+
+No:
+– wobbly borders  
+– asymmetry  
+– sketch effects  
+
+This is a **machine**, not a doodle pad.
+
+---
+
+# SHADOWS & DEPTH
+
+– soft, realistic elevation  
+– layered depth  
+– dark shadows  
+– no cartoon hard edges  
+
+Hover:
+– slight lift  
+– shadow increases  
+
+Active:
+– compress  
+– shadow reduces  
+
+---
+
+# MOTION SYSTEM
+
+Motion = premium physics.
+
+Rules:
+– non-linear easing only  
+– spring-based  
+– slight overshoot  
+– slow settle  
+– no wobble  
+– no jelly  
+
+Feels like:
+iOS system animations.
+
+No:
+– goofy bounce  
+– slime  
+– playful wobble  
+
+Detached elements:
+– elastic drag  
+– magnetic snap  
+– smooth inertia  
 
 Menus:
-- children must stagger into view
-- slight delay between each item
-- each item enters with a tiny bounce
-
-Micro-interactions:
-- tap = squash
-- release = bounce
-- drag = elastic follow
+– staggered entrance  
+– each item fades + slides  
+– micro-delay between children  
 
 ---
 
-# CHAT TAB
+# INTERACTIONS
 
-Full-height screen.  
-Sticky input bar at bottom.
+Tap:
+– subtle scale down  
+– instant feedback  
 
-Chat bubbles:
-- irregular shapes
-- float subtly
-- wobble when sent
-- stretch + snap back
+Release:
+– spring back  
 
-New message animation:
-- slide up
-- overshoot
-- soft bounce settle
-
-AI responses:
-- staggered line reveal
-- subtle bounce per line
-- typing indicator pulses organically
+Drag:
+– resistance  
+– momentum  
 
 Scroll:
-- rubber-band physics
-- soft resistance at edges
+– rubber band edges  
 
 ---
 
-# INBOX TAB
-
-Purpose: raw brain dump.
-
-Mixed content feed:
-- text
-- voice
-- screenshots
+# COMPONENT STYLE
 
 Cards:
-- slightly rotated
-- draggable
-- spring physics
+– flat  
+– subtle depth  
+– clean edges  
 
-Swipe actions:
-- left = delete (slime stretch)
-- right = convert to task (snap bounce)
+Buttons:
+– minimal  
+– white accent  
+– no gradients  
 
-New items:
-- drop in
-- overshoot
-- settle softly
-
----
-
-# TASKS TAB
-
-Single vertical list.  
-NO kanban.  
-NO calendar.
-
-Task cards:
-- lift on hover
-- bounce on complete
-- elastic collapse when done
-
-Priority change:
-- scale up
-- overshoot
-- slow settle
-
-Reordering:
-- stretchy drag
-- magnetic snap
+Inputs:
+– soft glow on focus  
+– white underline  
 
 ---
 
-# NOTES / VOICE TAB
+# LAYOUT
 
-Loose Pinterest-style grid.
+– mobile-first  
+– bottom navigation  
+– no sidebars  
+– single column focus  
 
-Cards:
-- float independently
-- subtle idle wobble
-
-Mic button:
-- pulses
-- jelly bounce on tap
-
-Recording state:
-- waveform wiggles
-- elastic expand
-
-Opening a note:
-- zoom in
-- slight rotation
-- soft bounce settle
+Whitespace:
+– generous  
+– intentional  
 
 ---
 
-# AI BEHAVIOR
+# ICONS
 
-AI acts as:
-- assistant
-- memory system
-- pattern recognizer
-
-NOT:
-- decision maker
-- planner god
-
-AI should:
-- extract tasks
-- summarize chaos
-- surface patterns
-- challenge fake priorities
-- remind past failures/wins
-
-Memory rules:
-- only store:
-  - decisions
-  - patterns
-  - commitments
-  - lessons
-- ignore fluff
-
-User explicitly commands:
-- "remember this"
-- "forget that"
-
----
-
-# DESIGN SYSTEM
-<design-system>
-
-# Design Philosophy
-The Hand-Drawn design style celebrates authentic imperfection and human touch in a digital world. It rejects the clinical precision of modern UI design in favor of organic, playful irregularity that evokes sketches on paper, sticky notes on a wall, and napkin diagrams from a brainstorming session.
-
-Core Principles:
-- No Straight Lines: Every border, shape, and container uses irregular border-radius values to create wobbly, hand-drawn edges that reject geometric perfection
-- Authentic Texture: Layer paper grain, dot patterns, subtle background textures
-- Playful Rotation: Elements deliberately tilted (-2deg to 2deg)
-- Hard Offset Shadows: No blur. Solid shadows only (4px 4px 0px)
-- Handwritten Typography: Kalam, Patrick Hand only
-- Scribbled Decoration: arrows, tape, thumbtacks, dashed lines
-- Limited Color Palette:
-  - pencil black
-  - paper white
-  - correction red
-  - post-it yellow
-- Intentional Messiness: overlap, asymmetry, chaos with purpose
-
-## Typography
-- Large
-- Dramatic size variation
-
-## Radius & Border
-- NEVER use standard rounded classes
-- Use organic elliptical radius
-- Thick borders (min 2px)
-
-## Shadows
-- box-shadow: 4px 4px 0px #2d2d2d
-- hover reduces offset
-- active removes shadow (pressed)
-
-## Texture
-- radial dot background
-- notebook grain
-
-## Layout
-- responsive grid
-- rotated cards
-- overlaps
-- negative margins
-- speech bubble tails
-- decorative elements outside bounds
-
-## Interactions
-- buttons flatten on press
-- cards rotate on hover
-- lift effect on hover
-
-## Icons
-- lucide-react
-- stroke width 2.5+
-- enclosed in rough circles
-
-</design-system>
+– minimal  
+– thin stroke  
+– monochrome  
+– white when active  
 
 ---
 
 # FINAL RULE
 
-This app must feel like:
-a sketchbook  
-a brain dump  
-a living organism  
+This UI should feel like:
+a hacker terminal  
+a spacecraft dashboard  
+a brain control center  
 
 NOT:
-a startup  
-a dashboard  
-a boring productivity tool
+a planner  
+a journal  
+a startup landing page  
 
-If it feels corporate, you failed.
-If it feels fun, alive, and slightly chaotic, you won.
+If it looks playful, you failed.  
+If it looks dangerous, you won.
 
 END.
