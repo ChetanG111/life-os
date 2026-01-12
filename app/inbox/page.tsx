@@ -13,7 +13,7 @@ const container: Variants = {
 }
 
 const item: Variants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 15 },
   show: { 
     opacity: 1, 
     y: 0,
@@ -34,7 +34,7 @@ export default function InboxPage() {
       variants={container}
       initial="hidden"
       animate="show"
-      className="p-6 pt-12 space-y-8"
+      className="p-6 space-y-8"
     >
       {/* Header */}
       <motion.div variants={item} className="space-y-1">
@@ -45,8 +45,9 @@ export default function InboxPage() {
       {/* Quick Status */}
       <motion.div variants={item} className="grid grid-cols-2 gap-4">
         <motion.div 
+          variants={item}
           whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          whileTap={{ scale: 0.95 }}
           className="rounded-2xl bg-card border border-border p-5 flex flex-col justify-between aspect-[4/3] cursor-pointer"
         >
           <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -58,8 +59,9 @@ export default function InboxPage() {
           </div>
         </motion.div>
         <motion.div 
+          variants={item}
           whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          whileTap={{ scale: 0.95 }}
           className="rounded-2xl bg-card border border-border p-5 flex flex-col justify-between aspect-[4/3] cursor-pointer"
         >
           <div className="size-8 rounded-full bg-muted flex items-center justify-center">
@@ -103,7 +105,7 @@ export default function InboxPage() {
           <motion.div 
             key={i} 
             variants={item}
-            whileTap={{ scale: 0.98 }}
+            whileTap={{ scale: 0.95 }}
             className="rounded-xl border border-border bg-card p-4"
           >
             <div className="h-4 w-2/3 rounded bg-muted/20 mb-2" />

@@ -13,7 +13,7 @@ const container: Variants = {
 }
 
 const item: Variants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 15 },
   show: { 
     opacity: 1, 
     y: 0,
@@ -31,7 +31,7 @@ export default function TasksPage() {
       variants={container}
       initial="hidden"
       animate="show"
-      className="p-6 pt-12 space-y-6"
+      className="p-6 space-y-6"
     >
       <motion.div variants={item}>
         <h1 className="text-3xl font-light tracking-tight text-white">Tasks</h1>
@@ -42,7 +42,7 @@ export default function TasksPage() {
           <motion.div 
             key={i} 
             variants={item}
-            whileTap={{ scale: 0.98 }}
+            whileTap={{ scale: 0.95 }}
             className="flex items-center gap-4 rounded-xl border border-border bg-card p-4"
           >
             <div className="size-5 rounded-full border border-muted-foreground/30" />
