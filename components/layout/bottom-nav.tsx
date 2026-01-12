@@ -26,18 +26,30 @@ export function BottomNav() {
           
           return (
             <Link key={item.href} href={item.href} className="flex flex-1 justify-center">
-              <motion.div
-                whileTap={{ scale: 0.9 }}
-                transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                className="flex flex-col items-center gap-1 py-2"
-              >
-                <div className={cn(
-                  "relative flex items-center justify-center rounded-2xl px-5 py-1.5 transition-all duration-300",
-                  isActive ? "bg-accent text-primary" : "text-muted-foreground hover:text-foreground"
-                )}>
+              <div className="relative flex items-center justify-center py-2">
+                {isActive && (
+                  <motion.div
+                    layoutId="navbar-indicator"
+                    className="absolute inset-0 rounded-2xl bg-accent"
+                    initial={false}
+                    transition={{
+                      type: "spring",
+                      stiffness: 400,
+                      damping: 30
+                    }}
+                  />
+                )}
+                <motion.div
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  className={cn(
+                    "relative z-10 flex items-center justify-center px-5 py-1.5 transition-colors duration-200",
+                    isActive ? "text-primary" : "text-muted-foreground"
+                  )}
+                >
                   <item.icon strokeWidth={1.5} className="size-6" />
-                </div>
-              </motion.div>
+                </motion.div>
+              </div>
             </Link>
           )
         })}
