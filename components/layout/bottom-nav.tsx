@@ -2,12 +2,11 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Inbox, CheckSquare, FileText, MessageSquare, Home } from "lucide-react"
+import { Inbox, CheckSquare, FileText, MessageSquare } from "lucide-react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
 const items = [
-  { href: "/", icon: Home, label: "Home" }, // Added Home for the root page
   { href: "/inbox", icon: Inbox, label: "Inbox" },
   { href: "/tasks", icon: CheckSquare, label: "Tasks" },
   { href: "/notes", icon: FileText, label: "Notes" },
