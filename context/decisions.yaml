@@ -1,0 +1,231 @@
+# === LIFE OS AGENT CONTEXT FILE ===
+# Purpose: Give full product context to the AI agent
+# Phase: PLANNING (locked decisions)
+
+app:
+  name: "Personal Life OS"
+  mode: "internal tool"
+  theme: "dark-only"
+  install:
+    type: "PWA"
+    flow: "standard"
+
+identity:
+  role: "SaaS founder"
+  philosophy:
+    planning_horizon:
+      - "weekly"
+      - "yearly"
+    no_long_term_fantasy: true
+
+screens:
+  overview:
+    purpose:
+      - "show today's tasks"
+      - "show notes that need attention"
+      - "show priority ordered tasks"
+    elements:
+      - daily_task_count
+      - weekly_progress
+      - priority_sorted_tasks
+      - reminder_notes
+      - state_popup
+      - memory_review_card
+    behaviors:
+      overdue_tasks:
+        position: "top"
+        color: "red"
+        show_delay_time: true
+
+  tasks:
+    creation:
+      methods:
+        - "voice"
+        - "manual"
+      speed:
+        voice: "<2 min"
+        manual: "<1 min"
+    completion:
+      default: "archive"
+      low_value_tasks: "delete"
+
+  notes:
+    types:
+      - "voice"
+      - "text"
+      - "image"
+      - "links"
+    behavior:
+      voice:
+        store_audio: true
+        auto_transcribe: true
+    inspiration: "Google Keep"
+
+  weekly_view:
+    layout: "vertical scroll"
+    structure:
+      - monday_to_sunday
+      - per_day_tasks
+      - per_day_summary
+      - weekly_fun_title
+      - weekly_goal_impact_summary
+
+state_tracking:
+  enabled: true
+  frequency:
+    - "morning"
+    - "evening"
+  input:
+    type: "popup"
+    options: 2-3
+  inference: false
+
+goals:
+  types:
+    - yearly
+    - quarterly
+    - weekly
+  rules:
+    yearly_quarterly:
+      editable: false
+    weekly:
+      update_flow:
+        - ai_prompts
+        - chat_reflection
+        - update_goals
+  alignment:
+    logic: "context-based"
+    fun_tasks: "allowed but low alignment"
+
+memory_system:
+  identity_memory:
+    auto_save:
+      - "values"
+      - "beliefs"
+      - "work_style"
+      - "likes_dislikes"
+      - "goals"
+      - "repeated_patterns"
+    rules:
+      editable: "update-only"
+      deletable: false
+
+  operational_memory:
+    includes:
+      - "tasks"
+      - "deadlines"
+      - "meetings"
+      - "outreach"
+      - "business_ideas"
+
+  knowledge_memory:
+    includes:
+      - "notes"
+      - "links"
+      - "summaries"
+      - "learnings"
+    expiry:
+      based_on: "relevancy"
+      flow:
+        - move_to_archive
+        - user_decides
+
+  confirmation_required:
+    - "emotional_rants"
+    - "half_baked_ideas"
+    - "one_off_opinions"
+
+  never_save:
+    - "passwords"
+    - "otps"
+    - "bank_info"
+    - "private_chats"
+    - "anything_user_flags"
+
+  inference:
+    allowed: true
+    saving_rule: "must ask user"
+
+  daily_review:
+    duration: "5 min"
+    purpose:
+      - "review archive suggestions"
+      - "confirm saves"
+
+reminders:
+  structure:
+    - "push_notifications"
+    - "in_app_banner"
+  triggers:
+    morning: "open overview"
+    tasks:
+      - "6 hours before"
+      - "1 hour before"
+  aggressiveness: "priority-based"
+  snooze:
+    high_priority:
+      max: 2
+    low_priority: "ai_decides"
+
+metrics:
+  frontend_visible: false
+  backend_tracked:
+    - total_tasks_created
+    - total_tasks_completed
+    - tasks_completed_on_time
+    - tasks_deleted
+    - daily_completion_rate
+    - weekly_flow
+    - productivity_score_internal
+
+tags:
+  assignment:
+    simple_tasks: "auto"
+    complex_tasks: "suggest"
+    manual_override: "locked"
+  creation:
+    by_ai: true
+    requires:
+      - name
+      - description
+    assignment_rule:
+      - must_ask_user
+  authority: "user_final"
+
+deadlines:
+  visualization:
+    based_on:
+      - "weekly_goals"
+      - "yearly_goals"
+
+excluded_features:
+  - "energy_tracking"
+  - "focus_tracking"
+  - "interruption_tracking"
+  - "long_session_adaptation"
+  - "future_reel_system"
+
+friction_policy:
+  acceptable:
+    - "memory_confirmations"
+    - "daily_archive_review"
+    - "tag_approvals"
+  unacceptable:
+    - "too_many_clicks"
+    - "manual_tagging_everything"
+    - "forced_stats"
+    - "slow_loading"
+    - "busywork"
+
+infrastructure:
+  deploy:
+    - "vercel"
+    - "github"
+  database:
+    options:
+      - "firebase"
+      - "supabase"
+  offline_mode: false
+
+planning_status: "LOCKED"
+next_phase: "DESIGN"
