@@ -1,0 +1,216 @@
+# === FRONTEND DESIGN CONTEXT ===
+# Product: Personal Life OS
+# Phase: DESIGN (LOCKED)
+# Focus: UX, UI, interactions, motion
+
+app:
+  mode: "internal tool"
+  theme: "dark-only"
+  install: "PWA"
+  style_reference: "iOS 18 design language"
+  philosophy:
+    - minimal
+    - functional
+    - no_visual_noise
+    - tool_not_toy
+
+navigation:
+  type: "gesture-based"
+  tabs: 5
+  order:
+    - tasks
+    - notes
+    - overview
+    - chat
+    - weekly
+  default_tab: "overview"
+  behavior:
+    swipe_navigation: true
+    bottom_bar:
+      visible_only_while_swiping: true
+      follows_finger: true
+      hides_on_release: true
+      snap_to_position: true
+    haptics: true
+    double_tap_tab: "refresh"
+    reorder_tabs: true
+
+tabs:
+  tasks:
+    icon: "checklist"
+  notes:
+    icon: "document"
+  overview:
+    icon: "stack"
+    role: "brain_hub"
+  chat:
+    icon: "message"
+  weekly:
+    icon: "calendar"
+
+overview:
+  elements:
+    - swipe_feed
+    - quick_add_button
+    - state_popup
+    - memory_review_cards
+    - daily_tasks
+  swipe_feed:
+    modes:
+      - "tinder_stack"
+      - "list_view"
+    switchable: true
+
+quick_add:
+  location: "overview"
+  type: "floating_button"
+  opens: "full_screen_modal"
+  supports:
+    - voice_input
+    - text_input
+    - link_paste
+    - task
+    - note
+    - idea
+    - goal
+    - identity_update
+
+cards:
+  global:
+    size: "uniform"
+    animation: "spring"
+    tap: "open_details"
+    swipe:
+      right: "done_or_save"
+      left: "dismiss"
+      down: "delete"
+      up: "open_details"
+
+  visible_fields:
+    - priority_dot
+    - title
+    - time
+    - tags
+
+  hidden_fields:
+    - full_description
+    - goal_mapping
+    - history
+
+task_card:
+  shows:
+    - title
+    - due_time
+    - goal_link
+    - description_preview
+
+note_card:
+  shows:
+    - first_two_lines
+    - tag_chips
+  excludes:
+    - waveform
+    - link_preview
+
+weekly_view:
+  layout: "vertical_scroll"
+  days: "monday_to_sunday"
+  features:
+    - collapse_expand_days
+    - circular_progress_ring
+    - per_day_summary
+  summary:
+    ai_writes_if_user_does_not: true
+
+state_popup:
+  trigger:
+    - morning
+    - evening
+  input:
+    type: "emoji_only"
+    hardcoded: true
+
+chat:
+  mode: "full_screen"
+  voice:
+    enabled: true
+    location: "inside_chat"
+
+reminders:
+  delivery:
+    - push_notification
+    - in_app_visibility
+  snooze: false
+
+memory_review:
+  location: "overview"
+  modes:
+    - card_stack
+    - list_view
+  ai_reasoning: false
+
+settings:
+  depth: "full_advanced"
+  features:
+    - animation_controls
+    - behavior_controls
+    - layout_controls
+
+performance:
+  max_load_time: "2-3s"
+  cache_last_state: true
+
+micro_interactions:
+  vibration: "subtle"
+  sounds: false
+  progress_animation: true
+
+visual_style:
+  base:
+    background: "#0B0B0B"
+    primary_text: "#FFFFFF"
+    secondary_text: "#E5E5E5"
+    muted_text: "#9CA3AF"
+
+  buttons:
+    primary:
+      background: "#FFFFFF"
+      text: "#000000"
+    secondary:
+      background: "transparent"
+      border: "#FFFFFF"
+
+  priority_colors:
+    high: "#EF4444"
+    medium: "#F59E0B"
+    low: "#3B82F6"
+
+  rules:
+    no_neon: true
+    no_gradients: true
+    no_glass: true
+    no_glow: true
+    high_contrast: true
+
+animations:
+  style:
+    - spring_physics
+    - blur_transitions
+    - hand_reactive
+  quality: "non_negotiable"
+
+error_handling:
+  toast:
+    position: "top-right"
+    tone: "normal"
+  logging: true
+
+empty_states:
+  tone: "normal"
+
+addiction_control:
+  done_for_today_screen: true
+  app_lock_after_done: false
+
+design_status: "LOCKED"
+next_phase: "ARCHITECTURE"

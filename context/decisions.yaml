@@ -43,7 +43,7 @@ screens:
         - "voice"
         - "manual"
       speed:
-        voice: "<2 min"
+        voice: "<5s"
         manual: "<1 min"
     completion:
       default: "archive"
