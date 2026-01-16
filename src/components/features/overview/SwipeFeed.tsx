@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
-import { X, Check, Archive } from 'lucide-react';
+import { Check, Archive } from 'lucide-react';
 import clsx from 'clsx';
 
 interface FeedItem {
@@ -81,15 +81,7 @@ export function SwipeFeed() {
                 </AnimatePresence>
             </div>
 
-            {/* Controls / Hints */}
-            <div className="mt-8 flex gap-8">
-                <button className="p-4 rounded-full bg-neutral-800 text-red-400 hover:bg-neutral-700 transition-colors" onClick={() => removeCard(topCard.id, 'left')}>
-                    <X size={24} />
-                </button>
-                <button className="p-4 rounded-full bg-neutral-800 text-green-400 hover:bg-neutral-700 transition-colors" onClick={() => removeCard(topCard.id, 'right')}>
-                    <Check size={24} />
-                </button>
-            </div>
+
         </div>
     );
 }
