@@ -97,6 +97,10 @@ export function NavigationShell() {
         })
     };
 
+
+    // Settings toggle (currently disabled)
+    const showBottomNav = false;
+
     return (
         <div className="relative h-[100dvh] w-full overflow-hidden bg-background">
             <AnimatePresence initial={false} custom={direction} mode="popLayout">
@@ -144,12 +148,14 @@ export function NavigationShell() {
                 </motion.main>
             </AnimatePresence>
 
-            <BottomNav
-                activeTab={activeTab}
-                onTabChange={handleTabChange}
-                isVisible={isDragging}
-                offset={navX}
-            />
+            {showBottomNav && (
+                <BottomNav
+                    activeTab={activeTab}
+                    onTabChange={handleTabChange}
+                    isVisible={isDragging}
+                    offset={navX}
+                />
+            )}
         </div>
     );
 }
