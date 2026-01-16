@@ -7,6 +7,9 @@ import { BottomNav } from './BottomNav';
 
 import { Feed } from '@/components/features/overview/Feed';
 
+import { TasksTab } from '@/components/features/tasks/TasksTab';
+import { NotesTab } from '@/components/features/notes/NotesTab';
+
 // Placeholder content - To be replaced by actual Feature components
 const PlaceholderTab = ({ text }: { text: string }) => (
     <div className="flex flex-col items-center justify-center h-full p-6 text-center space-y-4">
@@ -16,8 +19,8 @@ const PlaceholderTab = ({ text }: { text: string }) => (
 );
 
 const TabContent: Record<TabId, React.ReactNode> = {
-    tasks: <PlaceholderTab text="Tasks" />,
-    notes: <PlaceholderTab text="Notes" />,
+    tasks: <TasksTab />,
+    notes: <NotesTab />,
     overview: <Feed />,
     chat: <PlaceholderTab text="Chat" />,
     weekly: <PlaceholderTab text="Weekly" />,
