@@ -6,6 +6,7 @@ import { DayItem } from './DayItem';
 import { mockTasks } from '@/data/mock';
 import { Task } from '@/types';
 import { Calendar as CalendarIcon, Trophy, TrendingUp } from 'lucide-react';
+import { useSlimySpring } from '@/hooks/use-slimy-spring';
 
 const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -18,21 +19,19 @@ const containerVariants: Variants = {
     }
 };
 
-const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 30, scale: 0.9 },
-    show: {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        transition: {
-            type: "spring",
-            stiffness: 350,
-            damping: 18
-        }
-    }
-};
-
 export const WeeklyTab = () => {
+    const springConfig = useSlimySpring();
+
+    const itemVariants: Variants = {
+        hidden: { opacity: 0, y: 30, scale: 0.9 },
+        show: {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            transition: springConfig
+        }
+    };
+
     // Generate current week days
     const weekData = useMemo(() => {
         const days = [];

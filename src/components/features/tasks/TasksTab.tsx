@@ -6,6 +6,7 @@ import { Task } from '@/types';
 import { mockTasks } from '@/data/mock';
 import { TaskCard } from './TaskCard';
 import { CardDetailModal } from '../cards/CardDetailModal';
+import { useSlimySpring } from '@/hooks/use-slimy-spring';
 
 /**
  * TasksTab - Clean, high-performance task list.
@@ -26,25 +27,10 @@ const containerVariants: Variants = {
     }
 };
 
-// Item variant controls individual card entrance (Fade + Slide + Overshoot)
-const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 30, scale: 0.9 },
-    enter: { opacity: 0, y: 30, scale: 0.9 },
-    show: {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        transition: {
-            type: "spring",
-            stiffness: 350,
-            damping: 18
-        }
-    }
-};
-
 export const TasksTab = () => {
     const [tasks, setTasks] = useState<Task[]>(mockTasks);
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+    const springConfig = useSlimySpring();
 
     const handleRemove = (id: string) => {
         setTasks(prev => prev.filter(t => t.id !== id));
@@ -55,6 +41,18 @@ export const TasksTab = () => {
         const priorityScore = { high: 0, medium: 1, low: 2 };
         return [...tasks].sort((a, b) => priorityScore[a.priority] - priorityScore[b.priority]);
     }, [tasks]);
+
+    // Item variant controls individual card entrance (Fade + Slide + Overshoot)
+    const itemVariants: Variants = {
+        hidden: { opacity: 0, y: 30, scale: 0.9 },
+        enter: { opacity: 0, y: 30, scale: 0.9 },
+        show: {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            transition: springConfig
+        }
+    };
 
     return (
         <div className="w-full min-h-screen px-4 py-safe-top bg-background pb-32">

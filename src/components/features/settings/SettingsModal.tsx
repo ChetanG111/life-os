@@ -1,10 +1,12 @@
 'use client';
 
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
-import { ChevronRight, Smartphone, Layout, Zap, Database } from 'lucide-react';
+import { ChevronRight, Smartphone, Layout, Zap, Database, Activity } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
 import { useBackToClose } from '@/hooks/use-back-to-close';
 import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
+import { useMotion } from '@/context/MotionContext';
+import { useSlimySpring } from '@/hooks/use-slimy-spring';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -15,6 +17,8 @@ interface SettingsModalProps {
 
 export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNav }: SettingsModalProps) {
     const dragControls = useDragControls();
+    const { intensity, setIntensity } = useMotion();
+    const springConfig = useSlimySpring();
     
     // Handle back button behavior
     useBackToClose(isOpen, onClose);
@@ -38,11 +42,7 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
             y: 0, 
             opacity: 1, 
             scale: 1,
-            transition: { 
-                type: "spring", 
-                stiffness: 350, 
-                damping: 18 
-            } 
+            transition: springConfig
         }
     };
 
@@ -100,7 +100,39 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                             animate="show"
                             className="flex-1 overflow-y-auto p-6 space-y-8"
                         >
-                            
+                            {/* Section: Animation Control */}
+                            <motion.section variants={slimyItem}>
+                                <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-4 px-1">
+                                    Experience
+                                </h3>
+                                <div className="bg-[var(--surface)] rounded-2xl overflow-hidden border border-white/5 p-5">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="p-2 bg-pink-500/10 rounded-lg text-pink-500">
+                                            <Activity size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-white">Motion Intensity</p>
+                                            <p className="text-xs text-neutral-500">Adjust the bounce & overshoot</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="px-1">
+                                        <input 
+                                            type="range" 
+                                            min="0" 
+                                            max="100" 
+                                            value={intensity} 
+                                            onChange={(e) => setIntensity(Number(e.target.value))}
+                                            className="w-full h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-white"
+                                        />
+                                        <div className="flex justify-between mt-2 text-[10px] font-bold uppercase tracking-wider text-neutral-500">
+                                            <span>Minimal</span>
+                                            <span>Bouncy</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.section>
+
                             {/* Section: Navigation */}
                             <motion.section variants={slimyItem}>
                                 <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-4 px-1">

@@ -4,6 +4,7 @@ import { motion, Variants } from 'framer-motion';
 import { useState } from 'react';
 import { Note } from '@/types';
 import { CardDetailModal } from '../cards/CardDetailModal';
+import { useSlimySpring } from '@/hooks/use-slimy-spring';
 
 const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -16,22 +17,19 @@ const containerVariants: Variants = {
     }
 };
 
-const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 30, scale: 0.9 },
-    show: {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        transition: {
-            type: "spring",
-            stiffness: 350,
-            damping: 18
-        }
-    }
-};
-
 export const NotesTab = () => {
     const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+    const springConfig = useSlimySpring();
+
+    const itemVariants: Variants = {
+        hidden: { opacity: 0, y: 30, scale: 0.9 },
+        show: {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            transition: springConfig
+        }
+    };
 
     return (
         <div className="w-full min-h-screen px-4 py-safe-top bg-background pb-32">

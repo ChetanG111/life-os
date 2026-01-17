@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, Plus, Mic } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { vibrate } from '@/utils/haptics';
+import { useSlimySpring } from '@/hooks/use-slimy-spring';
 
 // Mock Messages
 type Message = {
@@ -32,6 +33,7 @@ export function ChatTab() {
     const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
     const [inputValue, setInputValue] = useState('');
     const endOfMessagesRef = useRef<HTMLDivElement>(null);
+    const springConfig = useSlimySpring();
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -80,7 +82,7 @@ export function ChatTab() {
                         layout
                         initial={{ opacity: 0, scale: 0.9, y: 30 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        transition={{ type: "spring", stiffness: 350, damping: 18 }}
+                        transition={springConfig}
                         className={`flex flex-col ${msg.isUser ? 'items-end' : 'items-start'}`}
                     >
                         <div
