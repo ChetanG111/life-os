@@ -6,13 +6,8 @@ import { mockNotes } from '@/data/mock';
 export const NotesTab = () => {
     return (
         <div className="w-full min-h-screen px-4 py-6 bg-background pb-32">
-            <header className="mb-6 px-1 flex justify-between items-end">
-                <div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight">Notes</h1>
-                    <p className="text-neutral-500 text-sm font-medium mt-1">
-                        Recent thoughts & ideas
-                    </p>
-                </div>
+            <header className="mb-6 px-1 text-center">
+                <h1 className="text-3xl font-bold text-white tracking-tight">Notes</h1>
             </header>
 
             {/* Masonry Layout using CSS Columns */}

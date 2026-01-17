@@ -22,11 +22,8 @@ export function Feed({ onModalToggle }: { onModalToggle?: (isOpen: boolean) => v
     return (
         <div className="relative h-full w-full py-safe-top px-4 overflow-hidden">
             {/* Header / Mode Switcher (Placeholder) */}
-            <header className="flex justify-between items-center py-4 px-2 mb-2">
-                <h1 className="text-2xl font-bold text-white">Focus</h1>
-                <button className="text-sm text-neutral-500 hover:text-white transition-colors">
-                    View All
-                </button>
+            <header className="flex justify-center items-center py-4 px-2 mb-2">
+                <h1 className="text-3xl font-bold text-white">Focus</h1>
             </header>
 
             {/* Main Feed Content - Shifted up slightly with pb-16/mb-16 logic to accommodate FAB visually if needed, 

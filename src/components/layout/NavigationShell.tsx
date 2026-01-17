@@ -77,29 +77,24 @@ export function NavigationShell() {
     const variants: Variants = {
         enter: (direction: number) => ({
             x: direction > 0 ? '100%' : '-100%',
-            opacity: 1, // Changed to 1 to avoid transparency stacking
-            scale: 0.95,
-            filter: "blur(4px)"
+            opacity: 1,
+            zIndex: 0,
         }),
         center: {
             zIndex: 1,
             x: 0,
             opacity: 1,
-            scale: 1,
-            filter: "blur(0px)",
             transition: {
-                x: { type: "spring", stiffness: 350, damping: 30 },
+                x: { type: "spring", stiffness: 300, damping: 30 },
                 opacity: { duration: 0.2 }
             }
         },
         exit: (direction: number) => ({
             zIndex: 0,
             x: direction < 0 ? '100%' : '-100%',
-            opacity: 0.5,
-            scale: 0.95,
-            filter: "blur(4px)",
+            opacity: 1,
             transition: {
-                x: { type: "spring", stiffness: 350, damping: 30 },
+                x: { type: "spring", stiffness: 300, damping: 30 },
                 opacity: { duration: 0.2 }
             }
         })
@@ -110,7 +105,7 @@ export function NavigationShell() {
     const showBottomNav = false;
 
     return (
-        <div className="relative h-[100dvh] w-full overflow-hidden bg-background">
+        <div className="relative h-[100dvh] w-full overflow-hidden bg-background" >
             <AnimatePresence initial={false} custom={direction} mode="popLayout">
                 <motion.main
                     key={activeTab}
@@ -163,7 +158,8 @@ export function NavigationShell() {
                     isVisible={isDragging}
                     offset={navX}
                 />
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }
