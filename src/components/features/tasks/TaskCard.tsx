@@ -18,7 +18,7 @@ export const TaskCard = ({ task, onRemove, onTap }: TaskCardProps) => {
 
     const handleDragEnd = async (_: any, info: PanInfo) => {
         const threshold = 150;
-        const fastSpring = { type: "spring", stiffness: 400, damping: 30 } as const;
+        const fastSpring = { type: "spring", stiffness: 350, damping: 25 } as const;
 
         if (info.offset.x > threshold) {
             vibrate('success');
@@ -50,8 +50,8 @@ export const TaskCard = ({ task, onRemove, onTap }: TaskCardProps) => {
             scale: [1, 1.05, 0],
             opacity: [1, 1, 0],
             transition: {
-                duration: 0.4,
-                times: [0, 0.3, 1],
+                duration: 0.35,
+                times: [0, 0.4, 1],
                 ease: "circOut" as const
             }
         },
@@ -59,7 +59,7 @@ export const TaskCard = ({ task, onRemove, onTap }: TaskCardProps) => {
             scale: [1, 0.95, 0],
             opacity: [1, 1, 0],
             transition: {
-                duration: 0.4,
+                duration: 0.35,
                 ease: "circIn" as const
             }
         }
