@@ -24,7 +24,7 @@ export function Feed({ onModalToggle }: { onModalToggle?: (isOpen: boolean) => v
         <div className="relative h-full w-full py-safe-top px-4 overflow-hidden">
             {/* Header / Mode Switcher (Placeholder) */}
             <header className="flex justify-center items-center py-4 px-2 mb-2">
-                <h1 className="text-3xl font-bold text-white">Focus</h1>
+                <h1 className="text-xl font-bold text-white uppercase tracking-wider">Focus</h1>
             </header>
 
             {/* Main Feed Content - Shifted up slightly with pb-16/mb-16 logic to accommodate FAB visually if needed, 
@@ -41,7 +41,7 @@ export function Feed({ onModalToggle }: { onModalToggle?: (isOpen: boolean) => v
                     vibrate('medium');
                     setIsQuickAddOpen(true);
                 }}
-                className="absolute bottom-8 right-6 w-14 h-14 bg-white text-black rounded-full shadow-lg flex items-center justify-center z-30"
+                className="absolute bottom-10 right-6 w-14 h-14 bg-white text-black rounded-full shadow-sm flex items-center justify-center z-30"
             >
                 <Plus size={24} strokeWidth={2.5} />
             </motion.button>

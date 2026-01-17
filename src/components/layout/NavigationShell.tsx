@@ -17,8 +17,8 @@ import { ChatTab } from '@/components/features/chat/ChatTab';
 // Placeholder content - To be replaced by actual Feature components
 const PlaceholderTab = ({ text }: { text: string }) => (
     <div className="flex flex-col items-center justify-center h-full p-6 text-center space-y-4">
-        <h1 className="text-4xl font-bold tracking-tighter text-white">{text}</h1>
-        <p className="text-neutral-500">Coming soon</p>
+        <h1 className="text-xl font-bold tracking-tight text-white">{text}</h1>
+        <p className="text-neutral-500 text-sm">Coming soon</p>
     </div>
 );
 
@@ -88,19 +88,20 @@ export function NavigationShell() {
     };
 
     const variants: Variants = {
+        hidden: { opacity: 0 },
         enter: (direction: number) => ({
             x: direction > 0 ? '100%' : '-100%',
             opacity: 1,
             zIndex: 0,
             pointerEvents: 'none', // Prevent interaction during entry
         }),
-        center: {
+        show: {
             zIndex: 1,
             x: 0,
             opacity: 1,
             pointerEvents: 'auto', // Enable interaction when centered
             transition: {
-                x: { type: "spring", stiffness: 300, damping: 30 }, // High stiffness/damping = snappy linear-ish feel
+                x: { type: "spring", stiffness: 180, damping: 22 },
                 opacity: { duration: 0.2 }
             }
         },
@@ -108,27 +109,27 @@ export function NavigationShell() {
             zIndex: 0,
             x: direction < 0 ? '100%' : '-100%',
             opacity: 1,
-            pointerEvents: 'none', // Critical: Disable interaction on exiting tab
+            pointerEvents: 'none',
             transition: {
-                x: { type: "spring", stiffness: 300, damping: 30 },
+                x: { type: "spring", stiffness: 180, damping: 22 },
                 opacity: { duration: 0.2 }
             }
         })
     };
 
 
-    // Settings toggle (currently disabled)
+    // Navigation visibility rules from design.yaml
     const showBottomNav = false;
 
     return (
         <div className="relative h-[100dvh] w-full overflow-hidden bg-background" >
-            <AnimatePresence initial={false} custom={direction} mode="popLayout">
+            <AnimatePresence initial={true} custom={direction} mode="popLayout">
                 <motion.main
                     key={activeTab}
                     custom={direction}
                     variants={variants}
-                    initial="enter"
-                    animate="center"
+                    initial="hidden"
+                    animate="show"
                     exit="exit"
                     // Drag configuration for swipe support
                     drag={isModalOpen ? false : "x"}

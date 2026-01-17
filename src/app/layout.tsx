@@ -3,9 +3,9 @@ import { Fredoka } from "next/font/google";
 import "./globals.css";
 
 const fredoka = Fredoka({
-  variable: "--font-fredoka",
+  variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -35,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${fredoka.variable} antialiased`}
+        className={`${fredoka.variable} font-sans antialiased`}
       >
         {children}
       </body>

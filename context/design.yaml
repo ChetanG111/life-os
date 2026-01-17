@@ -1,0 +1,151 @@
+# === DESIGN SYSTEM & MOTION SPEC ===
+# This file defines the visual language, animation rules,
+# and interaction principles for Life OS.
+# It must be referenced for every UI decision.
+
+theme:
+  mode: "dark-only"
+  base_colors:
+    background: "#0B0B0B"
+    surface: "#121212"
+    primary_text: "#FFFFFF"
+    secondary_text: "#E5E5E5"
+    muted_text: "#9CA3AF"
+
+philosophy:
+  - minimal
+  - tool_not_toy
+  - high_signal_low_noise
+  - apple_inspired
+  - long_session_friendly
+  - zero_visual_distraction
+
+color_rules:
+  no_neon: true
+  no_gradients: true
+  no_glow: true
+  no_glassmorphism: true
+  accents_usage:
+    - only_for_priority_dots
+    - never_for_backgrounds
+    - never_for_text_highlight
+
+priority_colors:
+  high: "#EF4444"    # muted red
+  medium: "#F59E0B"  # soft orange
+  low: "#3B82F6"     # calm blue
+
+buttons:
+  primary:
+    background: "#FFFFFF"
+    text: "#000000"
+    radius: "lg"
+    shadow: "subtle"
+  secondary:
+    background: "transparent"
+    border: "#FFFFFF"
+    text: "#FFFFFF"
+
+typography:
+  style: "Fredoka, system-ui, sans-serif"
+  weights:
+    regular: 400
+    medium: 500
+    bold: 700
+  rules:
+    - friendly_but_clean
+    - high_legibility
+
+layout:
+  padding: "comfortable"
+  card_radius: "large"
+  spacing: "airy"
+  alignment: "clean_grid"
+  max_width: "mobile-first"
+
+motion:
+  engine: "framer-motion"
+  physics:
+    type: "spring"
+    stiffness: 180
+    damping: 22
+  gestures:
+    hand_reactive: true
+    follow_finger: true
+    snap_on_release: true
+  transitions:
+    blur: true
+    duration: "short"
+    easing: "natural"
+  rules:
+    - no abrupt cuts
+    - no cheap easing
+    - animation_must_feel_physical
+
+navigation:
+  style: "gesture_first"
+  pill_bar:
+    appears_only_on_swipe: true
+    tracks_finger: true
+    hides_on_release: true
+    snap_to_tab: true
+  haptics:
+    enabled: true
+    intensity: "subtle"
+
+cards:
+  shape: "rounded"
+  size: "uniform"
+  visible_fields:
+    - priority_dot
+    - title
+    - time
+    - tags
+  hidden_fields:
+    - description
+    - goal_mapping
+  interactions:
+    swipe:
+      right: "done_or_save"
+      left: "dismiss"
+      down: "delete"
+      up: "open_details"
+    tap: "open_details"
+
+feedback:
+  micro_interactions:
+    vibration: true
+    sounds: false
+    progress_animations: true
+
+errors:
+  display:
+    type: "toast"
+    position: "top-right"
+    tone: "normal"
+  logging: true
+
+empty_states:
+  tone: "normal"
+  behavior:
+    - no_guilt
+    - no_fake_motivation
+
+performance:
+  target_load_time: "<3s"
+  cache_last_state: true
+  lazy_load_tabs: true
+
+quality_rules:
+  - never ship janky animation
+  - always test gestures on real device
+  - if motion feels cheap, rewrite it
+  - aesthetics > speed of shipping
+
+stagger:
+  enabled: true
+  rule: "all_lists_and_cards"
+  delay_between_items: "40-80ms"
+  order: "top_to_bottom"
+  animation: "fade + slight translateY"
+  purpose: "make UI feel alive, not robotic"

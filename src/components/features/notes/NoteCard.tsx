@@ -16,8 +16,6 @@ export const NoteCard = ({ note }: NoteCardProps) => {
     return (
         <motion.div
             layout
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
             whileTap={{ scale: 0.98 }}
             onTap={() => {
                 if (typeof navigator !== 'undefined' && navigator.vibrate) {

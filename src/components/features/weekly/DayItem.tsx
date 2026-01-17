@@ -28,7 +28,7 @@ export const DayItem = ({ dayName, dayNumber, tasks, summary, isToday = false }:
                 onClick={() => setIsOpen(!isOpen)}
                 className={clsx(
                     "w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-200",
-                    isOpen ? "bg-[#1A1A1A]" : "bg-transparent hover:bg-white/5"
+                    isOpen ? "bg-[var(--surface)]" : "bg-transparent hover:bg-white/5"
                 )}
             >
                 <div className="flex items-center gap-4">
@@ -36,7 +36,7 @@ export const DayItem = ({ dayName, dayNumber, tasks, summary, isToday = false }:
                         "w-10 h-10 flex flex-col items-center justify-center rounded-xl border",
                         isToday
                             ? "bg-white text-black border-white"
-                            : "bg-neutral-900 text-neutral-400 border-white/10"
+                            : "bg-[var(--surface)] text-neutral-400 border-white/5"
                     )}>
                         <span className="text-[10px] font-bold uppercase leading-none mb-0.5">{dayName.slice(0, 3)}</span>
                         <span className="text-sm font-semibold leading-none">{dayNumber}</span>
@@ -96,14 +96,35 @@ export const DayItem = ({ dayName, dayNumber, tasks, summary, isToday = false }:
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                        transition={{ type: "spring", stiffness: 180, damping: 22 }}
                         className="overflow-hidden"
                     >
-                        <div className="pt-2 px-2 pb-4 space-y-2">
+                        <motion.div
+                            initial="hidden"
+                            animate="show"
+                            variants={{
+                                hidden: { opacity: 0 },
+                                show: {
+                                    opacity: 1,
+                                    transition: {
+                                        staggerChildren: 0.05
+                                    }
+                                }
+                            }}
+                            className="pt-2 px-2 pb-4 space-y-2"
+                        >
                             {tasks.map(task => (
-                                <TaskCard key={task.id} task={task} />
+                                <motion.div
+                                    key={task.id}
+                                    variants={{
+                                        hidden: { opacity: 0, y: 10 },
+                                        show: { opacity: 1, y: 0 }
+                                    }}
+                                >
+                                    <TaskCard task={task} onRemove={() => { }} />
+                                </motion.div>
                             ))}
-                        </div>
+                        </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>

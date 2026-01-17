@@ -83,7 +83,7 @@ export function SwipeFeed() {
             </div>
 
             {detailsId && (
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-neutral-800 text-white px-4 py-2 rounded-full text-sm shadow-lg z-50 animate-in fade-in slide-in-from-top-4">
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-[var(--surface)] text-white px-4 py-2 rounded-full text-sm border border-white/5 z-50 animate-in fade-in slide-in-from-top-4">
                     Opening details...
                 </div>
             )}
@@ -104,34 +104,30 @@ function SwipeableCard({
 }) {
     const x = useMotionValue(0);
     const y = useMotionValue(0);
-    const rotate = useTransform(x, [-200, 200], [-10, 10]);
-    const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
+    const rotate = useTransform(x, [-200, 200], [-8, 8]);
+    const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]);
 
-    // Background color indicators
-    // Right (Done): Green
-    const bgRightOpacity = useTransform(x, [20, 150], [0, 1]);
-    const scaleRight = useTransform(x, [20, 150], [0.8, 1.2]);
+    // Spring configuration from design.yaml
+    const springConfig = { type: "spring", stiffness: 180, damping: 22 } as const;
 
-    // Left (Dismiss): Neutral/Gray
-    const bgLeftOpacity = useTransform(x, [-150, -20], [1, 0]);
-    const scaleLeft = useTransform(x, [-150, -20], [1.2, 0.8]);
+    // Background color indicators (Physical feel)
+    const bgRightOpacity = useTransform(x, [40, 150], [0, 1]);
+    const scaleRight = useTransform(x, [40, 150], [0.9, 1.1]);
 
-    // Down (Delete): Red
-    const bgDownOpacity = useTransform(y, [20, 150], [0, 1]);
-    const scaleDown = useTransform(y, [20, 150], [0.8, 1.2]);
+    const bgLeftOpacity = useTransform(x, [-150, -40], [1, 0]);
+    const scaleLeft = useTransform(x, [-150, -40], [1.1, 0.9]);
 
-    // Up (Details): Blue
-    const bgUpOpacity = useTransform(y, [-150, -20], [1, 0]);
-    const scaleUp = useTransform(y, [-150, -20], [1.2, 0.8]);
+    const bgDownOpacity = useTransform(y, [40, 150], [0, 1]);
+    const scaleDown = useTransform(y, [40, 150], [0.9, 1.1]);
 
-    // Double tap logic
+    const bgUpOpacity = useTransform(y, [-150, -40], [1, 0]);
+    const scaleUp = useTransform(y, [-150, -40], [1.1, 0.9]);
+
     const lastTap = useRef<number>(0);
     const handleTap = () => {
         const now = Date.now();
         const DOUBLE_TAP_DELAY = 300;
-
         vibrate('light');
-
         if (now - lastTap.current < DOUBLE_TAP_DELAY) {
             vibrate('medium');
             onDetails();
@@ -140,13 +136,12 @@ function SwipeableCard({
     };
 
     const handleDragEnd = (event: any, info: PanInfo) => {
-        const threshold = 180; // Increased threshold for more deliberate actions
+        const threshold = 140;
         const { x: offsetX, y: offsetY } = info.offset;
         const absX = Math.abs(offsetX);
         const absY = Math.abs(offsetY);
 
         if (absX > absY) {
-            // Horizontal Swipe
             if (offsetX > threshold) {
                 vibrate('success');
                 onSwipe('done');
@@ -155,12 +150,11 @@ function SwipeableCard({
                 onSwipe('dismiss');
             }
         } else {
-            // Vertical Swipe
             if (offsetY > threshold) {
                 vibrate('medium');
                 onSwipe('delete');
             } else if (offsetY < -threshold) {
-                vibrate('heavy');
+                vibrate('medium');
                 onDetails();
             }
         }
@@ -170,91 +164,65 @@ function SwipeableCard({
         <motion.div
             style={{
                 x: isTop ? x : 0,
-                y: isTop ? y : (isTop ? 0 : 20), // if not top, offset slightly
+                y: isTop ? y : (isTop ? 0 : 24),
                 rotate: isTop ? rotate : 0,
                 scale: isTop ? 1 : 0.95,
+                opacity: isTop ? opacity : 0.4,
                 zIndex: isTop ? 10 : 0
             }}
             drag={isTop ? true : false}
             dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-            dragElastic={1} // 1:1 movement, no lag
-            dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }} // Snappy return
+            dragElastic={0.8}
             onDragEnd={handleDragEnd}
             onTap={handleTap}
             initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: isTop ? 1 : 0.95, opacity: 1, y: isTop ? 0 : 24 }}
+            animate={{ scale: isTop ? 1 : 0.95, opacity: 1, y: isTop ? 0 : 20 }}
             exit={{
-                x: x.get() !== 0 ? (x.get() > 0 ? 500 : -500) : 0,
-                y: y.get() > 50 ? 500 : 0,
+                x: x.get() > 50 ? 500 : (x.get() < -50 ? -500 : 0),
+                y: y.get() > 50 ? 500 : (y.get() < -50 ? -500 : 0),
                 opacity: 0,
-                transition: { duration: 0.2 }
+                transition: { duration: 0.3 }
             }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            transition={springConfig}
             className="absolute inset-0 cursor-grab active:cursor-grabbing"
         >
-            <Card className="h-full flex flex-col justify-between bg-neutral-900 border-neutral-800 overflow-hidden relative">
+            <Card className="h-full flex flex-col justify-between bg-[var(--surface)] border-white/5 overflow-hidden relative shadow-2xl rounded-[32px]">
 
-                {/* Swipe Indicators */}
-                {/* Right: Done (Green) */}
-                <motion.div
-                    style={{ opacity: bgRightOpacity }}
-                    className="absolute inset-0 z-20 flex items-center justify-center bg-green-500/20 pointer-events-none"
-                >
-                    <motion.div style={{ scale: scaleRight }}>
-                        <Check size={48} className="text-white drop-shadow-md" />
-                    </motion.div>
+                {/* Swipe Indicators - Minimal and Physical */}
+                <motion.div style={{ opacity: bgRightOpacity }} className="absolute inset-0 z-20 flex items-center justify-center bg-[#10B981]/5 pointer-events-none">
+                    <motion.div style={{ scale: scaleRight }}><Check size={48} className="text-[#10B981]/20" /></motion.div>
                 </motion.div>
 
-                {/* Left: Dismiss (Neutral/Gray) */}
-                <motion.div
-                    style={{ opacity: bgLeftOpacity }}
-                    className="absolute inset-0 z-20 flex items-center justify-center bg-neutral-500/20 pointer-events-none"
-                >
-                    <motion.div style={{ scale: scaleLeft }}>
-                        <X size={48} className="text-white drop-shadow-md" />
-                    </motion.div>
+                <motion.div style={{ opacity: bgLeftOpacity }} className="absolute inset-0 z-20 flex items-center justify-center bg-white/5 pointer-events-none">
+                    <motion.div style={{ scale: scaleLeft }}><X size={48} className="text-white/10" /></motion.div>
                 </motion.div>
 
-                {/* Down: Delete (Red) */}
-                <motion.div
-                    style={{ opacity: bgDownOpacity }}
-                    className="absolute inset-0 z-20 flex items-center justify-center bg-red-500/20 pointer-events-none"
-                >
-                    <motion.div style={{ scale: scaleDown }}>
-                        <Trash2 size={48} className="text-white drop-shadow-md" />
-                    </motion.div>
+                <motion.div style={{ opacity: bgDownOpacity }} className="absolute inset-0 z-20 flex items-center justify-center bg-[#EF4444]/5 pointer-events-none">
+                    <motion.div style={{ scale: scaleDown }}><Trash2 size={48} className="text-[#EF4444]/20" /></motion.div>
                 </motion.div>
 
-                {/* Up: Details (Blue/Info) */}
-                <motion.div
-                    style={{ opacity: bgUpOpacity }}
-                    className="absolute inset-0 z-20 flex items-center justify-center bg-blue-500/20 pointer-events-none"
-                >
-                    <motion.div style={{ scale: scaleUp }}>
-                        <Info size={48} className="text-white drop-shadow-md" />
-                    </motion.div>
+                <motion.div style={{ opacity: bgUpOpacity }} className="absolute inset-0 z-20 flex items-center justify-center bg-white/5 pointer-events-none">
+                    <motion.div style={{ scale: scaleUp }}><Info size={48} className="text-white/10" /></motion.div>
                 </motion.div>
 
-
-                <div className="relative z-10 p-4">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className={clsx("text-xs font-bold uppercase tracking-wider px-2 py-1 rounded bg-white/10 text-white/50",
-                            item.type === 'task' ? 'text-blue-400' : 'text-yellow-400'
-                        )}>
+                <div className="relative z-10 p-6 pt-8">
+                    <div className="flex items-center justify-between mb-4">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">
                             {item.type}
                         </span>
-                        <div className="h-2 w-2 rounded-full bg-red-500" /> {/* Priority Dot */}
+                        <div className="h-1.5 w-1.5 rounded-full bg-[#EF4444]" />
                     </div>
-                    <h3 className="text-2xl font-bold text-white mb-1">{item.title}</h3>
-                    <p className="text-base text-neutral-400 leading-relaxed">{item.content}</p>
+                    <h3 className="text-xl font-bold text-white mb-2 leading-tight uppercase tracking-wide">{item.title}</h3>
+                    <p className="text-sm text-neutral-400 leading-relaxed font-medium">{item.content}</p>
                 </div>
 
-                <div className="relative z-10 mt-auto p-4">
-                    <div className="flex items-center gap-2 text-sm text-neutral-500 mb-2 justify-center">
-                        <span className="text-xs uppercase tracking-widest opacity-50">Swipe to interact</span>
-                    </div>
-                    <div className="h-1 w-full bg-neutral-800 rounded-full overflow-hidden">
-                        <div className="h-full w-2/3 bg-white/20" />
+                <div className="relative z-10 mt-auto p-6 pb-8">
+                    <div className="h-[2px] w-full bg-white/5 rounded-full overflow-hidden">
+                        <motion.div
+                            className="h-full bg-white/10"
+                            initial={{ width: "30%" }}
+                            animate={{ width: "60%" }}
+                        />
                     </div>
                 </div>
             </Card>

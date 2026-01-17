@@ -1,11 +1,35 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { DayItem } from './DayItem';
 import { mockTasks } from '@/data/mock';
 import { Task } from '@/types';
 import { Calendar as CalendarIcon, Trophy, TrendingUp } from 'lucide-react';
+
+const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.05,
+            delayChildren: 0.1
+        }
+    }
+};
+
+const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 12 },
+    show: {
+        opacity: 1,
+        y: 0,
+        transition: {
+            type: "spring",
+            stiffness: 260,
+            damping: 24
+        }
+    }
+};
 
 export const WeeklyTab = () => {
     // Generate current week days
@@ -42,13 +66,13 @@ export const WeeklyTab = () => {
     return (
         <div className="w-full min-h-screen bg-background pb-32">
             {/* Header Section */}
-            <div className="px-6 pt-12 pb-8 bg-neutral-900/50 rounded-b-[40px] border-b border-white/5 mb-6">
+            <div className="px-6 pt-12 pb-8 bg-[var(--surface)] rounded-b-[40px] border-b border-white/5 mb-6">
                 <div className="flex justify-between items-start mb-6">
                     <div>
-                        <h2 className="text-neutral-400 text-sm font-semibold uppercase tracking-wider mb-1">
+                        <h2 className="text-neutral-400 text-lg font-semibold uppercase tracking-wider mb-1">
                             Current Sprint
                         </h2>
-                        <h1 className="text-3xl font-bold text-white tracking-tight">
+                        <h1 className="text-xl font-bold text-white uppercase tracking-wider">
                             Build Phase 1
                         </h1>
                     </div>
@@ -98,18 +122,24 @@ export const WeeklyTab = () => {
             </div>
 
             {/* Days List */}
-            <div className="px-4 space-y-1">
+            <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+                className="px-4 space-y-1"
+            >
                 {weekData.map((day, index) => (
-                    <DayItem
-                        key={index}
-                        dayName={day.dayName}
-                        dayNumber={day.dayNumber}
-                        tasks={day.tasks}
-                        isToday={day.isToday}
-                        summary={day.tasks.length > 0 ? "Product & Design" : "Rest & Review"}
-                    />
+                    <motion.div key={index} variants={itemVariants}>
+                        <DayItem
+                            dayName={day.dayName}
+                            dayNumber={day.dayNumber}
+                            tasks={day.tasks}
+                            isToday={day.isToday}
+                            summary={day.tasks.length > 0 ? "Product & Design" : "Rest & Review"}
+                        />
+                    </motion.div>
                 ))}
-            </div>
+            </motion.div>
 
             {/* Bottom visual spacer */}
             <div className="h-12 flex items-center justify-center text-neutral-700 text-xs font-medium uppercase tracking-widest mt-8">

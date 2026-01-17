@@ -21,7 +21,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                         exit={{ opacity: 0 }}
                         onClick={onClose}
                         onPointerDown={(e) => e.stopPropagation()} // Prevent parent horizontal swipes
-                        className="absolute inset-0 z-40 bg-black/60 backdrop-blur-sm"
+                        className="absolute inset-0 z-40 bg-black/80"
                     />
 
                     {/* Modal Content */}
@@ -29,7 +29,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                         initial={{ y: '100%' }}
                         animate={{ y: '0%' }}
                         exit={{ y: '100%' }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                        transition={{ type: 'spring', damping: 22, stiffness: 180 }}
                         drag="y"
                         dragConstraints={{ top: 0 }}
                         dragElastic={{ top: 0, bottom: 0.2 }}
@@ -39,10 +39,10 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                             }
                         }}
                         onPointerDown={(e) => e.stopPropagation()} // Prevent parent horizontal swipes
-                        className="absolute inset-x-0 bottom-0 z-50 p-4 h-[85vh] bg-neutral-900 rounded-t-[32px] border-t border-white/10 shadow-2xl cursor-grab active:cursor-grabbing"
+                        className="absolute inset-x-0 bottom-0 z-50 p-4 h-[85vh] bg-[var(--surface)] rounded-t-[32px] border-t border-white/10 shadow-2xl cursor-grab active:cursor-grabbing"
                     >
                         {/* Drag Handle */}
-                        <div className="w-12 h-1.5 bg-neutral-800 rounded-full mx-auto mb-6 opacity-50" />
+                        <div className="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-6 opacity-50" />
 
 
                         <div className="flex flex-col items-center justify-center h-full text-neutral-500 space-y-4 pb-20">

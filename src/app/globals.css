@@ -3,13 +3,10 @@
 :root {
   /* Design Tokens - Dark Mode Only */
   --background: #0B0B0B;
+  --surface: #121212;
   --foreground: #FFFFFF;
   --foreground-secondary: #E5E5E5;
   --foreground-muted: #9CA3AF;
-
-  /* Shared Grays */
-  --gray-800: #1F2937;
-  --gray-900: #111827;
 
   /* Priority Colors */
   --priority-high: #EF4444;
@@ -18,13 +15,15 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-fredoka), "Fredoka", sans-serif;
+  --font-sans: "Fredoka", system-ui, -apple-system, sans-serif;
+  --color-background: var(--background);
+  --color-surface: var(--surface);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-fredoka), "Fredoka", sans-serif;
+  font-family: var(--font-sans);
 
   /* App-like behavior modifiers */
   overscroll-behavior-y: none;

@@ -65,7 +65,7 @@ export function ChatTab() {
     return (
         <div className="relative w-full h-full bg-background flex flex-col">
             <header className="flex-none h-14 flex items-center justify-center px-4 bg-background z-10 mt-2 mb-4">
-                <h1 className="text-3xl font-bold text-white tracking-tight">Chat</h1>
+                <h1 className="text-xl font-bold text-white uppercase tracking-wider">Chat</h1>
             </header>
 
             {/* Messages Area */}
@@ -79,9 +79,9 @@ export function ChatTab() {
                         className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}
                     >
                         <div
-                            className={`max-w-[80%] px-4 py-3 text-[15px] leading-relaxed rounded-3xl ${msg.isUser
-                                ? 'bg-neutral-800 text-white'
-                                : 'bg-transparent border border-neutral-800 text-neutral-200'
+                            className={`max-w-[80%] px-4 py-3 text-base leading-relaxed rounded-3xl ${msg.isUser
+                                ? 'bg-[var(--surface)] text-white'
+                                : 'bg-transparent border border-white/10 text-neutral-200'
                                 }`}
                         >
                             {msg.text}
@@ -95,9 +95,9 @@ export function ChatTab() {
             {/* fixed positioning ensures it stays on top and anchors to viewport bottom */}
             {/* Floating Input Layer */}
             <div className="fixed bottom-0 left-0 w-full px-4 pb-[max(env(safe-area-inset-bottom),16px)] z-50">
-                <div className="w-full max-w-screen-xl mx-auto bg-neutral-900/90 backdrop-blur-md border border-white/10 rounded-[32px] p-1.5 flex items-center gap-2 shadow-2xl">
+                <div className="w-full max-w-screen-xl mx-auto bg-[var(--surface)] border border-white/10 rounded-[32px] p-1.5 flex items-center gap-2 shadow-2xl">
                     {/* Add Button */}
-                    <button className="flex-none w-10 h-10 rounded-full bg-neutral-800 text-neutral-400 flex items-center justify-center hover:text-white hover:bg-neutral-700 transition-colors">
+                    <button className="flex-none w-10 h-10 rounded-full bg-white/5 text-neutral-400 flex items-center justify-center hover:text-white hover:bg-white/10 transition-colors">
                         <Plus size={22} />
                     </button>
 
