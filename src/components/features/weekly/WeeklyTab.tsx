@@ -19,7 +19,7 @@ const containerVariants: Variants = {
     }
 };
 
-export const WeeklyTab = () => {
+export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) => {
     const springConfig = useSlimySpring();
 
     const itemVariants: Variants = {
@@ -72,9 +72,15 @@ export const WeeklyTab = () => {
                         <h2 className="text-neutral-400 text-lg font-semibold uppercase tracking-wider mb-1">
                             Current Sprint
                         </h2>
-                        <h1 className="text-xl font-bold text-white uppercase tracking-wider">
-                            Build Phase 1
-                        </h1>
+                        <motion.button 
+                            whileTap={{ scale: 0.97 }} 
+                            onClick={onOpenSettings}
+                            className="text-left focus:outline-none"
+                        >
+                            <h1 className="text-xl font-bold text-white uppercase tracking-wider">
+                                Build Phase 1
+                            </h1>
+                        </motion.button>
                     </div>
                     {/* Weekly Progress Ring */}
                     <div className="relative w-16 h-16 flex items-center justify-center">

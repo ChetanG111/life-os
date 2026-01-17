@@ -27,7 +27,7 @@ const containerVariants: Variants = {
     }
 };
 
-export const TasksTab = () => {
+export const TasksTab = ({ onOpenSettings }: { onOpenSettings: () => void }) => {
     const [tasks, setTasks] = useState<Task[]>(mockTasks);
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const springConfig = useSlimySpring();
@@ -57,9 +57,15 @@ export const TasksTab = () => {
     return (
         <div className="w-full min-h-screen px-4 py-safe-top bg-background pb-32">
             <header className="relative flex justify-center items-center py-4 px-2 mb-2">
-                <h1 className="text-xl font-bold text-white uppercase tracking-wider">
-                    Tasks
-                </h1>
+                <motion.button 
+                    whileTap={{ scale: 0.97 }} 
+                    onClick={onOpenSettings}
+                    className="group flex items-center gap-1.5 focus:outline-none"
+                >
+                    <h1 className="text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200 transition-colors">
+                        Tasks
+                    </h1>
+                </motion.button>
             </header>
 
             <motion.div

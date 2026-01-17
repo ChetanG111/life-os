@@ -29,7 +29,7 @@ const INITIAL_MESSAGES: Message[] = [
     },
 ];
 
-export function ChatTab() {
+export function ChatTab({ onOpenSettings }: { onOpenSettings: () => void }) {
     const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
     const [inputValue, setInputValue] = useState('');
     const endOfMessagesRef = useRef<HTMLDivElement>(null);
@@ -71,7 +71,15 @@ export function ChatTab() {
     return (
         <div className="relative w-full h-full bg-background flex flex-col py-safe-top">
             <header className="flex-none relative flex justify-center items-center py-4 px-2 mb-2 z-10">
-                <h1 className="text-xl font-bold text-white uppercase tracking-wider">Chat</h1>
+                <motion.button 
+                    whileTap={{ scale: 0.97 }} 
+                    onClick={onOpenSettings}
+                    className="group flex items-center gap-1.5 focus:outline-none"
+                >
+                    <h1 className="text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200 transition-colors">
+                        Chat
+                    </h1>
+                </motion.button>
             </header>
 
             {/* Messages Area */}

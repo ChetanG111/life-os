@@ -14,6 +14,8 @@ import { NotesTab } from '@/components/features/notes/NotesTab';
 import { WeeklyTab } from '@/components/features/weekly/WeeklyTab';
 import { ChatTab } from '@/components/features/chat/ChatTab';
 
+import { SettingsModal } from '../features/settings/SettingsModal';
+
 // Placeholder content - To be replaced by actual Feature components
 const PlaceholderTab = ({ text }: { text: string }) => (
     <div className="flex flex-col items-center justify-center h-full p-6 text-center space-y-4">
@@ -25,21 +27,18 @@ const PlaceholderTab = ({ text }: { text: string }) => (
 const TabContent = ({ 
     activeTab, 
     onModalToggle,
-    settings
+    onOpenSettings
 }: { 
     activeTab: TabId, 
     onModalToggle: (isOpen: boolean) => void,
-    settings: {
-        showBottomNav: boolean;
-        setShowBottomNav: (show: boolean) => void;
-    }
+    onOpenSettings: () => void
 }) => {
     switch (activeTab) {
-        case 'tasks': return <TasksTab />;
-        case 'notes': return <NotesTab />;
-        case 'overview': return <Feed onModalToggle={onModalToggle} settings={settings} />;
-        case 'chat': return <ChatTab />;
-        case 'weekly': return <WeeklyTab />;
+        case 'tasks': return <TasksTab onOpenSettings={onOpenSettings} />;
+        case 'notes': return <NotesTab onOpenSettings={onOpenSettings} />;
+        case 'overview': return <Feed onModalToggle={onModalToggle} onOpenSettings={onOpenSettings} />;
+        case 'chat': return <ChatTab onOpenSettings={onOpenSettings} />;
+        case 'weekly': return <WeeklyTab onOpenSettings={onOpenSettings} />;
         default: return null;
     }
 };
@@ -51,6 +50,7 @@ export function NavigationShell() {
     const [showBottomNav, setShowBottomNav] = useState(false);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     // Track drag physics for BottomNav
     const x = useMotionValue(0);
@@ -143,8 +143,8 @@ export function NavigationShell() {
                     initial="enter"
                     animate="center"
                     exit="exit"
-                    // Drag configuration for swipe support
-                    drag={isModalOpen ? false : "x"}
+                    // Drag configuration for swipe support. Disable if ANY modal is open.
+                    drag={isModalOpen || isSettingsOpen ? false : "x"}
                     dragConstraints={{ left: 0, right: 0 }}
                     dragElastic={{
                         left: activeTab === 'weekly' ? 0.4 : 0.1, // Stronger resistance at the very end
@@ -162,7 +162,10 @@ export function NavigationShell() {
                     <TabContent 
                         activeTab={activeTab} 
                         onModalToggle={setIsModalOpen} 
-                        settings={{ showBottomNav, setShowBottomNav }}
+                        onOpenSettings={() => {
+                            vibrate('light');
+                            setIsSettingsOpen(true);
+                        }}
                     />
                 </motion.main>
             </AnimatePresence>
@@ -175,6 +178,13 @@ export function NavigationShell() {
                     offset={navX}
                 />
             )}
+
+            <SettingsModal 
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+                showBottomNav={showBottomNav}
+                onToggleBottomNav={setShowBottomNav}
+            />
         </div>
     );
 }

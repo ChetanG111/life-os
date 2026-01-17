@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { SwipeFeed, MOCK_ITEMS, FeedItem } from './SwipeFeed';
 import { QuickAddModal } from './QuickAddModal';
-import { SettingsModal } from '../settings/SettingsModal';
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
@@ -13,15 +12,11 @@ type FeedMode = 'stack' | 'list';
 
 interface FeedProps {
     onModalToggle?: (isOpen: boolean) => void;
-    settings?: {
-        showBottomNav: boolean;
-        setShowBottomNav: (show: boolean) => void;
-    };
+    onOpenSettings: () => void;
 }
 
-export function Feed({ onModalToggle, settings }: FeedProps) {
+export function Feed({ onModalToggle, onOpenSettings }: FeedProps) {
     const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
-    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     
     // Lifted State for Feed Items
     const [items, setItems] = useState<FeedItem[]>(MOCK_ITEMS);
@@ -29,9 +24,9 @@ export function Feed({ onModalToggle, settings }: FeedProps) {
     // Notify parent when modal state changes to disable/enable main swipes
     useEffect(() => {
         if (onModalToggle) {
-            onModalToggle(isQuickAddOpen || isSettingsOpen);
+            onModalToggle(isQuickAddOpen);
         }
-    }, [isQuickAddOpen, isSettingsOpen, onModalToggle]);
+    }, [isQuickAddOpen, onModalToggle]);
 
     const handleSwipe = (id: string, action: 'done' | 'dismiss' | 'delete') => {
         // In a real app, we'd trigger an API call here.
@@ -50,10 +45,7 @@ export function Feed({ onModalToggle, settings }: FeedProps) {
             <header className="relative flex justify-center items-center py-4 px-2 mb-2">
                 <motion.button 
                     whileTap={{ scale: 0.97 }}
-                    onClick={() => {
-                        vibrate('light');
-                        setIsSettingsOpen(true);
-                    }}
+                    onClick={onOpenSettings}
                     className="group flex items-center gap-1.5 focus:outline-none"
                 >
                     <h1 className="text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200 transition-colors">
@@ -87,16 +79,6 @@ export function Feed({ onModalToggle, settings }: FeedProps) {
                 onClose={() => setIsQuickAddOpen(false)}
                 onAdd={handleAdd}
             />
-            
-            {/* Settings Modal */}
-            {settings && (
-                <SettingsModal 
-                    isOpen={isSettingsOpen} 
-                    onClose={() => setIsSettingsOpen(false)}
-                    showBottomNav={settings.showBottomNav}
-                    onToggleBottomNav={settings.setShowBottomNav}
-                />
-            )}
         </div>
     );
 }
