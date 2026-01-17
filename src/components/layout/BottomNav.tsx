@@ -46,7 +46,12 @@ export function BottomNav({ activeTab, onTabChange, isVisible, offset }: BottomN
                     return (
                         <button
                             key={tab}
-                            onClick={() => onTabChange(tab)}
+                            onClick={() => {
+                                if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                                    navigator.vibrate(10);
+                                }
+                                onTabChange(tab);
+                            }}
                             className={clsx(
                                 "relative flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 focus:outline-none",
                                 isActive ? "text-black" : "text-neutral-500 hover:text-white"

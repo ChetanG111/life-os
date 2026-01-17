@@ -18,6 +18,12 @@ export const NoteCard = ({ note }: NoteCardProps) => {
             layout
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            whileTap={{ scale: 0.98 }}
+            onTap={() => {
+                if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                    navigator.vibrate(10);
+                }
+            }}
             transition={{ type: "spring", stiffness: 350, damping: 25 }}
             className="w-full bg-[#1A1A1A] rounded-2xl p-4 mb-3 border border-white/5 overflow-hidden break-inside-avoid"
         >

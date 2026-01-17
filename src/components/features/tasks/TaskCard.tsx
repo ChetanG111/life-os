@@ -17,12 +17,20 @@ export const TaskCard = ({ task }: TaskCardProps) => {
     const handleDragEnd = (_: any, info: PanInfo) => {
         if (info.offset.x > 100) {
             // Swiped right - Complete
+            if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(20);
             setIsComplete(true);
         } else if (info.offset.x < -100) {
             // Swiped left - Dismiss/Delete logic would go here
+            if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(20);
             setOffset(0);
         } else {
             setOffset(0);
+        }
+    };
+
+    const handleTap = () => {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+            navigator.vibrate(10);
         }
     };
 
@@ -51,6 +59,7 @@ export const TaskCard = ({ task }: TaskCardProps) => {
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
                 onDragEnd={handleDragEnd}
+                onTap={handleTap}
                 style={{ x: offset }}
                 whileTap={{ scale: 0.98 }}
                 className={clsx(

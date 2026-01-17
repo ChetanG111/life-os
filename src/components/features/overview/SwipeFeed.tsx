@@ -20,6 +20,9 @@ const MOCK_ITEMS: FeedItem[] = [
     { id: '2', title: 'Gym Session', type: 'task', content: 'Leg day - focus on squats.', color: 'bg-red-500' },
     { id: '3', title: 'Quick Idea', type: 'note', content: 'App concept: Life OS wrapper.', color: 'bg-yellow-500' },
     { id: '4', title: 'Read Book', type: 'task', content: '30 mins of Deep Work.', color: 'bg-purple-500' },
+    { id: '5', title: 'Grocery List', type: 'task', content: 'Eggs, Milk, Chicken, and Avocados.', color: 'bg-green-500' },
+    { id: '6', title: 'Meeting Prep', type: 'task', content: 'Review the slide deck for tomorrow.', color: 'bg-orange-500' },
+    { id: '7', title: 'Reflection', type: 'note', content: 'What was the best part of today?', color: 'bg-teal-500' },
 ];
 
 export function SwipeFeed() {
@@ -125,7 +128,15 @@ function SwipeableCard({
     const handleTap = () => {
         const now = Date.now();
         const DOUBLE_TAP_DELAY = 300;
+        
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+            navigator.vibrate(10); // Light tap feedback
+        }
+
         if (now - lastTap.current < DOUBLE_TAP_DELAY) {
+            if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                navigator.vibrate(50); // Stronger double-tap feedback
+            }
             onDetails();
         }
         lastTap.current = now;
@@ -140,15 +151,19 @@ function SwipeableCard({
         if (absX > absY) {
             // Horizontal Swipe
             if (offsetX > threshold) {
+                if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(20);
                 onSwipe('done');
             } else if (offsetX < -threshold) {
+                if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(20);
                 onSwipe('dismiss');
             }
         } else {
             // Vertical Swipe
             if (offsetY > threshold) {
+                if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(20);
                 onSwipe('delete');
             } else if (offsetY < -threshold) {
+                if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50);
                 onDetails();
             }
         }
@@ -165,7 +180,8 @@ function SwipeableCard({
             }}
             drag={isTop ? true : false}
             dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-            dragElastic={0.6}
+            dragElastic={1} // 1:1 movement, no lag
+            dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }} // Snappy return
             onDragEnd={handleDragEnd}
             onTap={handleTap}
             initial={{ scale: 0.9, opacity: 0 }}
