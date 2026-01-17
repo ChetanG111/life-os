@@ -1,7 +1,7 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mic, Image, Link, ArrowUp, CheckCircle2, Sparkles, Hash } from 'lucide-react';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
+import { Mic, Image, Link, ArrowUp, CheckCircle2, Sparkles, Hash } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useBackToClose } from '@/hooks/use-back-to-close';
 import { vibrate } from '@/utils/haptics';
@@ -24,6 +24,7 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
     const [status, setStatus] = useState<InputState>('idle');
     const [selectedType, setSelectedType] = useState<ItemType>('task');
     const inputRef = useRef<HTMLTextAreaElement>(null);
+    const dragControls = useDragControls();
 
     useBackToClose(isOpen, onClose);
     useLockBodyScroll(isOpen);
@@ -129,19 +130,30 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
                         animate={{ y: '0%' }}
                         exit={{ y: '100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                        drag="y"
+                        dragControls={dragControls}
+                        dragListener={false}
+                        dragConstraints={{ top: 0, bottom: 0 }}
+                        dragElastic={{ top: 0.05, bottom: 0.7 }}
+                        onDragEnd={(_, info) => {
+                            if (info.offset.y > 100 || info.velocity.y > 300) {
+                                vibrate('light');
+                                onClose();
+                            }
+                        }}
                         className="fixed inset-x-0 bottom-0 z-50 h-[85vh] bg-[var(--surface)] rounded-t-[32px] overflow-hidden flex flex-col border-t border-white/10"
                     >
-                        {/* Header */}
-                        <div className="flex-none pt-6 pb-2 px-6 flex items-center justify-between">
-                            <h2 className="text-xl font-bold text-white capitalize">
-                                New {selectedType}
-                            </h2>
-                            <button
-                                onClick={onClose}
-                                className="p-2 -mr-2 text-neutral-400 hover:text-white transition-colors bg-white/5 rounded-full"
-                            >
-                                <X size={20} />
-                            </button>
+                        {/* Header & Drag Handle */}
+                        <div 
+                            onPointerDown={(e) => dragControls.start(e)}
+                            className="flex-none pt-4 pb-2 px-6 flex flex-col items-center cursor-grab active:cursor-grabbing touch-none"
+                        >
+                            <div className="w-12 h-1.5 bg-neutral-700 rounded-full mb-4" />
+                            <div className="w-full flex items-center justify-center">
+                                <h2 className="text-xl font-bold text-white capitalize">
+                                    New {selectedType}
+                                </h2>
+                            </div>
                         </div>
 
                         {/* Type Selector Grid - Moved to Top */}
