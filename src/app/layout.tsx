@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fredoka } from "next/font/google";
 import "./globals.css";
 import { MotionProvider } from "@/context/MotionContext";
+import { SettingsProvider } from "@/context/SettingsContext";
 
 const fredoka = Fredoka({
   variable: "--font-sans",
@@ -38,9 +39,11 @@ export default function RootLayout({
       <body
         className={`${fredoka.variable} font-sans antialiased`}
       >
-        <MotionProvider>
-          {children}
-        </MotionProvider>
+        <SettingsProvider>
+          <MotionProvider>
+            {children}
+          </MotionProvider>
+        </SettingsProvider>
       </body>
     </html>
   );

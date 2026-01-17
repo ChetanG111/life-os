@@ -1,11 +1,12 @@
 'use client';
 
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
-import { ChevronRight, Smartphone, Layout, Zap, Database, Activity } from 'lucide-react';
+import { ChevronRight, Smartphone, Layout, Zap, Database, Activity, Keyboard } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
 import { useBackToClose } from '@/hooks/use-back-to-close';
 import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
 import { useMotion } from '@/context/MotionContext';
+import { useSettings } from '@/context/SettingsContext';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
 
 interface SettingsModalProps {
@@ -18,6 +19,7 @@ interface SettingsModalProps {
 export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNav }: SettingsModalProps) {
     const dragControls = useDragControls();
     const { intensity, setIntensity } = useMotion();
+    const { autoFocusQuickAdd, setAutoFocusQuickAdd } = useSettings();
     const springConfig = useSlimySpring();
     
     // Handle back button behavior
@@ -164,6 +166,45 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                                                 initial={false}
                                                 animate={{
                                                     x: showBottomNav ? 22 : 2
+                                                }}
+                                                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                                className="absolute top-1 left-0 w-5 h-5 bg-black rounded-full shadow-sm"
+                                            />
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.section>
+
+                            {/* Section: Behavior */}
+                            <motion.section variants={slimyItem}>
+                                <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-4 px-1">
+                                    Behavior
+                                </h3>
+                                <div className="bg-[var(--surface)] rounded-2xl overflow-hidden border border-white/5">
+                                    <div className="flex items-center justify-between p-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-500">
+                                                <Keyboard size={20} />
+                                            </div>
+                                            <div>
+                                                <p className="font-medium text-white">Auto-focus Keyboard</p>
+                                                <p className="text-xs text-neutral-500">Open keyboard on Quick Add</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <button
+                                            onClick={() => {
+                                                vibrate('medium');
+                                                setAutoFocusQuickAdd(!autoFocusQuickAdd);
+                                            }}
+                                            className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${
+                                                autoFocusQuickAdd ? 'bg-white' : 'bg-neutral-800'
+                                            }`}
+                                        >
+                                            <motion.div
+                                                initial={false}
+                                                animate={{
+                                                    x: autoFocusQuickAdd ? 22 : 2
                                                 }}
                                                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
                                                 className="absolute top-1 left-0 w-5 h-5 bg-black rounded-full shadow-sm"

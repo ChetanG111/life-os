@@ -8,6 +8,7 @@ import { vibrate } from '@/utils/haptics';
 import clsx from 'clsx';
 import { FeedItem } from './SwipeFeed';
 import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
+import { useSettings } from '@/context/SettingsContext';
 
 type InputState = 'idle' | 'listening' | 'processing' | 'success';
 type ItemType = 'task' | 'note' | 'idea' | 'goal';
@@ -25,6 +26,7 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
     const [selectedType, setSelectedType] = useState<ItemType>('task');
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const dragControls = useDragControls();
+    const { autoFocusQuickAdd } = useSettings();
 
     useBackToClose(isOpen, onClose);
     useLockBodyScroll(isOpen);
@@ -35,9 +37,11 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
             setStatus('idle');
             setText('');
             // Focus input after animation
-            setTimeout(() => inputRef.current?.focus(), 400);
+            if (autoFocusQuickAdd) {
+                setTimeout(() => inputRef.current?.focus(), 400);
+            }
         }
-    }, [isOpen]);
+    }, [isOpen, autoFocusQuickAdd]);
 
     const handleSubmit = () => {
         if (!text.trim()) return;
