@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Clock, Tag, AlignLeft, CheckCircle2, Trash2 } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
 import { useBackToClose } from '@/hooks/use-back-to-close';
+import { useState, useEffect } from 'react';
 
 interface CardDetailModalProps {
     isOpen: boolean;
@@ -22,7 +23,15 @@ interface CardDetailModalProps {
 export function CardDetailModal({ isOpen, onClose, item }: CardDetailModalProps) {
     useBackToClose(isOpen, onClose);
 
-    if (!item) return null;
+    const [activeItem, setActiveItem] = useState(item);
+
+    useEffect(() => {
+        if (item) {
+            setActiveItem(item);
+        }
+    }, [item]);
+
+    if (!activeItem) return null;
 
     const priorityColors = {
         high: 'bg-red-500',
@@ -45,7 +54,7 @@ export function CardDetailModal({ isOpen, onClose, item }: CardDetailModalProps)
 
                     {/* Modal Card */}
                     <motion.div
-                        layoutId={`card-${item.id}`} // Setup for potential shared element transition later
+                        layoutId={`card-${activeItem.id}`} // Setup for potential shared element transition later
                         initial={{ scale: 0.9, opacity: 0, y: 20 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -69,10 +78,10 @@ export function CardDetailModal({ isOpen, onClose, item }: CardDetailModalProps)
                                 
                                 <div className="absolute bottom-6 left-6 flex items-center gap-2">
                                     <span className="px-3 py-1 rounded-full bg-white/10 text-xs font-bold uppercase tracking-wider text-white/80 border border-white/5">
-                                        {item.type}
+                                        {activeItem.type}
                                     </span>
-                                    {item.priority && (
-                                        <span className={`w-3 h-3 rounded-full ${priorityColors[item.priority]}`} />
+                                    {activeItem.priority && (
+                                        <span className={`w-3 h-3 rounded-full ${priorityColors[activeItem.priority]}`} />
                                     )}
                                 </div>
                             </div>
@@ -80,16 +89,16 @@ export function CardDetailModal({ isOpen, onClose, item }: CardDetailModalProps)
                             {/* Content */}
                             <div className="flex-1 overflow-y-auto px-6 py-2">
                                 <h2 className="text-2xl font-bold text-white mb-6 leading-tight">
-                                    {item.title}
+                                    {activeItem.title}
                                 </h2>
 
                                 <div className="space-y-6">
                                     {/* Meta Data Row */}
                                     <div className="flex flex-wrap gap-4 text-neutral-400">
-                                        {item.dueTime && (
+                                        {activeItem.dueTime && (
                                             <div className="flex items-center gap-2 text-sm bg-white/5 px-3 py-1.5 rounded-lg">
                                                 <Clock size={16} />
-                                                <span>{item.dueTime}</span>
+                                                <span>{activeItem.dueTime}</span>
                                             </div>
                                         )}
                                         {/* Date placeholder */}
@@ -101,7 +110,7 @@ export function CardDetailModal({ isOpen, onClose, item }: CardDetailModalProps)
 
                                     {/* Main Body */}
                                     <div className="prose prose-invert prose-p:text-neutral-300 prose-p:text-base prose-p:leading-relaxed max-w-none">
-                                        <p>{item.content}</p>
+                                        <p>{activeItem.content}</p>
                                         <p className="text-neutral-500">
                                             {/* Placeholder for longer content logic */}
                                             Additional details regarding this task would go here. The quick add modal only captures the essence, but here we can expand.
@@ -109,10 +118,10 @@ export function CardDetailModal({ isOpen, onClose, item }: CardDetailModalProps)
                                     </div>
 
                                     {/* Tags */}
-                                    {item.tags && item.tags.length > 0 && (
+                                    {activeItem.tags && activeItem.tags.length > 0 && (
                                         <div className="pt-4 border-t border-white/5">
                                             <div className="flex flex-wrap gap-2">
-                                                {item.tags.map(tag => (
+                                                {activeItem.tags.map(tag => (
                                                     <span key={tag} className="flex items-center gap-1.5 text-xs font-medium text-neutral-400 bg-neutral-800 px-2.5 py-1 rounded-md">
                                                         <Tag size={12} />
                                                         {tag}

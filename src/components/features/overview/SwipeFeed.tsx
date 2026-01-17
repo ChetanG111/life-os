@@ -8,7 +8,7 @@ import clsx from 'clsx';
 import { vibrate } from '@/utils/haptics';
 import { CardDetailModal } from '../cards/CardDetailModal';
 
-interface FeedItem {
+export interface FeedItem {
     id: string;
     title: string;
     type: 'task' | 'note';
@@ -20,7 +20,7 @@ interface FeedItem {
 }
 
 // Mock Data
-const MOCK_ITEMS: FeedItem[] = [
+export const MOCK_ITEMS: FeedItem[] = [
     { id: '1', title: 'Review Annual Goals', type: 'task', content: 'Check alignment with Q1 objectives.', color: 'bg-blue-500', priority: 'high', tags: ['Planning'], dueTime: '2:00 PM' },
     { id: '2', title: 'Gym Session', type: 'task', content: 'Leg day - focus on squats.', color: 'bg-red-500', priority: 'medium', tags: ['Health'] },
     { id: '3', title: 'Quick Idea', type: 'note', content: 'App concept: Life OS wrapper.', color: 'bg-yellow-500', tags: ['Idea'] },
@@ -30,19 +30,18 @@ const MOCK_ITEMS: FeedItem[] = [
     { id: '7', title: 'Reflection', type: 'note', content: 'What was the best part of today?', color: 'bg-teal-500', tags: ['Journal'] },
 ];
 
-export function SwipeFeed() {
-    const [items, setItems] = useState(MOCK_ITEMS);
-    const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
+interface SwipeFeedProps {
+    items: FeedItem[];
+    onSwipe: (id: string, action: 'done' | 'dismiss' | 'delete') => void;
+}
+
+export function SwipeFeed({ items, onSwipe }: SwipeFeedProps) {
     const [detailsId, setDetailsId] = useState<string | null>(null);
 
     // We only show the top 2 cards effectively for performance/visuals
-    const activeItems = items.filter(i => !removedIds.has(i.id));
+    // Parent manages the list, so 'items' are all active items.
+    const activeItems = items;
     const topCard = activeItems[0];
-
-    const removeCard = (id: string, action: 'done' | 'dismiss' | 'delete') => {
-        setRemovedIds(prev => new Set(prev).add(id));
-        console.log(`Card ${id} action: ${action}`);
-    };
 
     const showDetails = (id: string) => {
         setDetailsId(id);
@@ -55,12 +54,6 @@ export function SwipeFeed() {
             <div className="flex h-full flex-col items-center justify-center text-neutral-500">
                 <Check size={48} className="mb-4 opacity-20" />
                 <p>All caught up!</p>
-                <button
-                    onClick={() => setRemovedIds(new Set())}
-                    className="mt-8 px-6 py-2 rounded-full bg-white/5 text-sm font-medium hover:bg-white/10"
-                >
-                    Reset Demo
-                </button>
             </div>
         );
     }
@@ -77,7 +70,7 @@ export function SwipeFeed() {
                                 key={item.id}
                                 item={item}
                                 isTop={isTop}
-                                onSwipe={(action) => removeCard(item.id, action)}
+                                onSwipe={(action) => onSwipe(item.id, action)}
                                 onDetails={() => showDetails(item.id)}
                             />
                         );

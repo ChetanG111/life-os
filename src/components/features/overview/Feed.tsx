@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { SwipeFeed } from './SwipeFeed';
+import { SwipeFeed, MOCK_ITEMS, FeedItem } from './SwipeFeed';
 import { QuickAddModal } from './QuickAddModal';
 import { SettingsModal } from '../settings/SettingsModal';
 import { motion } from 'framer-motion';
@@ -22,6 +22,9 @@ interface FeedProps {
 export function Feed({ onModalToggle, settings }: FeedProps) {
     const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    
+    // Lifted State for Feed Items
+    const [items, setItems] = useState<FeedItem[]>(MOCK_ITEMS);
 
     // Notify parent when modal state changes to disable/enable main swipes
     useEffect(() => {
@@ -29,6 +32,17 @@ export function Feed({ onModalToggle, settings }: FeedProps) {
             onModalToggle(isQuickAddOpen || isSettingsOpen);
         }
     }, [isQuickAddOpen, isSettingsOpen, onModalToggle]);
+
+    const handleSwipe = (id: string, action: 'done' | 'dismiss' | 'delete') => {
+        // In a real app, we'd trigger an API call here.
+        // For now, just remove it from the local view.
+        setItems(prev => prev.filter(item => item.id !== id));
+        console.log(`Item ${id} swiped: ${action}`);
+    };
+
+    const handleAdd = (newItem: FeedItem) => {
+        setItems(prev => [newItem, ...prev]);
+    };
 
     return (
         <div className="relative h-full w-full py-safe-top px-4 overflow-hidden">
@@ -51,7 +65,7 @@ export function Feed({ onModalToggle, settings }: FeedProps) {
             {/* Main Feed Content - Shifted up slightly with pb-16/mb-16 logic to accommodate FAB visually if needed, 
                 but user asked to "move cards slightly up". We'll use a wrapper with padding-bottom. */}
             <div className="h-[calc(100%-80px)] pb-16">
-                <SwipeFeed />
+                <SwipeFeed items={items} onSwipe={handleSwipe} />
             </div>
 
             {/* Quick Add FAB */}
@@ -68,7 +82,11 @@ export function Feed({ onModalToggle, settings }: FeedProps) {
             </motion.button>
 
             {/* Quick Add Modal Overlay */}
-            <QuickAddModal isOpen={isQuickAddOpen} onClose={() => setIsQuickAddOpen(false)} />
+            <QuickAddModal 
+                isOpen={isQuickAddOpen} 
+                onClose={() => setIsQuickAddOpen(false)}
+                onAdd={handleAdd}
+            />
             
             {/* Settings Modal */}
             {settings && (

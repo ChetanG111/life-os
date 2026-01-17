@@ -102,28 +102,33 @@ export function NavigationShell() {
     const variants: Variants = {
         enter: (direction: number) => ({
             x: direction > 0 ? '100%' : '-100%',
-            opacity: 1,
+            opacity: 0,
+            scale: 0.95, // Depth effect on entry
             zIndex: 0,
-            pointerEvents: 'none', // Prevent interaction during entry
+            pointerEvents: 'none',
         }),
         center: {
             zIndex: 1,
             x: 0,
             opacity: 1,
-            pointerEvents: 'auto', // Enable interaction when centered
+            scale: 1,
+            pointerEvents: 'auto',
             transition: {
-                x: { type: "spring", stiffness: 180, damping: 22 },
-                opacity: { duration: 0.2 }
+                x: { type: "spring", stiffness: 280, damping: 28 }, // Snappier spring
+                opacity: { duration: 0.35, ease: "easeOut" },
+                scale: { duration: 0.35, ease: "easeOut" }
             }
         },
         exit: (direction: number) => ({
             zIndex: 0,
             x: direction < 0 ? '100%' : '-100%',
-            opacity: 1,
+            opacity: 0,
+            scale: 0.95, // Depth effect on exit
             pointerEvents: 'none',
             transition: {
-                x: { type: "spring", stiffness: 180, damping: 22 },
-                opacity: { duration: 0.2 }
+                x: { type: "spring", stiffness: 280, damping: 28 },
+                opacity: { duration: 0.2 },
+                scale: { duration: 0.3 }
             }
         })
     };
