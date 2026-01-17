@@ -10,6 +10,8 @@ import { Feed } from '@/components/features/overview/Feed';
 import { TasksTab } from '@/components/features/tasks/TasksTab';
 import { NotesTab } from '@/components/features/notes/NotesTab';
 
+import { WeeklyTab } from '@/components/features/weekly/WeeklyTab';
+
 // Placeholder content - To be replaced by actual Feature components
 const PlaceholderTab = ({ text }: { text: string }) => (
     <div className="flex flex-col items-center justify-center h-full p-6 text-center space-y-4">
@@ -23,7 +25,7 @@ const TabContent: Record<TabId, React.ReactNode> = {
     notes: <NotesTab />,
     overview: <Feed />,
     chat: <PlaceholderTab text="Chat" />,
-    weekly: <PlaceholderTab text="Weekly" />,
+    weekly: <WeeklyTab />,
 };
 
 export function NavigationShell() {
@@ -142,7 +144,7 @@ export function NavigationShell() {
                     }}
                     onDragStart={() => setIsDragging(true)}
                     onDragEnd={handleDragEnd}
-                    className="absolute inset-0 h-full w-full touch-pan-y will-change-transform bg-background" // Added bg-background
+                    className="absolute inset-0 h-full w-full touch-pan-y will-change-transform bg-background overflow-y-auto overflow-x-hidden" // Added overflow-y-auto
                 >
                     {TabContent[activeTab]}
                 </motion.main>
