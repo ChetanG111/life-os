@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Check, Archive, Trash2, X, Info } from 'lucide-react';
 import clsx from 'clsx';
 import { vibrate } from '@/utils/haptics';
+import { CardDetailModal } from '../cards/CardDetailModal';
 
 interface FeedItem {
     id: string;
@@ -13,17 +14,20 @@ interface FeedItem {
     type: 'task' | 'note';
     content: string;
     color?: string;
+    tags?: string[];
+    priority?: 'high' | 'medium' | 'low';
+    dueTime?: string;
 }
 
 // Mock Data
 const MOCK_ITEMS: FeedItem[] = [
-    { id: '1', title: 'Review Annual Goals', type: 'task', content: 'Check alignment with Q1 objectives.', color: 'bg-blue-500' },
-    { id: '2', title: 'Gym Session', type: 'task', content: 'Leg day - focus on squats.', color: 'bg-red-500' },
-    { id: '3', title: 'Quick Idea', type: 'note', content: 'App concept: Life OS wrapper.', color: 'bg-yellow-500' },
-    { id: '4', title: 'Read Book', type: 'task', content: '30 mins of Deep Work.', color: 'bg-purple-500' },
-    { id: '5', title: 'Grocery List', type: 'task', content: 'Eggs, Milk, Chicken, and Avocados.', color: 'bg-green-500' },
-    { id: '6', title: 'Meeting Prep', type: 'task', content: 'Review the slide deck for tomorrow.', color: 'bg-orange-500' },
-    { id: '7', title: 'Reflection', type: 'note', content: 'What was the best part of today?', color: 'bg-teal-500' },
+    { id: '1', title: 'Review Annual Goals', type: 'task', content: 'Check alignment with Q1 objectives.', color: 'bg-blue-500', priority: 'high', tags: ['Planning'], dueTime: '2:00 PM' },
+    { id: '2', title: 'Gym Session', type: 'task', content: 'Leg day - focus on squats.', color: 'bg-red-500', priority: 'medium', tags: ['Health'] },
+    { id: '3', title: 'Quick Idea', type: 'note', content: 'App concept: Life OS wrapper.', color: 'bg-yellow-500', tags: ['Idea'] },
+    { id: '4', title: 'Read Book', type: 'task', content: '30 mins of Deep Work.', color: 'bg-purple-500', priority: 'low', tags: ['Learning'] },
+    { id: '5', title: 'Grocery List', type: 'task', content: 'Eggs, Milk, Chicken, and Avocados.', color: 'bg-green-500', priority: 'medium' },
+    { id: '6', title: 'Meeting Prep', type: 'task', content: 'Review the slide deck for tomorrow.', color: 'bg-orange-500', priority: 'high', dueTime: '9:00 AM' },
+    { id: '7', title: 'Reflection', type: 'note', content: 'What was the best part of today?', color: 'bg-teal-500', tags: ['Journal'] },
 ];
 
 export function SwipeFeed() {
@@ -41,11 +45,10 @@ export function SwipeFeed() {
     };
 
     const showDetails = (id: string) => {
-        console.log(`Open details for ${id}`);
         setDetailsId(id);
-        // Reset after a delay for demo purposes if strictly a visual feedback
-        setTimeout(() => setDetailsId(null), 2000);
     };
+
+    const activeDetailItem = items.find(i => i.id === detailsId) || null;
 
     if (!topCard) {
         return (
@@ -82,11 +85,11 @@ export function SwipeFeed() {
                 </AnimatePresence>
             </div>
 
-            {detailsId && (
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-[var(--surface)] text-white px-4 py-2 rounded-full text-sm border border-white/5 z-50 animate-in fade-in slide-in-from-top-4">
-                    Opening details...
-                </div>
-            )}
+            <CardDetailModal 
+                isOpen={!!detailsId}
+                onClose={() => setDetailsId(null)}
+                item={activeDetailItem}
+            />
         </div>
     );
 }

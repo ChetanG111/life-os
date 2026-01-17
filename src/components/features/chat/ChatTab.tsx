@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Plus, Mic } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { vibrate } from '@/utils/haptics';
 
 // Mock Messages
 type Message = {
@@ -40,6 +41,8 @@ export function ChatTab() {
     const handleSend = () => {
         if (!inputValue.trim()) return;
 
+        vibrate('light');
+
         const newUserMsg: Message = {
             id: Date.now().toString(),
             text: inputValue,
@@ -54,88 +57,106 @@ export function ChatTab() {
         setTimeout(() => {
             const aiMsg: Message = {
                 id: (Date.now() + 1).toString(),
-                text: 'Input received. Processing next steps...',
+                text: 'Input received. Processing next steps...', 
                 isUser: false,
                 timestamp: new Date(),
             };
             setMessages(prev => [...prev, aiMsg]);
-        }, 600);
+            vibrate('medium');
+        }, 800);
     };
 
     return (
-        <div className="relative w-full h-full bg-background flex flex-col">
+        <div className="relative w-full h-full bg-background flex flex-col py-safe-top">
             <header className="flex-none relative flex justify-center items-center py-4 px-2 mb-2 z-10">
                 <h1 className="text-xl font-bold text-white uppercase tracking-wider">Chat</h1>
             </header>
 
             {/* Messages Area */}
-            {/* pb-24 ensures content isn't hidden behind the fixed input */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-6 pb-32 touch-pan-y">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 pb-32 touch-pan-y">
                 {messages.map((msg) => (
                     <motion.div
                         key={msg.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}
+                        layout
+                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        className={`flex flex-col ${msg.isUser ? 'items-end' : 'items-start'}`}
                     >
                         <div
-                            className={`max-w-[80%] px-4 py-3 text-base leading-relaxed rounded-3xl ${msg.isUser
-                                ? 'bg-[var(--surface)] text-white'
-                                : 'bg-transparent border border-white/10 text-neutral-200'
+                            className={`max-w-[85%] px-5 py-3 text-[17px] leading-snug rounded-[20px] ${
+                                msg.isUser
+                                    ? 'bg-[#0A84FF] text-white rounded-br-sm'
+                                    : 'bg-[#262626] text-neutral-100 rounded-bl-sm'
                                 }`}
                         >
                             {msg.text}
                         </div>
+                        <span className="text-[11px] text-neutral-600 mt-1 px-1 font-medium">
+                            {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
                     </motion.div>
                 ))}
                 <div ref={endOfMessagesRef} />
             </div>
 
             {/* Floating Input Layer */}
-            {/* fixed positioning ensures it stays on top and anchors to viewport bottom */}
-            {/* Floating Input Layer */}
             <div className="fixed bottom-0 left-0 w-full px-4 pb-[max(env(safe-area-inset-bottom),16px)] z-50">
-                <div className="w-full max-w-screen-xl mx-auto bg-[var(--surface)] border border-white/10 rounded-[32px] p-1.5 flex items-center gap-2 shadow-2xl">
+                <div className="w-full max-w-screen-xl mx-auto bg-[#1C1C1E]/90 backdrop-blur-xl border-t border-white/5 rounded-[26px] p-2 pr-2 flex items-end gap-2 shadow-2xl ring-1 ring-black/5">
                     {/* Add Button */}
-                    <button className="flex-none w-10 h-10 rounded-full bg-white/5 text-neutral-400 flex items-center justify-center hover:text-white hover:bg-white/10 transition-colors">
-                        <Plus size={22} />
+                    <button 
+                        onClick={() => vibrate('light')}
+                        className="flex-none w-9 h-9 mb-0.5 rounded-full bg-neutral-700/50 text-neutral-400 flex items-center justify-center hover:text-white hover:bg-neutral-600 transition-colors"
+                    >
+                        <Plus size={20} strokeWidth={2.5} />
                     </button>
 
                     {/* Input Field */}
-                    <input
-                        type="text"
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                        placeholder="Message..."
-                        className="flex-1 bg-transparent border-none outline-none text-white placeholder-neutral-500 text-[16px] px-1"
-                    />
+                    <div className="flex-1 py-2 px-1">
+                        <textarea
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSend();
+                                }
+                            }}
+                            placeholder="Message..."
+                            rows={1}
+                            className="w-full bg-transparent border-none outline-none text-white placeholder-neutral-500 text-[17px] resize-none max-h-32"
+                            style={{ minHeight: '24px' }}
+                        />
+                    </div>
 
                     {/* Action Button (Mic / Send) */}
-                    <AnimatePresence mode="wait">
-                        {inputValue.trim() ? (
-                            <motion.button
-                                key="send"
-                                initial={{ scale: 0.5, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0.5, opacity: 0 }}
-                                onClick={handleSend}
-                                className="flex-none w-10 h-10 rounded-full bg-white text-black flex items-center justify-center transition-transform active:scale-95"
-                            >
-                                <Send size={18} fill="currentColor" />
-                            </motion.button>
-                        ) : (
-                            <motion.button
-                                key="mic"
-                                initial={{ scale: 0.5, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0.5, opacity: 0 }}
-                                className="flex-none w-10 h-10 rounded-full text-neutral-400 hover:text-white flex items-center justify-center"
-                            >
-                                <Mic size={22} />
-                            </motion.button>
-                        )}
-                    </AnimatePresence>
+                    <div className="flex-none mb-0.5">
+                        <AnimatePresence mode="wait">
+                            {inputValue.trim() ? (
+                                <motion.button
+                                    key="send"
+                                    initial={{ scale: 0.5, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0.5, opacity: 0 }}
+                                    onClick={handleSend}
+                                    className="w-9 h-9 rounded-full bg-[#0A84FF] text-white flex items-center justify-center transition-transform active:scale-90 shadow-lg shadow-blue-500/20"
+                                >
+                                    <Send size={18} fill="currentColor" className="-ml-0.5" />
+                                </motion.button>
+                            ) : (
+                                <motion.button
+                                    key="mic"
+                                    initial={{ scale: 0.5, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0.5, opacity: 0 }}
+                                    onClick={() => vibrate('light')}
+                                    className="w-9 h-9 rounded-full text-neutral-400 hover:text-white flex items-center justify-center"
+                                >
+                                    <Mic size={22} />
+                                </motion.button>
+                            )}
+                        </AnimatePresence>
+                    </div>
                 </div>
             </div>
         </div>

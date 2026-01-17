@@ -94,18 +94,18 @@ export const TaskCard = ({ task, onRemove }: TaskCardProps) => {
                 whileTap={action === 'idle' ? { scale: 0.98 } : {}}
                 className={clsx(
                     "absolute inset-0 bg-[var(--surface)] rounded-2xl flex items-center px-4 z-10",
-                    "border border-white/5 shadow-sm active:cursor-grabbing cursor-grab",
+                    "border border-white/5 shadow-md shadow-black/20 active:cursor-grabbing cursor-grab",
                     action === 'completing' && "border-green-500/30",
                     action === 'deleting' && "border-red-500/30"
                 )}
             >
                 {/* Priority Dot */}
-                <div className={clsx("w-3 h-3 rounded-full mr-4 flex-shrink-0", priorityColors[task.priority])} />
+                <div className={clsx("w-2.5 h-2.5 rounded-full mr-4 flex-shrink-0 ring-2 ring-white/5", priorityColors[task.priority])} />
 
                 {/* Content */}
                 <div className="flex-1 min-w-0 mr-4">
                     <h3 className={clsx(
-                        "text-white text-base font-medium truncate leading-tight transition-colors duration-300",
+                        "text-white text-[15px] font-semibold truncate leading-tight transition-colors duration-300 tracking-wide",
                         action === 'completing' && "text-green-400",
                         action === 'deleting' && "text-red-400"
                     )}>
