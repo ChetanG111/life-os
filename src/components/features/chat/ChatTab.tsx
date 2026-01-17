@@ -64,7 +64,7 @@ export function ChatTab() {
 
     return (
         <div className="relative w-full h-full bg-background flex flex-col">
-            <header className="flex-none h-14 flex items-center justify-center px-4 bg-background z-10 mt-2 mb-4">
+            <header className="flex-none relative flex justify-center items-center py-4 px-2 mb-2 z-10">
                 <h1 className="text-xl font-bold text-white uppercase tracking-wider">Chat</h1>
             </header>
 

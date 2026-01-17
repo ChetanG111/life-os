@@ -55,8 +55,8 @@ export const TasksTab = () => {
 
     return (
         <div className="w-full min-h-screen px-4 py-8 bg-background pb-32">
-            <header className="mb-10 text-center">
-                <h1 className="text-xl font-bold text-white uppercase tracking-[0.2em]">
+            <header className="relative flex justify-center items-center py-4 px-2 mb-2">
+                <h1 className="text-xl font-bold text-white uppercase tracking-wider">
                     Tasks
                 </h1>
             </header>
