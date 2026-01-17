@@ -5,6 +5,7 @@ import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from '
 import { Card } from '@/components/ui/Card';
 import { Check, Archive, Trash2, X, Info } from 'lucide-react';
 import clsx from 'clsx';
+import { vibrate } from '@/utils/haptics';
 
 interface FeedItem {
     id: string;
@@ -80,7 +81,7 @@ export function SwipeFeed() {
                     })}
                 </AnimatePresence>
             </div>
-            
+
             {detailsId && (
                 <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-neutral-800 text-white px-4 py-2 rounded-full text-sm shadow-lg z-50 animate-in fade-in slide-in-from-top-4">
                     Opening details...
@@ -90,14 +91,14 @@ export function SwipeFeed() {
     );
 }
 
-function SwipeableCard({ 
-    item, 
-    isTop, 
+function SwipeableCard({
+    item,
+    isTop,
     onSwipe,
-    onDetails 
-}: { 
-    item: FeedItem, 
-    isTop: boolean, 
+    onDetails
+}: {
+    item: FeedItem,
+    isTop: boolean,
     onSwipe: (action: 'done' | 'dismiss' | 'delete') => void,
     onDetails: () => void
 }) {
@@ -110,7 +111,7 @@ function SwipeableCard({
     // Right (Done): Green
     const bgRightOpacity = useTransform(x, [20, 150], [0, 1]);
     const scaleRight = useTransform(x, [20, 150], [0.8, 1.2]);
-    
+
     // Left (Dismiss): Neutral/Gray
     const bgLeftOpacity = useTransform(x, [-150, -20], [1, 0]);
     const scaleLeft = useTransform(x, [-150, -20], [1.2, 0.8]);
@@ -128,7 +129,7 @@ function SwipeableCard({
     const handleTap = () => {
         const now = Date.now();
         const DOUBLE_TAP_DELAY = 300;
-        
+
         if (typeof navigator !== 'undefined' && navigator.vibrate) {
             navigator.vibrate(10); // Light tap feedback
         }
@@ -151,19 +152,19 @@ function SwipeableCard({
         if (absX > absY) {
             // Horizontal Swipe
             if (offsetX > threshold) {
-                if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(20);
+                vibrate('success');
                 onSwipe('done');
             } else if (offsetX < -threshold) {
-                if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(20);
+                vibrate('light');
                 onSwipe('dismiss');
             }
         } else {
             // Vertical Swipe
             if (offsetY > threshold) {
-                if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(20);
+                vibrate('medium');
                 onSwipe('delete');
             } else if (offsetY < -threshold) {
-                if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50);
+                vibrate('medium');
                 onDetails();
             }
         }
@@ -186,21 +187,21 @@ function SwipeableCard({
             onTap={handleTap}
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: isTop ? 1 : 0.95, opacity: 1, y: isTop ? 0 : 24 }}
-            exit={{ 
+            exit={{
                 x: x.get() !== 0 ? (x.get() > 0 ? 500 : -500) : 0,
                 y: y.get() > 50 ? 500 : 0,
-                opacity: 0, 
-                transition: { duration: 0.2 } 
+                opacity: 0,
+                transition: { duration: 0.2 }
             }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             className="absolute inset-0 cursor-grab active:cursor-grabbing"
         >
             <Card className="h-full flex flex-col justify-between bg-neutral-900 border-neutral-800 overflow-hidden relative">
-                
+
                 {/* Swipe Indicators */}
                 {/* Right: Done (Green) */}
-                <motion.div 
-                    style={{ opacity: bgRightOpacity }} 
+                <motion.div
+                    style={{ opacity: bgRightOpacity }}
                     className="absolute inset-0 z-20 flex items-center justify-center bg-green-500/20 pointer-events-none"
                 >
                     <motion.div style={{ scale: scaleRight }}>
@@ -209,8 +210,8 @@ function SwipeableCard({
                 </motion.div>
 
                 {/* Left: Dismiss (Neutral/Gray) */}
-                <motion.div 
-                    style={{ opacity: bgLeftOpacity }} 
+                <motion.div
+                    style={{ opacity: bgLeftOpacity }}
                     className="absolute inset-0 z-20 flex items-center justify-center bg-neutral-500/20 pointer-events-none"
                 >
                     <motion.div style={{ scale: scaleLeft }}>
@@ -219,8 +220,8 @@ function SwipeableCard({
                 </motion.div>
 
                 {/* Down: Delete (Red) */}
-                <motion.div 
-                    style={{ opacity: bgDownOpacity }} 
+                <motion.div
+                    style={{ opacity: bgDownOpacity }}
                     className="absolute inset-0 z-20 flex items-center justify-center bg-red-500/20 pointer-events-none"
                 >
                     <motion.div style={{ scale: scaleDown }}>
@@ -229,8 +230,8 @@ function SwipeableCard({
                 </motion.div>
 
                 {/* Up: Details (Blue/Info) */}
-                <motion.div 
-                    style={{ opacity: bgUpOpacity }} 
+                <motion.div
+                    style={{ opacity: bgUpOpacity }}
                     className="absolute inset-0 z-20 flex items-center justify-center bg-blue-500/20 pointer-events-none"
                 >
                     <motion.div style={{ scale: scaleUp }}>

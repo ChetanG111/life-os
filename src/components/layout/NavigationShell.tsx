@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence, Variants, useMotionValue, useTransform } from 'framer-motion';
 import { TabId, TABS } from '@/types';
 import { BottomNav } from './BottomNav';
+import { vibrate } from '@/utils/haptics';
 
 import { Feed } from '@/components/features/overview/Feed';
 
@@ -52,6 +53,7 @@ export function NavigationShell() {
 
         if (newIndex === currentIndex) return;
 
+        vibrate('light'); // Haptic feedback on tab switch
         setDirection(newIndex > currentIndex ? 1 : -1);
         setActiveTab(newTab);
     };
@@ -85,7 +87,7 @@ export function NavigationShell() {
             x: 0,
             opacity: 1,
             transition: {
-                x: { type: "spring", stiffness: 300, damping: 30 },
+                x: { type: "spring", stiffness: 300, damping: 30 }, // High stiffness/damping = snappy linear-ish feel
                 opacity: { duration: 0.2 }
             }
         },

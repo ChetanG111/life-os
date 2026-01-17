@@ -5,6 +5,7 @@ import { SwipeFeed } from './SwipeFeed';
 import { QuickAddModal } from './QuickAddModal';
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
+import { vibrate } from '@/utils/haptics';
 
 // Future expansion: Toggle between Switch and List views
 type FeedMode = 'stack' | 'list';
@@ -36,7 +37,10 @@ export function Feed({ onModalToggle }: { onModalToggle?: (isOpen: boolean) => v
             <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setIsQuickAddOpen(true)}
+                onClick={() => {
+                    vibrate('medium');
+                    setIsQuickAddOpen(true);
+                }}
                 className="absolute bottom-8 right-6 w-14 h-14 bg-white text-black rounded-full shadow-lg flex items-center justify-center z-30"
             >
                 <Plus size={24} strokeWidth={2.5} />
