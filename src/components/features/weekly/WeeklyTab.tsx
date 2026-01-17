@@ -3,7 +3,6 @@
 import { useState, useMemo } from 'react';
 import { motion, Variants } from 'framer-motion';
 import { DayItem } from './DayItem';
-import { mockTasks } from '@/data/mock';
 import { Task } from '@/types';
 import { Calendar as CalendarIcon, Trophy, TrendingUp } from 'lucide-react';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
@@ -19,7 +18,10 @@ const containerVariants: Variants = {
     }
 };
 
+import { useData } from '@/context/DataContext';
+
 export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) => {
+    const { tasks } = useData();
     const springConfig = useSlimySpring();
 
     const itemVariants: Variants = {
@@ -51,16 +53,16 @@ export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) =>
                 dayName: date.toLocaleDateString('en-US', { weekday: 'long' }),
                 dayNumber: date.getDate().toString(),
                 isToday: date.toDateString() === new Date().toDateString(),
-                // Distribute mock tasks (pseudo-randomly for demo)
-                tasks: mockTasks.filter((_, index) => index % 7 === i)
+                // Distribute tasks (pseudo-randomly for demo, filtering by date would be better in real app)
+                tasks: tasks.filter((_, index) => index % 7 === i)
             });
         }
         return days;
-    }, []);
+    }, [tasks]);
 
     // Calculate Weekly Stats
-    const totalTasks = mockTasks.length;
-    const completedTasks = mockTasks.filter(t => t.isCompleted).length;
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter(t => t.isCompleted).length;
     const completionPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
 
     return (
@@ -72,8 +74,8 @@ export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) =>
                         <h2 className="text-neutral-400 text-lg font-semibold uppercase tracking-wider mb-1">
                             Current Sprint
                         </h2>
-                        <motion.button 
-                            whileTap={{ scale: 0.97 }} 
+                        <motion.button
+                            whileTap={{ scale: 0.97 }}
                             onClick={onOpenSettings}
                             className="text-left focus:outline-none"
                         >

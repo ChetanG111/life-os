@@ -3,12 +3,13 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
-import { Check, Archive, Trash2, X, Info } from 'lucide-react';
+import { CheckCircle2, Archive, Trash2, X, Info } from 'lucide-react';
 import clsx from 'clsx';
 import { vibrate } from '@/utils/haptics';
 import { CardDetailModal } from '../cards/CardDetailModal';
 import { ConfirmDeleteModal } from '../cards/ConfirmDeleteModal';
 import { useSettings } from '@/context/SettingsContext';
+import { useSlimySpring } from '@/hooks/use-slimy-spring';
 
 export interface FeedItem {
     id: string;
@@ -40,6 +41,7 @@ interface SwipeFeedProps {
 
 export function SwipeFeed({ items, onSwipe }: SwipeFeedProps) {
     const [detailsId, setDetailsId] = useState<string | null>(null);
+    const springConfig = useSlimySpring();
 
     // We only show the top 2 cards effectively for performance/visuals
     // Parent manages the list, so 'items' are all active items.
@@ -54,10 +56,39 @@ export function SwipeFeed({ items, onSwipe }: SwipeFeedProps) {
 
     if (!topCard) {
         return (
-            <div className="flex h-full flex-col items-center justify-center text-neutral-500">
-                <Check size={48} className="mb-4 opacity-20" />
-                <p>All caught up!</p>
-            </div>
+            <motion.div
+                initial="hidden"
+                animate="show"
+                variants={{
+                    hidden: { opacity: 0 },
+                    show: {
+                        opacity: 1,
+                        transition: {
+                            staggerChildren: 0.1,
+                            delayChildren: 0.2
+                        }
+                    }
+                }}
+                className="flex h-full flex-col items-center justify-center text-neutral-600 pb-24"
+            >
+                <motion.div
+                    variants={{
+                        hidden: { opacity: 0, scale: 0.8, y: 10 },
+                        show: { opacity: 1, scale: 1, y: 0, transition: springConfig }
+                    }}
+                >
+                    <CheckCircle2 size={48} className="mb-6 opacity-20" />
+                </motion.div>
+                <motion.p
+                    variants={{
+                        hidden: { opacity: 0, y: 10 },
+                        show: { opacity: 1, y: 0, transition: springConfig }
+                    }}
+                    className="text-sm font-medium uppercase tracking-[0.2em]"
+                >
+                    All caught up
+                </motion.p>
+            </motion.div>
         );
     }
 
@@ -201,7 +232,7 @@ function SwipeableCard({
 
                 {/* Swipe Indicators - Minimal and Physical */}
                 <motion.div style={{ opacity: bgRightOpacity }} className="absolute inset-0 z-20 flex items-center justify-center bg-[#10B981]/5 pointer-events-none">
-                    <motion.div style={{ scale: scaleRight }}><Check size={48} className="text-[#10B981]/20" /></motion.div>
+                    <motion.div style={{ scale: scaleRight }}><CheckCircle2 size={48} className="text-[#10B981]/20" /></motion.div>
                 </motion.div>
 
                 <motion.div style={{ opacity: bgLeftOpacity }} className="absolute inset-0 z-20 flex items-center justify-center bg-white/5 pointer-events-none">

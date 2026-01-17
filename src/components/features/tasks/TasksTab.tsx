@@ -1,14 +1,13 @@
 'use client';
 
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { useMemo, useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Task } from '@/types';
-import { mockTasks } from '@/data/mock';
 import { TaskCard } from './TaskCard';
 import { CardDetailModal } from '../cards/CardDetailModal';
 import { QuickAddModal } from '../overview/QuickAddModal';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
-import { Plus } from 'lucide-react';
+import { Plus, CheckCircle2 } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
 
 /**
@@ -32,11 +31,22 @@ const containerVariants: Variants = {
 
 import { useData } from '@/context/DataContext';
 
-export const TasksTab = ({ onOpenSettings }: { onOpenSettings: () => void }) => {
+export const TasksTab = ({
+    onOpenSettings,
+    onModalToggle
+}: {
+    onOpenSettings: () => void,
+    onModalToggle?: (isOpen: boolean) => void
+}) => {
     const { tasks, removeTask } = useData();
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
     const springConfig = useSlimySpring();
+
+    // Notify parent of modal state
+    useEffect(() => {
+        if (onModalToggle) onModalToggle(isQuickAddOpen || !!selectedTask);
+    }, [isQuickAddOpen, selectedTask, onModalToggle]);
 
     const handleRemove = (id: string) => {
         removeTask(id);
@@ -61,7 +71,7 @@ export const TasksTab = ({ onOpenSettings }: { onOpenSettings: () => void }) => 
     };
 
     return (
-        <div className="w-full min-h-screen px-4 py-safe-top bg-background pb-32">
+        <div className="w-full min-h-screen px-4 py-safe-top bg-background pb-32 flex flex-col">
             <header className="relative flex justify-center items-center py-4 px-2 mb-2">
                 <motion.button
                     whileTap={{ scale: 0.97 }}
@@ -78,9 +88,9 @@ export const TasksTab = ({ onOpenSettings }: { onOpenSettings: () => void }) => 
                 variants={containerVariants}
                 initial="hidden"
                 animate="show"
-                className="flex flex-col space-y-3"
+                className="flex-1 flex flex-col space-y-3"
             >
-                <AnimatePresence mode="popLayout">
+                <AnimatePresence mode="sync">
                     {sortedTasks.map((task) => (
                         <motion.div
                             key={task.id}
@@ -100,18 +110,34 @@ export const TasksTab = ({ onOpenSettings }: { onOpenSettings: () => void }) => 
                         </motion.div>
                     ))}
                 </AnimatePresence>
-            </motion.div>
 
-            {/* Empty state handles */}
-            {tasks.length === 0 && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex flex-col items-center justify-center pt-20 text-neutral-600"
-                >
-                    <p className="text-sm font-medium uppercase tracking-widest">Completed everything</p>
-                </motion.div>
-            )}
+                {/* Empty state handles - Integrated into stagger */}
+                {tasks.length === 0 && (
+                    <motion.div
+                        variants={{
+                            hidden: { opacity: 0 },
+                            show: {
+                                opacity: 1,
+                                transition: {
+                                    staggerChildren: 0.1,
+                                    delayChildren: 0.1
+                                }
+                            }
+                        }}
+                        className="flex-1 flex flex-col items-center justify-center text-neutral-600 pb-24"
+                    >
+                        <motion.div variants={itemVariants}>
+                            <CheckCircle2 size={48} className="mb-6 opacity-20" />
+                        </motion.div>
+                        <motion.p
+                            variants={itemVariants}
+                            className="text-sm font-medium uppercase tracking-[0.2em]"
+                        >
+                            All caught up
+                        </motion.p>
+                    </motion.div>
+                )}
+            </motion.div>
 
             <CardDetailModal
                 isOpen={!!selectedTask}

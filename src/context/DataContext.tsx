@@ -39,35 +39,58 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     // Initial Load
     useEffect(() => {
-        const savedTasks = localStorage.getItem('life-os-tasks');
-        const savedNotes = localStorage.getItem('life-os-notes');
-        const savedSettings = localStorage.getItem('life-os-settings');
+        const loadData = () => {
+            try {
+                const savedTasks = localStorage.getItem('life-os-tasks');
+                const savedNotes = localStorage.getItem('life-os-notes');
+                const savedSettings = localStorage.getItem('life-os-settings');
 
-        if (savedTasks) setTasks(JSON.parse(savedTasks));
-        else setTasks(mockTasks);
+                if (savedTasks) {
+                    const parsed = JSON.parse(savedTasks);
+                    if (Array.isArray(parsed)) setTasks(parsed);
+                } else {
+                    setTasks(mockTasks);
+                }
 
-        if (savedNotes) setNotes(JSON.parse(savedNotes));
-        else setNotes(mockNotes);
+                if (savedNotes) {
+                    const parsed = JSON.parse(savedNotes);
+                    if (Array.isArray(parsed)) setNotes(parsed);
+                } else {
+                    setNotes(mockNotes);
+                }
 
-        if (savedSettings) setSettings(JSON.parse(savedSettings));
+                if (savedSettings) {
+                    setSettings(JSON.parse(savedSettings));
+                }
+            } catch (error) {
+                console.error('Failed to load data from localStorage:', error);
+                setTasks(mockTasks);
+                setNotes(mockNotes);
+            } finally {
+                setIsLoaded(true);
+            }
+        };
 
-        setIsLoaded(true);
+        loadData();
     }, []);
 
-    // Persistence
+    // Persistence with check
     useEffect(() => {
-        if (!isLoaded) return;
-        localStorage.setItem('life-os-tasks', JSON.stringify(tasks));
+        if (isLoaded) {
+            localStorage.setItem('life-os-tasks', JSON.stringify(tasks));
+        }
     }, [tasks, isLoaded]);
 
     useEffect(() => {
-        if (!isLoaded) return;
-        localStorage.setItem('life-os-notes', JSON.stringify(notes));
+        if (isLoaded) {
+            localStorage.setItem('life-os-notes', JSON.stringify(notes));
+        }
     }, [notes, isLoaded]);
 
     useEffect(() => {
-        if (!isLoaded) return;
-        localStorage.setItem('life-os-settings', JSON.stringify(settings));
+        if (isLoaded) {
+            localStorage.setItem('life-os-settings', JSON.stringify(settings));
+        }
     }, [settings, isLoaded]);
 
     const addTask = (taskData: Omit<Task, 'id' | 'isCompleted'>) => {

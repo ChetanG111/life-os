@@ -1,12 +1,12 @@
 import { NoteCard } from './NoteCard';
 import { mockNotes } from '@/data/mock';
 import { motion, Variants } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Note } from '@/types';
 import { CardDetailModal } from '../cards/CardDetailModal';
 import { QuickAddModal } from '../overview/QuickAddModal';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
-import { Plus } from 'lucide-react';
+import { Plus, StickyNote } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
 
 const containerVariants: Variants = {
@@ -22,11 +22,22 @@ const containerVariants: Variants = {
 
 import { useData } from '@/context/DataContext';
 
-export const NotesTab = ({ onOpenSettings }: { onOpenSettings: () => void }) => {
+export const NotesTab = ({
+    onOpenSettings,
+    onModalToggle
+}: {
+    onOpenSettings: () => void,
+    onModalToggle?: (isOpen: boolean) => void
+}) => {
     const { notes, removeNote } = useData();
     const [selectedNote, setSelectedNote] = useState<Note | null>(null);
     const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
     const springConfig = useSlimySpring();
+
+    // Notify parent of modal state
+    useEffect(() => {
+        if (onModalToggle) onModalToggle(isQuickAddOpen || !!selectedNote);
+    }, [isQuickAddOpen, selectedNote, onModalToggle]);
 
     const itemVariants: Variants = {
         hidden: { opacity: 0, y: 30, scale: 0.9 },
@@ -39,7 +50,7 @@ export const NotesTab = ({ onOpenSettings }: { onOpenSettings: () => void }) => 
     };
 
     return (
-        <div className="w-full min-h-screen px-4 py-safe-top bg-background pb-32">
+        <div className="w-full min-h-screen px-4 py-safe-top bg-background pb-32 flex flex-col">
             <header className="relative flex justify-center items-center py-4 px-2 mb-2">
                 <motion.button
                     whileTap={{ scale: 0.97 }}
@@ -56,13 +67,40 @@ export const NotesTab = ({ onOpenSettings }: { onOpenSettings: () => void }) => 
                 variants={containerVariants}
                 initial="hidden"
                 animate="show"
-                className="columns-2 gap-3 space-y-3 pb-8"
+                className="flex-1 flex flex-col columns-2 gap-3 space-y-3 pb-8"
             >
                 {notes.map(note => (
                     <motion.div key={note.id} variants={itemVariants} className="break-inside-avoid">
                         <NoteCard note={note} onTap={() => setSelectedNote(note)} />
                     </motion.div>
                 ))}
+
+                {/* Empty state handles - Integrated into stagger */}
+                {notes.length === 0 && (
+                    <motion.div
+                        variants={{
+                            hidden: { opacity: 0 },
+                            show: {
+                                opacity: 1,
+                                transition: {
+                                    staggerChildren: 0.1,
+                                    delayChildren: 0.1
+                                }
+                            }
+                        }}
+                        className="flex-1 flex flex-col items-center justify-center text-neutral-600 pb-24 col-span-full"
+                    >
+                        <motion.div variants={itemVariants}>
+                            <StickyNote size={48} className="mb-6 opacity-20" />
+                        </motion.div>
+                        <motion.p
+                            variants={itemVariants}
+                            className="text-sm font-medium uppercase tracking-[0.2em]"
+                        >
+                            No notes yet
+                        </motion.p>
+                    </motion.div>
+                )}
             </motion.div>
 
             <CardDetailModal

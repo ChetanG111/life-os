@@ -34,8 +34,8 @@ const TabContent = ({
     onOpenSettings: () => void
 }) => {
     switch (activeTab) {
-        case 'tasks': return <TasksTab onOpenSettings={onOpenSettings} />;
-        case 'notes': return <NotesTab onOpenSettings={onOpenSettings} />;
+        case 'tasks': return <TasksTab onOpenSettings={onOpenSettings} onModalToggle={onModalToggle} />;
+        case 'notes': return <NotesTab onOpenSettings={onOpenSettings} onModalToggle={onModalToggle} />;
         case 'overview': return <Feed onModalToggle={onModalToggle} onOpenSettings={onOpenSettings} />;
         case 'chat': return <ChatTab onOpenSettings={onOpenSettings} />;
         case 'weekly': return <WeeklyTab onOpenSettings={onOpenSettings} />;
