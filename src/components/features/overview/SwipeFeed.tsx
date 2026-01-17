@@ -6,7 +6,6 @@ import { Card } from '@/components/ui/Card';
 import { CheckCircle2, Archive, Trash2, X, Info } from 'lucide-react';
 import clsx from 'clsx';
 import { vibrate } from '@/utils/haptics';
-import { CardDetailModal } from '../cards/CardDetailModal';
 import { ConfirmDeleteModal } from '../cards/ConfirmDeleteModal';
 import { useSettings } from '@/context/SettingsContext';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
@@ -37,22 +36,16 @@ export const MOCK_ITEMS: FeedItem[] = [
 interface SwipeFeedProps {
     items: FeedItem[];
     onSwipe: (id: string, action: 'done' | 'dismiss' | 'delete') => void;
+    onDetails: (item: FeedItem) => void;
 }
 
-export function SwipeFeed({ items, onSwipe }: SwipeFeedProps) {
-    const [detailsId, setDetailsId] = useState<string | null>(null);
+export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
     const springConfig = useSlimySpring();
 
     // We only show the top 2 cards effectively for performance/visuals
     // Parent manages the list, so 'items' are all active items.
     const activeItems = items;
     const topCard = activeItems[0];
-
-    const showDetails = (id: string) => {
-        setDetailsId(id);
-    };
-
-    const activeDetailItem = items.find(i => i.id === detailsId) || null;
 
     if (!topCard) {
         return (
@@ -92,10 +85,27 @@ export function SwipeFeed({ items, onSwipe }: SwipeFeedProps) {
         );
     }
 
+    // Stagger container variants for card entrance
+    const stackVariants = {
+        hidden: { opacity: 0 },
+        show: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.15,
+                delayChildren: 0.1
+            }
+        }
+    };
+
     return (
         <div className="relative h-full w-full max-w-sm mx-auto flex flex-col justify-start items-center p-2 pt-8">
             {/* Cards container */}
-            <div className="relative w-full aspect-[4/5] max-h-[440px]">
+            <motion.div
+                className="relative w-full aspect-[4/5] max-h-[440px]"
+                variants={stackVariants}
+                initial="hidden"
+                animate="show"
+            >
                 <AnimatePresence>
                     {activeItems.slice(0, 2).reverse().map((item, index) => {
                         const isTop = item.id === topCard.id;
@@ -104,21 +114,14 @@ export function SwipeFeed({ items, onSwipe }: SwipeFeedProps) {
                                 key={item.id}
                                 item={item}
                                 isTop={isTop}
+                                staggerIndex={index}
                                 onSwipe={(action) => onSwipe(item.id, action)}
-                                onDetails={() => showDetails(item.id)}
+                                onDetails={() => onDetails(item)}
                             />
                         );
                     })}
                 </AnimatePresence>
-            </div>
-
-            <CardDetailModal
-                isOpen={!!detailsId}
-                onClose={() => setDetailsId(null)}
-                onDelete={() => onSwipe(detailsId!, 'delete')}
-                onComplete={() => onSwipe(detailsId!, 'done')}
-                item={activeDetailItem}
-            />
+            </motion.div>
         </div>
     );
 }
@@ -126,11 +129,13 @@ export function SwipeFeed({ items, onSwipe }: SwipeFeedProps) {
 function SwipeableCard({
     item,
     isTop,
+    staggerIndex,
     onSwipe,
     onDetails
 }: {
     item: FeedItem,
     isTop: boolean,
+    staggerIndex: number,
     onSwipe: (action: 'done' | 'dismiss' | 'delete') => void,
     onDetails: () => void
 }) {
@@ -143,6 +148,23 @@ function SwipeableCard({
 
     // Spring configuration from MotionContext (Dynamic based on settings)
     const springConfig = useSlimySpring();
+
+    // Item variants for stagger animation - bouncy with overshoot
+    const itemVariants = {
+        hidden: {
+            opacity: 0,
+            y: 80,
+            scale: 0.85,
+            rotateX: 15
+        },
+        show: {
+            opacity: 1,
+            y: isTop ? 0 : 20,
+            scale: isTop ? 1 : 0.95,
+            rotateX: 0,
+            transition: springConfig
+        }
+    };
 
     // Background color indicators (Physical feel)
     const bgRightOpacity = useTransform(x, [40, 150], [0, 1]);
@@ -203,12 +225,11 @@ function SwipeableCard({
 
     return (
         <motion.div
+            variants={itemVariants}
             style={{
                 x: isTop ? x : 0,
                 y: isTop ? y : (isTop ? 0 : 24),
                 rotate: isTop ? rotate : 0,
-                scale: isTop ? 1 : 0.95,
-                opacity: isTop ? opacity : 0.4,
                 zIndex: isTop ? 10 : 0
             }}
             drag={isTop ? true : false}
@@ -217,8 +238,6 @@ function SwipeableCard({
             onDragStart={() => vibrate('light')}
             onDragEnd={handleDragEnd}
             onTap={handleTap}
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: isTop ? 1 : 0.95, opacity: 1, y: isTop ? 0 : 20 }}
             exit={{
                 x: x.get() > 50 ? 500 : (x.get() < -50 ? -500 : 0),
                 y: y.get() > 50 ? 500 : (y.get() < -50 ? -500 : 0),

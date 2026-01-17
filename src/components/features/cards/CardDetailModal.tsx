@@ -126,24 +126,7 @@ export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }:
                                     <div className="text-lg text-neutral-300 leading-relaxed font-medium">
                                         {activeItem.content}
                                     </div>
-                                    <div className="text-base text-neutral-500 leading-relaxed">
-                                        Additional context and subtasks would appear here in the final version. Currently viewing the primary capture data for this item.
-                                    </div>
                                 </div>
-
-                                {/* Multi-Tags */}
-                                {activeItem.tags && activeItem.tags.length > 0 && (
-                                    <div className="pt-6 border-t border-white/5">
-                                        <div className="flex flex-wrap gap-2">
-                                            {activeItem.tags.map(tag => (
-                                                <span key={tag} className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-neutral-400 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
-                                                    <Tag size={12} className="text-neutral-600" />
-                                                    {tag}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         </div>
 

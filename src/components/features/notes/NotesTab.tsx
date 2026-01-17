@@ -1,14 +1,9 @@
 import { NoteCard } from './NoteCard';
-import { mockNotes } from '@/data/mock';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
 import { Note } from '@/types';
 import clsx from 'clsx';
-import { CardDetailModal } from '../cards/CardDetailModal';
-import { QuickAddModal } from '../overview/QuickAddModal';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
-import { Plus, StickyNote } from 'lucide-react';
-import { vibrate } from '@/utils/haptics';
+import { StickyNote } from 'lucide-react';
 
 import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants } from '@/utils/animations';
 
@@ -16,20 +11,15 @@ import { useData } from '@/context/DataContext';
 
 export const NotesTab = ({
     onOpenSettings,
-    onModalToggle
+    onOpenDetails,
+    onOpenQuickAdd
 }: {
     onOpenSettings: () => void,
-    onModalToggle?: (isOpen: boolean) => void
+    onOpenDetails: (item: any) => void,
+    onOpenQuickAdd: (type?: 'task' | 'note') => void
 }) => {
-    const { notes, removeNote } = useData();
-    const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-    const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+    const { notes } = useData();
     const springConfig = useSlimySpring();
-
-    // Notify parent of modal state
-    useEffect(() => {
-        if (onModalToggle) onModalToggle(isQuickAddOpen || !!selectedNote);
-    }, [isQuickAddOpen, selectedNote, onModalToggle]);
 
     const containerVariants = UNIVERSAL_STAGGER_CONTAINER('standard');
     const itemVariants = createStaggerItemVariants(springConfig);
@@ -54,23 +44,25 @@ export const NotesTab = ({
                 animate="show"
                 className={clsx(
                     "flex-1 pb-8",
-                    notes.length > 0 ? "columns-2 gap-3" : "flex flex-col"
+                    notes.length > 0 ? "grid grid-cols-2 gap-3 auto-rows-max" : "flex flex-col"
                 )}
             >
-                <AnimatePresence mode="popLayout" initial={false}>
-                    {notes.map(note => (
-                        <motion.div
-                            key={note.id}
-                            variants={itemVariants}
-                            initial="hidden"
-                            animate="show"
-                            exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                            className="break-inside-avoid"
-                        >
-                            <NoteCard note={note} onTap={() => setSelectedNote(note)} />
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
+                {notes.map((note, index) => (
+                    <motion.div
+                        key={note.id}
+                        variants={itemVariants}
+                        custom={index}
+                        exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                    >
+                        <NoteCard note={note} onTap={() => onOpenDetails({
+                            id: note.id,
+                            title: note.title || 'Untitled Note',
+                            type: 'note',
+                            content: note.content,
+                            tags: note.tags
+                        })} />
+                    </motion.div>
+                ))}
 
                 {/* Empty state handles - Integrated into stagger */}
                 {notes.length === 0 && (
@@ -99,38 +91,6 @@ export const NotesTab = ({
                     </motion.div>
                 )}
             </motion.div>
-
-            <CardDetailModal
-                isOpen={!!selectedNote}
-                onClose={() => setSelectedNote(null)}
-                onDelete={() => selectedNote && removeNote(selectedNote.id)}
-                onComplete={() => selectedNote && removeNote(selectedNote.id)}
-                item={selectedNote ? {
-                    id: selectedNote.id,
-                    title: selectedNote.title || 'Untitled Note',
-                    type: 'note',
-                    content: selectedNote.content,
-                    tags: selectedNote.tags
-                } : null}
-            />
-            {/* Quick Add FAB */}
-            <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                    vibrate('medium');
-                    setIsQuickAddOpen(true);
-                }}
-                className="fixed bottom-10 right-6 w-12 h-12 bg-white text-black rounded-2xl shadow-2xl flex items-center justify-center z-30"
-            >
-                <Plus size={24} strokeWidth={2.5} />
-            </motion.button>
-
-            <QuickAddModal
-                isOpen={isQuickAddOpen}
-                onClose={() => setIsQuickAddOpen(false)}
-                initialType="note"
-            />
         </div>
     );
 };

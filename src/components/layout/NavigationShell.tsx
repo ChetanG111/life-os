@@ -15,6 +15,10 @@ import { WeeklyTab } from '@/components/features/weekly/WeeklyTab';
 import { ChatTab } from '@/components/features/chat/ChatTab';
 
 import { SettingsModal } from '../features/settings/SettingsModal';
+import { QuickAddModal } from '../features/overview/QuickAddModal';
+import { CardDetailModal } from '../features/cards/CardDetailModal';
+import { Plus } from 'lucide-react';
+import { useSlimySpring } from '@/hooks/use-slimy-spring';
 
 // Placeholder content - To be replaced by actual Feature components
 const PlaceholderTab = ({ text }: { text: string }) => (
@@ -26,17 +30,19 @@ const PlaceholderTab = ({ text }: { text: string }) => (
 
 const TabContent = ({
     activeTab,
-    onModalToggle,
-    onOpenSettings
+    onOpenSettings,
+    onOpenDetails,
+    onOpenQuickAdd
 }: {
     activeTab: TabId,
-    onModalToggle: (isOpen: boolean) => void,
-    onOpenSettings: () => void
+    onOpenSettings: () => void,
+    onOpenDetails: (item: any) => void,
+    onOpenQuickAdd: (type?: 'task' | 'note') => void
 }) => {
     switch (activeTab) {
-        case 'tasks': return <TasksTab onOpenSettings={onOpenSettings} onModalToggle={onModalToggle} />;
-        case 'notes': return <NotesTab onOpenSettings={onOpenSettings} onModalToggle={onModalToggle} />;
-        case 'overview': return <Feed onModalToggle={onModalToggle} onOpenSettings={onOpenSettings} />;
+        case 'tasks': return <TasksTab onOpenSettings={onOpenSettings} onOpenDetails={onOpenDetails} onOpenQuickAdd={onOpenQuickAdd} />;
+        case 'notes': return <NotesTab onOpenSettings={onOpenSettings} onOpenDetails={onOpenDetails} onOpenQuickAdd={onOpenQuickAdd} />;
+        case 'overview': return <Feed onOpenSettings={onOpenSettings} onOpenDetails={onOpenDetails} onOpenQuickAdd={onOpenQuickAdd} />;
         case 'chat': return <ChatTab onOpenSettings={onOpenSettings} />;
         case 'weekly': return <WeeklyTab onOpenSettings={onOpenSettings} />;
         default: return null;
@@ -46,14 +52,19 @@ const TabContent = ({
 import { useData } from '@/context/DataContext';
 
 export function NavigationShell() {
-    const { settings, updateSettings } = useData();
+    const { settings, updateSettings, removeTask, removeNote, addTask, addNote } = useData();
+    const springConfig = useSlimySpring();
     const showBottomNav = settings.showBottomNav;
     const [activeTab, setActiveTab] = useState<TabId>('overview');
     const [direction, setDirection] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+    const [quickAddType, setQuickAddType] = useState<'task' | 'note'>('task');
+    const [selectedItem, setSelectedItem] = useState<any | null>(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+    const isModalOpen = isQuickAddOpen || !!selectedItem || isSettingsOpen;
 
     // Track drag physics for BottomNav
     const x = useMotionValue(0);
@@ -164,14 +175,59 @@ export function NavigationShell() {
                 >
                     <TabContent
                         activeTab={activeTab}
-                        onModalToggle={setIsModalOpen}
                         onOpenSettings={() => {
                             vibrate('light');
                             setIsSettingsOpen(true);
                         }}
+                        onOpenDetails={(item) => setSelectedItem(item)}
+                        onOpenQuickAdd={(type) => {
+                            if (type) setQuickAddType(type);
+                            setIsQuickAddOpen(true);
+                        }}
                     />
                 </motion.main>
             </AnimatePresence>
+
+            {/* Global FAB - Hidden on clean screens */}
+            {['tasks', 'notes', 'overview'].includes(activeTab) && !isModalOpen && (
+                <motion.button
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                        vibrate('medium');
+                        const defaultType = activeTab === 'notes' ? 'note' : 'task';
+                        setQuickAddType(defaultType);
+                        setIsQuickAddOpen(true);
+                    }}
+                    className="fixed bottom-10 right-6 w-12 h-12 bg-white text-black rounded-2xl shadow-2xl flex items-center justify-center z-40"
+                >
+                    <Plus size={24} strokeWidth={2.5} />
+                </motion.button>
+            )}
+
+            {/* Global Modals - Reached from any Tab */}
+            <QuickAddModal
+                isOpen={isQuickAddOpen}
+                onClose={() => setIsQuickAddOpen(false)}
+                initialType={quickAddType}
+            />
+
+            <CardDetailModal
+                isOpen={!!selectedItem}
+                onClose={() => setSelectedItem(null)}
+                onDelete={() => {
+                    if (selectedItem?.type === 'task') removeTask(selectedItem.originalId || selectedItem.id);
+                    else removeNote(selectedItem?.originalId || selectedItem?.id);
+                }}
+                onComplete={() => {
+                    if (selectedItem?.type === 'task') removeTask(selectedItem.originalId || selectedItem.id);
+                    // Notes don't have complete logic yet
+                }}
+                item={selectedItem}
+            />
 
             {showBottomNav && (
                 <BottomNav

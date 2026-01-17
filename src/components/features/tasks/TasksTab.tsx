@@ -1,19 +1,12 @@
 'use client';
 
-import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useMemo } from 'react';
 import { Task } from '@/types';
 import { TaskCard } from './TaskCard';
-import { CardDetailModal } from '../cards/CardDetailModal';
-import { QuickAddModal } from '../overview/QuickAddModal';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
-import { Plus, CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
-
-/**
- * TasksTab - Clean, high-performance task list.
- * Implements premium staggered entrance wave from top-to-bottom.
- */
 
 import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants } from '@/utils/animations';
 
@@ -21,20 +14,15 @@ import { useData } from '@/context/DataContext';
 
 export const TasksTab = ({
     onOpenSettings,
-    onModalToggle
+    onOpenDetails,
+    onOpenQuickAdd
 }: {
     onOpenSettings: () => void,
-    onModalToggle?: (isOpen: boolean) => void
+    onOpenDetails: (item: any) => void,
+    onOpenQuickAdd: (type?: 'task' | 'note') => void
 }) => {
     const { tasks, removeTask } = useData();
-    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-    const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
     const springConfig = useSlimySpring();
-
-    // Notify parent of modal state
-    useEffect(() => {
-        if (onModalToggle) onModalToggle(isQuickAddOpen || !!selectedTask);
-    }, [isQuickAddOpen, selectedTask, onModalToggle]);
 
     const handleRemove = (id: string) => {
         removeTask(id);
@@ -74,8 +62,6 @@ export const TasksTab = ({
                         <motion.div
                             key={task.id}
                             variants={itemVariants}
-                            initial="hidden"
-                            animate="show"
                             layout
                             exit={{
                                 opacity: 0,
@@ -86,7 +72,16 @@ export const TasksTab = ({
                             <TaskCard
                                 task={task}
                                 onRemove={() => handleRemove(task.id)}
-                                onTap={() => setSelectedTask(task)}
+                                onTap={() => onOpenDetails({
+                                    id: `task-${task.id}`,
+                                    originalId: task.id,
+                                    title: task.title,
+                                    type: 'task',
+                                    content: task.description || 'No description provided.',
+                                    tags: task.tags,
+                                    dueTime: task.dueTime,
+                                    priority: task.priority
+                                })}
                             />
                         </motion.div>
                     ))}
@@ -119,40 +114,6 @@ export const TasksTab = ({
                     </motion.div>
                 )}
             </motion.div>
-
-            <CardDetailModal
-                isOpen={!!selectedTask}
-                onClose={() => setSelectedTask(null)}
-                onDelete={() => selectedTask && removeTask(selectedTask.id)}
-                onComplete={() => selectedTask && removeTask(selectedTask.id)}
-                item={selectedTask ? {
-                    id: selectedTask.id,
-                    title: selectedTask.title,
-                    type: 'task',
-                    content: selectedTask.description || 'No description provided.',
-                    tags: selectedTask.tags,
-                    dueTime: selectedTask.dueTime,
-                    priority: selectedTask.priority
-                } : null}
-            />
-            {/* Quick Add FAB */}
-            <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                    vibrate('medium');
-                    setIsQuickAddOpen(true);
-                }}
-                className="fixed bottom-10 right-6 w-12 h-12 bg-white text-black rounded-2xl shadow-2xl flex items-center justify-center z-30"
-            >
-                <Plus size={24} strokeWidth={2.5} />
-            </motion.button>
-
-            <QuickAddModal
-                isOpen={isQuickAddOpen}
-                onClose={() => setIsQuickAddOpen(false)}
-                initialType="task"
-            />
         </div>
     );
 };

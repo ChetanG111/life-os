@@ -1,24 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { SwipeFeed, MOCK_ITEMS, FeedItem } from './SwipeFeed';
-import { QuickAddModal } from './QuickAddModal';
+import { FeedItem, SwipeFeed } from './SwipeFeed';
 import { motion } from 'framer-motion';
-import { Plus } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
 import { useData } from '@/context/DataContext';
 
-// Future expansion: Toggle between Switch and List views
-type FeedMode = 'stack' | 'list';
-
 interface FeedProps {
-    onModalToggle?: (isOpen: boolean) => void;
     onOpenSettings: () => void;
+    onOpenDetails: (item: any) => void;
+    onOpenQuickAdd: (type?: 'task' | 'note') => void;
 }
 
-export function Feed({ onModalToggle, onOpenSettings }: FeedProps) {
-    const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
-    const { tasks, notes, removeTask, removeNote, addTask } = useData();
+export function Feed({ onOpenSettings, onOpenDetails, onOpenQuickAdd }: FeedProps) {
+    const { tasks, notes, removeTask, removeNote } = useData();
 
     // Map Tasks and Notes to FeedItems
     const feedItems: FeedItem[] = [
@@ -41,13 +35,6 @@ export function Feed({ onModalToggle, onOpenSettings }: FeedProps) {
         }))
     ];
 
-    // Notify parent when modal state changes to disable/enable main swipes
-    useEffect(() => {
-        if (onModalToggle) {
-            onModalToggle(isQuickAddOpen);
-        }
-    }, [isQuickAddOpen, onModalToggle]);
-
     const handleSwipe = (id: string, action: 'done' | 'dismiss' | 'delete') => {
         const item = feedItems.find(i => i.id === id);
         if (!item) return;
@@ -57,13 +44,7 @@ export function Feed({ onModalToggle, onOpenSettings }: FeedProps) {
             else removeNote(item.originalId!);
         } else if (action === 'done') {
             if (item.type === 'task') removeTask(item.originalId!);
-            // Notes don't have a 'done' state usually, but dismissing it from feed
         }
-    };
-
-    const handleAdd = (newItem: FeedItem) => {
-        // Handled by QuickAddModal directly calling addNote/addTask now, 
-        // but keeping it for secondary logic if needed.
     };
 
     return (
@@ -81,31 +62,10 @@ export function Feed({ onModalToggle, onOpenSettings }: FeedProps) {
                 </motion.button>
             </header>
 
-            {/* Main Feed Content - Shifted up slightly with pb-16/mb-16 logic to accommodate FAB visually if needed, 
-                but user asked to "move cards slightly up". We'll use a wrapper with padding-bottom. */}
+            {/* Main Feed Content */}
             <div className="h-[calc(100%-80px)] pb-16">
-                <SwipeFeed items={feedItems} onSwipe={handleSwipe} />
+                <SwipeFeed items={feedItems} onSwipe={handleSwipe} onDetails={(item) => onOpenDetails(item)} />
             </div>
-
-            {/* Quick Add FAB */}
-            <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                    vibrate('medium');
-                    setIsQuickAddOpen(true);
-                }}
-                className="fixed bottom-10 right-6 w-12 h-12 bg-white text-black rounded-2xl shadow-2xl flex items-center justify-center z-30"
-            >
-                <Plus size={24} strokeWidth={2.5} />
-            </motion.button>
-
-            {/* Quick Add Modal Overlay */}
-            <QuickAddModal
-                isOpen={isQuickAddOpen}
-                onClose={() => setIsQuickAddOpen(false)}
-                initialType="task"
-            />
         </div>
     );
 }
