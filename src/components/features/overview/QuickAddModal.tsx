@@ -144,6 +144,44 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
                             </button>
                         </div>
 
+                        {/* Type Selector Grid - Moved to Top */}
+                        <div className="px-6 py-2">
+                             <motion.div 
+                                variants={staggerContainer}
+                                initial="hidden"
+                                animate="show"
+                                className="grid grid-cols-4 gap-2"
+                            >
+                                {ITEM_TYPES.map((type) => {
+                                    const Icon = type.icon;
+                                    const isSelected = selectedType === type.id;
+                                    return (
+                                        <motion.button
+                                            key={type.id}
+                                            variants={slimyItem}
+                                            onClick={() => {
+                                                vibrate('light');
+                                                setSelectedType(type.id);
+                                            }}
+                                            className={clsx(
+                                                "flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl transition-all relative overflow-hidden",
+                                                isSelected 
+                                                    ? "bg-white text-black" 
+                                                    : "bg-white/5 text-neutral-500 hover:bg-white/10 hover:text-neutral-300"
+                                            )}
+                                        >
+                                            <span className="relative z-10">
+                                                <Icon size={24} strokeWidth={isSelected ? 2.5 : 2} />
+                                            </span>
+                                            <span className="text-[11px] font-medium tracking-wide relative z-10">
+                                                {type.label}
+                                            </span>
+                                        </motion.button>
+                                    );
+                                })}
+                            </motion.div>
+                        </div>
+
                         {/* Main Content */}
                         <div className="flex-1 flex flex-col px-6 relative">
                             {/* State: Success */}
@@ -206,7 +244,7 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
                         </div>
 
                         {/* Bottom Controls */}
-                        <div className="flex-none p-4 pb-safe-bottom bg-[var(--surface)] space-y-4">
+                        <div className="flex-none p-4 pb-safe-bottom bg-[var(--surface)]">
                             {/* Action Bar & Tools */}
                             <motion.div 
                                 initial={{ y: 20, opacity: 0 }}
@@ -255,49 +293,6 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
                                     <span>Create</span>
                                     <ArrowUp size={20} strokeWidth={3} className={text.trim() ? "rotate-45" : ""} />
                                 </button>
-                            </motion.div>
-
-                            {/* Type Selector Grid */}
-                             <motion.div 
-                                variants={staggerContainer}
-                                initial="hidden"
-                                animate="show"
-                                className="grid grid-cols-4 gap-2"
-                            >
-                                {ITEM_TYPES.map((type) => {
-                                    const Icon = type.icon;
-                                    const isSelected = selectedType === type.id;
-                                    return (
-                                        <motion.button
-                                            key={type.id}
-                                            variants={slimyItem}
-                                            onClick={() => {
-                                                vibrate('light');
-                                                setSelectedType(type.id);
-                                            }}
-                                            className={clsx(
-                                                "flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl transition-all relative overflow-hidden",
-                                                isSelected 
-                                                    ? "bg-white/10 text-white" 
-                                                    : "text-neutral-500 hover:bg-white/5 hover:text-neutral-300"
-                                            )}
-                                        >
-                                            {isSelected && (
-                                                <motion.div
-                                                    layoutId="activeTypeBg"
-                                                    className="absolute inset-0 bg-white/10"
-                                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                                />
-                                            )}
-                                            <span className="relative z-10">
-                                                <Icon size={24} strokeWidth={isSelected ? 2.5 : 2} />
-                                            </span>
-                                            <span className="text-[11px] font-medium tracking-wide relative z-10">
-                                                {type.label}
-                                            </span>
-                                        </motion.button>
-                                    );
-                                })}
                             </motion.div>
                         </div>
                     </motion.div>
