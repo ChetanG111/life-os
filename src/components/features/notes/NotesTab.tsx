@@ -3,6 +3,7 @@ import { mockNotes } from '@/data/mock';
 import { motion, Variants } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { Note } from '@/types';
+import clsx from 'clsx';
 import { CardDetailModal } from '../cards/CardDetailModal';
 import { QuickAddModal } from '../overview/QuickAddModal';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
@@ -51,7 +52,10 @@ export const NotesTab = ({
                 variants={containerVariants}
                 initial="hidden"
                 animate="show"
-                className="flex-1 flex flex-col columns-2 gap-3 space-y-3 pb-8"
+                className={clsx(
+                    "flex-1 pb-8",
+                    notes.length > 0 ? "columns-2 gap-3" : "flex flex-col"
+                )}
             >
                 {notes.map(note => (
                     <motion.div key={note.id} variants={itemVariants} className="break-inside-avoid">
@@ -108,7 +112,7 @@ export const NotesTab = ({
                     vibrate('medium');
                     setIsQuickAddOpen(true);
                 }}
-                className="absolute bottom-10 right-6 w-12 h-12 bg-white text-black rounded-2xl shadow-2xl flex items-center justify-center z-30"
+                className="fixed bottom-10 right-6 w-12 h-12 bg-white text-black rounded-2xl shadow-2xl flex items-center justify-center z-30"
             >
                 <Plus size={24} strokeWidth={2.5} />
             </motion.button>

@@ -141,7 +141,7 @@ export const TasksTab = ({
                     vibrate('medium');
                     setIsQuickAddOpen(true);
                 }}
-                className="absolute bottom-10 right-6 w-12 h-12 bg-white text-black rounded-2xl shadow-2xl flex items-center justify-center z-30"
+                className="fixed bottom-10 right-6 w-12 h-12 bg-white text-black rounded-2xl shadow-2xl flex items-center justify-center z-30"
             >
                 <Plus size={24} strokeWidth={2.5} />
             </motion.button>
