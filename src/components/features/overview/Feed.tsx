@@ -17,7 +17,7 @@ interface FeedProps {
 
 export function Feed({ onModalToggle, onOpenSettings }: FeedProps) {
     const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
-    
+
     // Lifted State for Feed Items
     const [items, setItems] = useState<FeedItem[]>(MOCK_ITEMS);
 
@@ -43,7 +43,7 @@ export function Feed({ onModalToggle, onOpenSettings }: FeedProps) {
         <div className="relative h-full w-full py-safe-top px-4 overflow-hidden">
             {/* Header */}
             <header className="relative flex justify-center items-center py-4 px-2 mb-2">
-                <motion.button 
+                <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={onOpenSettings}
                     className="group flex items-center gap-1.5 focus:outline-none"
@@ -74,8 +74,8 @@ export function Feed({ onModalToggle, onOpenSettings }: FeedProps) {
             </motion.button>
 
             {/* Quick Add Modal Overlay */}
-            <QuickAddModal 
-                isOpen={isQuickAddOpen} 
+            <QuickAddModal
+                isOpen={isQuickAddOpen}
                 onClose={() => setIsQuickAddOpen(false)}
                 onAdd={handleAdd}
             />

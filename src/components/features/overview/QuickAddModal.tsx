@@ -21,6 +21,7 @@ const ITEM_TYPES: { id: ItemType; label: string; icon: any }[] = [
 ];
 
 export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onClose: () => void; onAdd?: (item: FeedItem) => void }) {
+    const [title, setTitle] = useState('');
     const [text, setText] = useState('');
     const [status, setStatus] = useState<InputState>('idle');
     const [selectedType, setSelectedType] = useState<ItemType>('task');
@@ -36,6 +37,7 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
         if (isOpen) {
             setStatus('idle');
             setText('');
+            setTitle('');
             // Focus input after animation
             if (autoFocusQuickAdd) {
                 setTimeout(() => inputRef.current?.focus(), 400);
@@ -54,7 +56,7 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
             if (onAdd) {
                 const newItem: FeedItem = {
                     id: Date.now().toString(),
-                    title: selectedType === 'task' ? 'New Task' : 'New Note',
+                    title: title.trim() || (selectedType === 'task' ? 'New Task' : 'New Note'),
                     type: selectedType === 'task' || selectedType === 'goal' ? 'task' : 'note',
                     content: text,
                     color: 'bg-blue-500',
@@ -66,7 +68,7 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
 
             setStatus('success');
             vibrate('success');
-            
+
             // Close after success
             setTimeout(() => {
                 onClose();
@@ -103,15 +105,15 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
 
     const slimyItem = {
         hidden: { y: 30, opacity: 0, scale: 0.9 },
-        show: { 
-            y: 0, 
-            opacity: 1, 
+        show: {
+            y: 0,
+            opacity: 1,
             scale: 1,
-            transition: { 
-                type: "spring" as const, 
-                stiffness: 350, 
-                damping: 18 
-            } 
+            transition: {
+                type: "spring" as const,
+                stiffness: 350,
+                damping: 18
+            }
         }
     };
 
@@ -148,7 +150,7 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
                         className="fixed inset-x-0 bottom-0 z-50 h-[85vh] bg-[var(--surface)] rounded-t-[32px] overflow-hidden flex flex-col border-t border-white/10"
                     >
                         {/* Header & Drag Handle */}
-                        <div 
+                        <div
                             onPointerDown={(e) => dragControls.start(e)}
                             className="flex-none pt-4 pb-2 px-6 flex flex-col items-center cursor-grab active:cursor-grabbing touch-none"
                         >
@@ -162,7 +164,7 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
 
                         {/* Type Selector Grid - Moved to Top */}
                         <div className="px-6 py-2">
-                             <motion.div 
+                            <motion.div
                                 variants={staggerContainer}
                                 initial="hidden"
                                 animate="show"
@@ -181,8 +183,8 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
                                             }}
                                             className={clsx(
                                                 "flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl transition-all relative overflow-hidden",
-                                                isSelected 
-                                                    ? "bg-white text-black" 
+                                                isSelected
+                                                    ? "bg-white text-black"
                                                     : "bg-white/5 text-neutral-500 hover:bg-white/10 hover:text-neutral-300"
                                             )}
                                         >
@@ -202,7 +204,7 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
                         <div className="flex-1 flex flex-col px-6 relative">
                             {/* State: Success */}
                             {status === 'success' && (
-                                <motion.div 
+                                <motion.div
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[var(--surface)]"
@@ -215,9 +217,9 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
                                 </motion.div>
                             )}
 
-                             {/* State: Processing */}
-                             {status === 'processing' && (
-                                <motion.div 
+                            {/* State: Processing */}
+                            {status === 'processing' && (
+                                <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[var(--surface)]/80 backdrop-blur-sm"
@@ -229,54 +231,39 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
                             )}
 
                             {/* Input Area */}
-                            <div className="flex-1 flex flex-col mt-4">
+                            <div className="flex flex-col mt-4">
+                                <input
+                                    type="text"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    placeholder="Title (Optional)"
+                                    className="w-full bg-transparent text-xl font-bold text-white placeholder-neutral-700 outline-none mb-2 px-6"
+                                />
                                 <textarea
                                     ref={inputRef}
                                     value={text}
                                     onChange={(e) => setText(e.target.value)}
                                     placeholder={status === 'listening' ? "Listening..." : "What's on your mind?"}
-                                    className="w-full h-full bg-transparent text-3xl leading-tight text-white placeholder-neutral-700 resize-none outline-none font-medium"
+                                    className="w-full h-40 bg-transparent text-lg leading-tight text-white placeholder-neutral-700 resize-none outline-none font-medium p-6 transition-colors"
                                 />
                             </div>
 
-                            {/* Listening Visualizer Overlay */}
-                            {status === 'listening' && (
-                                <div className="absolute bottom-32 left-0 right-0 flex justify-center gap-1.5 items-end h-16 pointer-events-none">
-                                    {[1, 2, 3, 4, 5].map((i) => (
-                                        <motion.div
-                                            key={i}
-                                            animate={{ height: [10, 40, 15, 50, 20] }}
-                                            transition={{ 
-                                                repeat: Infinity, 
-                                                duration: 1.5, 
-                                                ease: "easeInOut",
-                                                delay: i * 0.1 
-                                            }}
-                                            className="w-1.5 bg-red-500 rounded-full"
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Bottom Controls */}
-                        <div className="flex-none p-4 pb-safe-bottom bg-[var(--surface)]">
-                            {/* Action Bar & Tools */}
-                            <motion.div 
+                            {/* Action Bar & Tools - Moved here to sit below textbox */}
+                            <motion.div
                                 initial={{ y: 20, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.2 }}
-                                className="flex items-center gap-3"
+                                className="flex items-center gap-3 mt-6"
                             >
                                 {/* Tools Group */}
                                 <div className="flex items-center gap-1 bg-white/5 rounded-2xl p-1 pr-2">
-                                    <button 
+                                    <button
                                         className="p-3 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
                                         onClick={() => vibrate('light')}
                                     >
                                         <Image size={20} />
                                     </button>
-                                    <button 
+                                    <button
                                         className="p-3 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
                                         onClick={() => vibrate('light')}
                                     >
@@ -287,7 +274,7 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
                                         className={clsx(
                                             "p-3 rounded-xl transition-all duration-300",
                                             status === 'listening'
-                                                ? "bg-red-500 text-white shadow-lg shadow-red-500/20" 
+                                                ? "bg-red-500 text-white shadow-lg shadow-red-500/20"
                                                 : "text-neutral-400 hover:text-white hover:bg-white/10"
                                         )}
                                     >
@@ -302,7 +289,7 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
                                     className={clsx(
                                         "flex-1 h-[52px] rounded-2xl flex items-center justify-center gap-2 font-semibold text-lg transition-all duration-300 shadow-lg",
                                         text.trim() && status === 'idle'
-                                            ? "bg-white text-black shadow-white/10 active:scale-95" 
+                                            ? "bg-white text-black shadow-white/10 active:scale-95"
                                             : "bg-neutral-800 text-neutral-600 cursor-not-allowed"
                                     )}
                                 >
@@ -310,7 +297,30 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
                                     <ArrowUp size={20} strokeWidth={3} className={text.trim() ? "rotate-45" : ""} />
                                 </button>
                             </motion.div>
+
+                            {/* Listening Visualizer Overlay */}
+                            {status === 'listening' && (
+                                <div className="absolute bottom-32 left-0 right-0 flex justify-center gap-1.5 items-end h-16 pointer-events-none">
+                                    {[1, 2, 3, 4, 5].map((i) => (
+                                        <motion.div
+                                            key={i}
+                                            animate={{ height: [10, 40, 15, 50, 20] }}
+                                            transition={{
+                                                repeat: Infinity,
+                                                duration: 1.5,
+                                                ease: "easeInOut",
+                                                delay: i * 0.1
+                                            }}
+                                            className="w-1.5 bg-red-500 rounded-full"
+                                        />
+                                    ))}
+                                </div>
+                            )}
                         </div>
+
+                        {/* Bottom Spacer */}
+                        <div className="flex-none h-24 pb-safe-bottom" />
+
                     </motion.div>
                 </>
             )}
