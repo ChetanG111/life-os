@@ -1,15 +1,15 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
+import { X, Mic, Image, Link, Check, ArrowUp } from 'lucide-react';
+import { useState } from 'react';
+import { useBackToClose } from '@/hooks/use-back-to-close';
 
-interface QuickAddModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-}
+export function QuickAddModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+    const [text, setText] = useState('');
+    
+    useBackToClose(isOpen, onClose);
 
-export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
     return (
         <AnimatePresence>
             {isOpen && (

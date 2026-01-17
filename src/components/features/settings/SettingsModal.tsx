@@ -3,6 +3,7 @@
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { ChevronRight, Smartphone, Layout, Zap, Database } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
+import { useBackToClose } from '@/hooks/use-back-to-close';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -13,6 +14,9 @@ interface SettingsModalProps {
 
 export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNav }: SettingsModalProps) {
     const dragControls = useDragControls();
+    
+    // Handle back button behavior
+    useBackToClose(isOpen, onClose);
 
     return (
         <AnimatePresence>
