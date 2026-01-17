@@ -74,6 +74,8 @@ export const TasksTab = ({
                         <motion.div
                             key={task.id}
                             variants={itemVariants}
+                            initial="hidden"
+                            animate="show"
                             layout
                             exit={{
                                 opacity: 0,

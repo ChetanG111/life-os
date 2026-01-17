@@ -1,6 +1,6 @@
 import { NoteCard } from './NoteCard';
 import { mockNotes } from '@/data/mock';
-import { motion, Variants } from 'framer-motion';
+import { motion, Variants, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { Note } from '@/types';
 import clsx from 'clsx';
@@ -57,11 +57,20 @@ export const NotesTab = ({
                     notes.length > 0 ? "columns-2 gap-3" : "flex flex-col"
                 )}
             >
-                {notes.map(note => (
-                    <motion.div key={note.id} variants={itemVariants} className="break-inside-avoid">
-                        <NoteCard note={note} onTap={() => setSelectedNote(note)} />
-                    </motion.div>
-                ))}
+                <AnimatePresence mode="popLayout" initial={false}>
+                    {notes.map(note => (
+                        <motion.div
+                            key={note.id}
+                            variants={itemVariants}
+                            initial="hidden"
+                            animate="show"
+                            exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                            className="break-inside-avoid"
+                        >
+                            <NoteCard note={note} onTap={() => setSelectedNote(note)} />
+                        </motion.div>
+                    ))}
+                </AnimatePresence>
 
                 {/* Empty state handles - Integrated into stagger */}
                 {notes.length === 0 && (

@@ -68,7 +68,7 @@ export function QuickAddModal({
         vibrate('medium');
         setStatus('processing');
 
-        // Simulate AI Processing
+        // Fast Simulation for Instant Feedback
         setTimeout(() => {
             if (selectedType === 'task' || selectedType === 'goal') {
                 addTask({
@@ -102,11 +102,11 @@ export function QuickAddModal({
             setStatus('success');
             vibrate('success');
 
-            // Close after success
+            // Close faster
             setTimeout(() => {
                 onClose();
-            }, 800);
-        }, 1500);
+            }, 500);
+        }, 300);
     };
 
     const toggleListening = () => {
