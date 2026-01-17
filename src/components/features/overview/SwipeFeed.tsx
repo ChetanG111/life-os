@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
-import { Check, Archive } from 'lucide-react';
+import { Check, Archive, Trash2, X, Info } from 'lucide-react';
 import clsx from 'clsx';
 
 interface FeedItem {
@@ -25,26 +25,22 @@ const MOCK_ITEMS: FeedItem[] = [
 export function SwipeFeed() {
     const [items, setItems] = useState(MOCK_ITEMS);
     const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
+    const [detailsId, setDetailsId] = useState<string | null>(null);
 
     // We only show the top 2 cards effectively for performance/visuals
     const activeItems = items.filter(i => !removedIds.has(i.id));
     const topCard = activeItems[0];
-    const nextCard = activeItems[1];
 
-    const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo, itemId: string) => {
-        const swipeThreshold = 100;
-        if (info.offset.x > swipeThreshold) {
-            // Swipe Right (Done/Save)
-            removeCard(itemId, 'right');
-        } else if (info.offset.x < -swipeThreshold) {
-            // Swipe Left (Dismiss/Archive)
-            removeCard(itemId, 'left');
-        }
+    const removeCard = (id: string, action: 'done' | 'dismiss' | 'delete') => {
+        setRemovedIds(prev => new Set(prev).add(id));
+        console.log(`Card ${id} action: ${action}`);
     };
 
-    const removeCard = (id: string, direction: 'left' | 'right') => {
-        setRemovedIds(prev => new Set(prev).add(id));
-        console.log(`Card ${id} swiped ${direction}`);
+    const showDetails = (id: string) => {
+        console.log(`Open details for ${id}`);
+        setDetailsId(id);
+        // Reset after a delay for demo purposes if strictly a visual feedback
+        setTimeout(() => setDetailsId(null), 2000);
     };
 
     if (!topCard) {
@@ -63,9 +59,9 @@ export function SwipeFeed() {
     }
 
     return (
-        <div className="relative h-full w-full max-w-md mx-auto flex flex-col justify-center items-center p-4">
+        <div className="relative h-full w-full max-w-sm mx-auto flex flex-col justify-center items-center p-4">
             {/* Cards container */}
-            <div className="relative w-full aspect-[3/4] max-h-[600px]">
+            <div className="relative w-full aspect-[3/4] max-h-[520px]">
                 <AnimatePresence>
                     {activeItems.slice(0, 2).reverse().map((item, index) => {
                         const isTop = item.id === topCard.id;
@@ -74,30 +70,87 @@ export function SwipeFeed() {
                                 key={item.id}
                                 item={item}
                                 isTop={isTop}
-                                onSwipe={(dir) => removeCard(item.id, dir)}
+                                onSwipe={(action) => removeCard(item.id, action)}
+                                onDetails={() => showDetails(item.id)}
                             />
                         );
                     })}
                 </AnimatePresence>
             </div>
-
-
+            
+            {detailsId && (
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-neutral-800 text-white px-4 py-2 rounded-full text-sm shadow-lg z-50 animate-in fade-in slide-in-from-top-4">
+                    Opening details...
+                </div>
+            )}
         </div>
     );
 }
 
-function SwipeableCard({ item, isTop, onSwipe }: { item: FeedItem, isTop: boolean, onSwipe: (dir: 'left' | 'right') => void }) {
+function SwipeableCard({ 
+    item, 
+    isTop, 
+    onSwipe,
+    onDetails 
+}: { 
+    item: FeedItem, 
+    isTop: boolean, 
+    onSwipe: (action: 'done' | 'dismiss' | 'delete') => void,
+    onDetails: () => void
+}) {
     const x = useMotionValue(0);
+    const y = useMotionValue(0);
     const rotate = useTransform(x, [-200, 200], [-10, 10]);
     const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
 
     // Background color indicators
-    const bgRight = useTransform(x, [0, 150], ["rgba(0,0,0,0)", "rgba(34, 197, 94, 0.2)"]);
-    const bgLeft = useTransform(x, [-150, 0], ["rgba(239, 68, 68, 0.2)", "rgba(0,0,0,0)"]);
+    // Right (Done): Green
+    const bgRightOpacity = useTransform(x, [20, 150], [0, 1]);
+    const scaleRight = useTransform(x, [20, 150], [0.8, 1.2]);
+    
+    // Left (Dismiss): Neutral/Gray
+    const bgLeftOpacity = useTransform(x, [-150, -20], [1, 0]);
+    const scaleLeft = useTransform(x, [-150, -20], [1.2, 0.8]);
 
-    const handleDragEnd = (event: any, info: any) => {
-        if (Math.abs(info.offset.x) > 100) {
-            onSwipe(info.offset.x > 0 ? 'right' : 'left');
+    // Down (Delete): Red
+    const bgDownOpacity = useTransform(y, [20, 150], [0, 1]);
+    const scaleDown = useTransform(y, [20, 150], [0.8, 1.2]);
+
+    // Up (Details): Blue
+    const bgUpOpacity = useTransform(y, [-150, -20], [1, 0]);
+    const scaleUp = useTransform(y, [-150, -20], [1.2, 0.8]);
+
+    // Double tap logic
+    const lastTap = useRef<number>(0);
+    const handleTap = () => {
+        const now = Date.now();
+        const DOUBLE_TAP_DELAY = 300;
+        if (now - lastTap.current < DOUBLE_TAP_DELAY) {
+            onDetails();
+        }
+        lastTap.current = now;
+    };
+
+    const handleDragEnd = (event: any, info: PanInfo) => {
+        const threshold = 100;
+        const { x: offsetX, y: offsetY } = info.offset;
+        const absX = Math.abs(offsetX);
+        const absY = Math.abs(offsetY);
+
+        if (absX > absY) {
+            // Horizontal Swipe
+            if (offsetX > threshold) {
+                onSwipe('done');
+            } else if (offsetX < -threshold) {
+                onSwipe('dismiss');
+            }
+        } else {
+            // Vertical Swipe
+            if (offsetY > threshold) {
+                onSwipe('delete');
+            } else if (offsetY < -threshold) {
+                onDetails();
+            }
         }
     };
 
@@ -105,25 +158,72 @@ function SwipeableCard({ item, isTop, onSwipe }: { item: FeedItem, isTop: boolea
         <motion.div
             style={{
                 x: isTop ? x : 0,
+                y: isTop ? y : (isTop ? 0 : 20), // if not top, offset slightly
                 rotate: isTop ? rotate : 0,
                 scale: isTop ? 1 : 0.95,
-                y: isTop ? 0 : 20,
                 zIndex: isTop ? 10 : 0
             }}
-            drag={isTop ? "x" : false}
-            dragConstraints={{ left: 0, right: 0 }}
+            drag={isTop ? true : false}
+            dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+            dragElastic={0.6}
             onDragEnd={handleDragEnd}
+            onTap={handleTap}
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: isTop ? 1 : 0.95, opacity: 1, y: isTop ? 0 : 24 }}
-            exit={{ x: x.get() < 0 ? -200 : 200, opacity: 0, transition: { duration: 0.2 } }}
+            exit={{ 
+                x: x.get() !== 0 ? (x.get() > 0 ? 500 : -500) : 0,
+                y: y.get() > 50 ? 500 : 0,
+                opacity: 0, 
+                transition: { duration: 0.2 } 
+            }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             className="absolute inset-0 cursor-grab active:cursor-grabbing"
         >
-            <Card className="h-full flex flex-col justify-between bg-neutral-900 border-neutral-800">
-                <motion.div style={{ backgroundColor: bgRight }} className="absolute inset-0 z-0 pointer-events-none rounded-3xl" />
-                <motion.div style={{ backgroundColor: bgLeft }} className="absolute inset-0 z-0 pointer-events-none rounded-3xl" />
+            <Card className="h-full flex flex-col justify-between bg-neutral-900 border-neutral-800 overflow-hidden relative">
+                
+                {/* Swipe Indicators */}
+                {/* Right: Done (Green) */}
+                <motion.div 
+                    style={{ opacity: bgRightOpacity }} 
+                    className="absolute inset-0 z-20 flex items-center justify-center bg-green-500/20 pointer-events-none"
+                >
+                    <motion.div style={{ scale: scaleRight }}>
+                        <Check size={48} className="text-white drop-shadow-md" />
+                    </motion.div>
+                </motion.div>
 
-                <div className="relative z-10">
+                {/* Left: Dismiss (Neutral/Gray) */}
+                <motion.div 
+                    style={{ opacity: bgLeftOpacity }} 
+                    className="absolute inset-0 z-20 flex items-center justify-center bg-neutral-500/20 pointer-events-none"
+                >
+                    <motion.div style={{ scale: scaleLeft }}>
+                        <X size={48} className="text-white drop-shadow-md" />
+                    </motion.div>
+                </motion.div>
+
+                {/* Down: Delete (Red) */}
+                <motion.div 
+                    style={{ opacity: bgDownOpacity }} 
+                    className="absolute inset-0 z-20 flex items-center justify-center bg-red-500/20 pointer-events-none"
+                >
+                    <motion.div style={{ scale: scaleDown }}>
+                        <Trash2 size={48} className="text-white drop-shadow-md" />
+                    </motion.div>
+                </motion.div>
+
+                {/* Up: Details (Blue/Info) */}
+                <motion.div 
+                    style={{ opacity: bgUpOpacity }} 
+                    className="absolute inset-0 z-20 flex items-center justify-center bg-blue-500/20 pointer-events-none"
+                >
+                    <motion.div style={{ scale: scaleUp }}>
+                        <Info size={48} className="text-white drop-shadow-md" />
+                    </motion.div>
+                </motion.div>
+
+
+                <div className="relative z-10 p-5">
                     <div className="flex items-center justify-between mb-4">
                         <span className={clsx("text-xs font-bold uppercase tracking-wider px-2 py-1 rounded bg-white/10 text-white/50",
                             item.type === 'task' ? 'text-blue-400' : 'text-yellow-400'
@@ -136,10 +236,9 @@ function SwipeableCard({ item, isTop, onSwipe }: { item: FeedItem, isTop: boolea
                     <p className="text-lg text-neutral-400 leading-relaxed">{item.content}</p>
                 </div>
 
-                <div className="relative z-10 mt-auto">
-                    <div className="flex items-center gap-2 text-sm text-neutral-500 mb-4">
-                        <Archive size={14} />
-                        <span>Swipe left to archive</span>
+                <div className="relative z-10 mt-auto p-5">
+                    <div className="flex items-center gap-2 text-sm text-neutral-500 mb-4 justify-center">
+                        <span className="text-xs uppercase tracking-widest opacity-50">Swipe to interact</span>
                     </div>
                     <div className="h-1 w-full bg-neutral-800 rounded-full overflow-hidden">
                         <div className="h-full w-2/3 bg-white/20" />
