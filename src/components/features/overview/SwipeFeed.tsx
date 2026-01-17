@@ -63,9 +63,9 @@ export function SwipeFeed() {
     }
 
     return (
-        <div className="relative h-full w-full max-w-sm mx-auto flex flex-col justify-center items-center p-4">
+        <div className="relative h-full w-full max-w-sm mx-auto flex flex-col justify-center items-center p-2">
             {/* Cards container */}
-            <div className="relative w-full aspect-[3/4] max-h-[520px]">
+            <div className="relative w-full aspect-[4/5] max-h-[440px]">
                 <AnimatePresence>
                     {activeItems.slice(0, 2).reverse().map((item, index) => {
                         const isTop = item.id === topCard.id;
@@ -140,7 +140,7 @@ function SwipeableCard({
     };
 
     const handleDragEnd = (event: any, info: PanInfo) => {
-        const threshold = 100;
+        const threshold = 180; // Increased threshold for more deliberate actions
         const { x: offsetX, y: offsetY } = info.offset;
         const absX = Math.abs(offsetX);
         const absY = Math.abs(offsetY);
@@ -236,8 +236,8 @@ function SwipeableCard({
                 </motion.div>
 
 
-                <div className="relative z-10 p-5">
-                    <div className="flex items-center justify-between mb-4">
+                <div className="relative z-10 p-4">
+                    <div className="flex items-center justify-between mb-2">
                         <span className={clsx("text-xs font-bold uppercase tracking-wider px-2 py-1 rounded bg-white/10 text-white/50",
                             item.type === 'task' ? 'text-blue-400' : 'text-yellow-400'
                         )}>
@@ -245,12 +245,12 @@ function SwipeableCard({
                         </span>
                         <div className="h-2 w-2 rounded-full bg-red-500" /> {/* Priority Dot */}
                     </div>
-                    <h3 className="text-3xl font-bold text-white mb-2">{item.title}</h3>
-                    <p className="text-lg text-neutral-400 leading-relaxed">{item.content}</p>
+                    <h3 className="text-2xl font-bold text-white mb-1">{item.title}</h3>
+                    <p className="text-base text-neutral-400 leading-relaxed">{item.content}</p>
                 </div>
 
-                <div className="relative z-10 mt-auto p-5">
-                    <div className="flex items-center gap-2 text-sm text-neutral-500 mb-4 justify-center">
+                <div className="relative z-10 mt-auto p-4">
+                    <div className="flex items-center gap-2 text-sm text-neutral-500 mb-2 justify-center">
                         <span className="text-xs uppercase tracking-widest opacity-50">Swipe to interact</span>
                     </div>
                     <div className="h-1 w-full bg-neutral-800 rounded-full overflow-hidden">

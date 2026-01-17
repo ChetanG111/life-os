@@ -3,29 +3,23 @@
 import { Task } from '@/types';
 import { TaskCard } from './TaskCard';
 import { mockTasks } from '@/data/mock';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 
 export const TasksTab = () => {
+    const [tasks, setTasks] = useState<Task[]>(mockTasks);
+
+    const handleRemove = (id: string) => {
+        setTasks(prev => prev.filter(t => t.id !== id));
+    };
+
     // Sort logic: High -> Medium -> Low
     const sortedTasks = useMemo(() => {
-        const high = mockTasks.filter(t => t.priority === 'high');
-        const medium = mockTasks.filter(t => t.priority === 'medium');
-        const low = mockTasks.filter(t => t.priority === 'low');
-        return { high, medium, low };
-    }, []);
-
-    const Section = ({ title, tasks, color }: { title: string, tasks: Task[], color: string }) => {
-        if (tasks.length === 0) return null;
-        return (
-            <div>
-                <div className="flex flex-col">
-                    {tasks.map(task => (
-                        <TaskCard key={task.id} task={task} />
-                    ))}
-                </div>
-            </div>
-        );
-    };
+        return [...tasks].sort((a, b) => {
+            const priorityOrder = { high: 0, medium: 1, low: 2 };
+            return priorityOrder[a.priority] - priorityOrder[b.priority];
+        });
+    }, [tasks]);
 
     return (
         <div className="w-full min-h-screen px-4 py-6 bg-background pb-32">
@@ -33,9 +27,17 @@ export const TasksTab = () => {
                 <h1 className="text-3xl font-bold text-white tracking-tight">Tasks</h1>
             </header>
 
-            <Section title="High Priority" tasks={sortedTasks.high} color="text-red-500" />
-            <Section title="Medium Priority" tasks={sortedTasks.medium} color="text-amber-500" />
-            <Section title="Low Priority" tasks={sortedTasks.low} color="text-blue-500" />
+            <div className="flex flex-col space-y-2">
+                <AnimatePresence mode="popLayout" initial={false}>
+                    {sortedTasks.map(task => (
+                        <TaskCard
+                            key={task.id}
+                            task={task}
+                            onRemove={() => handleRemove(task.id)}
+                        />
+                    ))}
+                </AnimatePresence>
+            </div>
         </div>
     );
 };
