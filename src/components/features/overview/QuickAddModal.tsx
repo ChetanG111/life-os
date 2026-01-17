@@ -131,15 +131,16 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                         className="fixed inset-x-0 bottom-0 z-50 h-[85vh] bg-[var(--surface)] rounded-t-[32px] overflow-hidden flex flex-col border-t border-white/10"
                     >
-                        {/* Header & Drag Handle */}
-                        <div className="flex-none pt-4 pb-2 px-6 flex items-start justify-between">
-                            <div className="w-12 h-1.5 bg-neutral-700 rounded-full mx-auto absolute left-1/2 -translate-x-1/2" />
-                            <div /> {/* Spacer */}
+                        {/* Header */}
+                        <div className="flex-none pt-6 pb-2 px-6 flex items-center justify-between">
+                            <h2 className="text-xl font-bold text-white capitalize">
+                                New {selectedType}
+                            </h2>
                             <button
                                 onClick={onClose}
-                                className="p-2 -mr-2 text-neutral-400 hover:text-white transition-colors"
+                                className="p-2 -mr-2 text-neutral-400 hover:text-white transition-colors bg-white/5 rounded-full"
                             >
-                                <X size={24} />
+                                <X size={20} />
                             </button>
                         </div>
 
@@ -180,7 +181,7 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
                                     value={text}
                                     onChange={(e) => setText(e.target.value)}
                                     placeholder={status === 'listening' ? "Listening..." : "What's on your mind?"}
-                                    className="w-full h-full bg-transparent text-2xl leading-normal text-white placeholder-neutral-600 resize-none outline-none font-medium"
+                                    className="w-full h-full bg-transparent text-3xl leading-tight text-white placeholder-neutral-700 resize-none outline-none font-medium"
                                 />
                             </div>
 
@@ -205,13 +206,63 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
                         </div>
 
                         {/* Bottom Controls */}
-                        <div className="flex-none p-6 pb-safe-bottom bg-[var(--surface)] border-t border-white/5">
-                             {/* Type Selector */}
+                        <div className="flex-none p-4 pb-safe-bottom bg-[var(--surface)] space-y-4">
+                            {/* Action Bar & Tools */}
+                            <motion.div 
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.2 }}
+                                className="flex items-center gap-3"
+                            >
+                                {/* Tools Group */}
+                                <div className="flex items-center gap-1 bg-white/5 rounded-2xl p-1 pr-2">
+                                    <button 
+                                        className="p-3 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                                        onClick={() => vibrate('light')}
+                                    >
+                                        <Image size={20} />
+                                    </button>
+                                    <button 
+                                        className="p-3 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                                        onClick={() => vibrate('light')}
+                                    >
+                                        <Link size={20} />
+                                    </button>
+                                    <button
+                                        onClick={toggleListening}
+                                        className={clsx(
+                                            "p-3 rounded-xl transition-all duration-300",
+                                            status === 'listening'
+                                                ? "bg-red-500 text-white shadow-lg shadow-red-500/20" 
+                                                : "text-neutral-400 hover:text-white hover:bg-white/10"
+                                        )}
+                                    >
+                                        <Mic size={20} />
+                                    </button>
+                                </div>
+
+                                {/* Submit Button */}
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={!text.trim() || status !== 'idle'}
+                                    className={clsx(
+                                        "flex-1 h-[52px] rounded-2xl flex items-center justify-center gap-2 font-semibold text-lg transition-all duration-300 shadow-lg",
+                                        text.trim() && status === 'idle'
+                                            ? "bg-white text-black shadow-white/10 active:scale-95" 
+                                            : "bg-neutral-800 text-neutral-600 cursor-not-allowed"
+                                    )}
+                                >
+                                    <span>Create</span>
+                                    <ArrowUp size={20} strokeWidth={3} className={text.trim() ? "rotate-45" : ""} />
+                                </button>
+                            </motion.div>
+
+                            {/* Type Selector Grid */}
                              <motion.div 
                                 variants={staggerContainer}
                                 initial="hidden"
                                 animate="show"
-                                className="flex gap-2 mb-6 overflow-x-auto no-scrollbar pb-1"
+                                className="grid grid-cols-4 gap-2"
                             >
                                 {ITEM_TYPES.map((type) => {
                                     const Icon = type.icon;
@@ -225,64 +276,28 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
                                                 setSelectedType(type.id);
                                             }}
                                             className={clsx(
-                                                "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all",
+                                                "flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl transition-all relative overflow-hidden",
                                                 isSelected 
-                                                    ? "bg-white text-black shadow-lg shadow-white/10 scale-105" 
-                                                    : "bg-white/5 text-neutral-400 hover:bg-white/10"
+                                                    ? "bg-white/10 text-white" 
+                                                    : "text-neutral-500 hover:bg-white/5 hover:text-neutral-300"
                                             )}
                                         >
-                                            <Icon size={16} />
-                                            {type.label}
+                                            {isSelected && (
+                                                <motion.div
+                                                    layoutId="activeTypeBg"
+                                                    className="absolute inset-0 bg-white/10"
+                                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                                />
+                                            )}
+                                            <span className="relative z-10">
+                                                <Icon size={24} strokeWidth={isSelected ? 2.5 : 2} />
+                                            </span>
+                                            <span className="text-[11px] font-medium tracking-wide relative z-10">
+                                                {type.label}
+                                            </span>
                                         </motion.button>
                                     );
                                 })}
-                            </motion.div>
-
-                            {/* Action Bar */}
-                            <motion.div 
-                                initial={{ y: 20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ delay: 0.3, type: "spring", stiffness: 350, damping: 18 }}
-                                className="flex items-center justify-between"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <button 
-                                        className="p-3 rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
-                                        onClick={() => vibrate('light')}
-                                    >
-                                        <Image size={24} />
-                                    </button>
-                                    <button 
-                                        className="p-3 rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
-                                        onClick={() => vibrate('light')}
-                                    >
-                                        <Link size={24} />
-                                    </button>
-                                    <button
-                                        onClick={toggleListening}
-                                        className={clsx(
-                                            "p-3 rounded-full transition-all duration-300",
-                                            status === 'listening'
-                                                ? "bg-red-500/20 text-red-500 ring-2 ring-red-500 ring-offset-2 ring-offset-[#121212]" 
-                                                : "bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10"
-                                        )}
-                                    >
-                                        <Mic size={24} />
-                                    </button>
-                                </div>
-
-                                <button
-                                    onClick={handleSubmit}
-                                    disabled={!text.trim() || status !== 'idle'}
-                                    className={clsx(
-                                        "w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg",
-                                        text.trim() && status === 'idle'
-                                            ? "bg-white text-black shadow-white/10 hover:scale-105 active:scale-95" 
-                                            : "bg-neutral-800 text-neutral-600 cursor-not-allowed"
-                                    )}
-                                >
-                                    <ArrowUp size={28} strokeWidth={2.5} />
-                                </button>
                             </motion.div>
                         </div>
                     </motion.div>
