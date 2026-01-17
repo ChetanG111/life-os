@@ -103,7 +103,7 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
             opacity: 1, 
             scale: 1,
             transition: { 
-                type: "spring", 
+                type: "spring" as const, 
                 stiffness: 350, 
                 damping: 18 
             } 
