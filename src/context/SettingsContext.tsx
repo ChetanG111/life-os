@@ -6,6 +6,8 @@ import { useData } from './DataContext';
 interface SettingsContextType {
     autoFocusQuickAdd: boolean;
     setAutoFocusQuickAdd: (value: boolean) => void;
+    confirmDelete: boolean;
+    setConfirmDelete: (value: boolean) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -18,8 +20,17 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         updateSettings({ autoFocusQuickAdd: value });
     };
 
+    const setConfirmDelete = (value: boolean) => {
+        updateSettings({ confirmDelete: value });
+    };
+
     return (
-        <SettingsContext.Provider value={{ autoFocusQuickAdd, setAutoFocusQuickAdd }}>
+        <SettingsContext.Provider value={{
+            autoFocusQuickAdd,
+            setAutoFocusQuickAdd,
+            confirmDelete: settings.confirmDelete,
+            setConfirmDelete
+        }}>
             {children}
         </SettingsContext.Provider>
     );

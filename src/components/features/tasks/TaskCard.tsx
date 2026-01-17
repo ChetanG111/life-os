@@ -4,6 +4,8 @@ import { useState } from 'react';
 import clsx from 'clsx';
 import { Check, Trash2, Clock } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
+import { useSettings } from '@/context/SettingsContext';
+import { ConfirmDeleteModal } from '../cards/ConfirmDeleteModal';
 
 interface TaskCardProps {
     task: Task;
@@ -13,6 +15,8 @@ interface TaskCardProps {
 
 export const TaskCard = ({ task, onRemove, onTap }: TaskCardProps) => {
     const [action, setAction] = useState<'idle' | 'completing' | 'deleting'>('idle');
+    const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+    const { confirmDelete } = useSettings();
     const controls = useAnimation();
     const x = useMotionValue(0);
 
@@ -28,8 +32,13 @@ export const TaskCard = ({ task, onRemove, onTap }: TaskCardProps) => {
         } else if (info.offset.x < -threshold) {
             vibrate('medium');
             controls.start({ x: 0, transition: fastSpring });
-            setAction('deleting');
-            controls.start('deleting').then(() => onRemove());
+
+            if (confirmDelete) {
+                setIsConfirmingDelete(true);
+            } else {
+                setAction('deleting');
+                controls.start('deleting').then(() => onRemove());
+            }
         } else {
             controls.start({ x: 0, transition: fastSpring });
         }
@@ -90,7 +99,8 @@ export const TaskCard = ({ task, onRemove, onTap }: TaskCardProps) => {
                 onDragStart={() => vibrate('light')}
                 onDragEnd={handleDragEnd}
                 onTap={() => {
-                    if (action === 'idle' && onTap) {
+                    // Only trigger tap if we haven't dragged significantly
+                    if (action === 'idle' && Math.abs(x.get()) < 5 && onTap) {
                         vibrate('light');
                         onTap();
                     }
@@ -135,6 +145,16 @@ export const TaskCard = ({ task, onRemove, onTap }: TaskCardProps) => {
                     </div>
                 )}
             </motion.div>
+
+            <ConfirmDeleteModal
+                isOpen={isConfirmingDelete}
+                onClose={() => setIsConfirmingDelete(false)}
+                onConfirm={() => {
+                    setAction('deleting');
+                    controls.start('deleting').then(() => onRemove());
+                }}
+                title="Delete Task?"
+            />
         </motion.div>
     );
 };

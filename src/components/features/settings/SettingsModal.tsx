@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
-import { ChevronRight, Smartphone, Layout, Zap, Database, Activity, Keyboard } from 'lucide-react';
+import { ChevronRight, Smartphone, Layout, Zap, Database, Activity, Keyboard, Trash2 } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
 import { useBackToClose } from '@/hooks/use-back-to-close';
 import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
@@ -19,9 +19,9 @@ interface SettingsModalProps {
 export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNav }: SettingsModalProps) {
     const dragControls = useDragControls();
     const { intensity, setIntensity } = useMotion();
-    const { autoFocusQuickAdd, setAutoFocusQuickAdd } = useSettings();
+    const { autoFocusQuickAdd, setAutoFocusQuickAdd, confirmDelete, setConfirmDelete } = useSettings();
     const springConfig = useSlimySpring();
-    
+
     // Handle back button behavior
     useBackToClose(isOpen, onClose);
     // Lock body scroll to prevent pull-to-refresh
@@ -40,9 +40,9 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
 
     const slimyItem = {
         hidden: { y: 30, opacity: 0, scale: 0.9 },
-        show: { 
-            y: 0, 
-            opacity: 1, 
+        show: {
+            y: 0,
+            opacity: 1,
             scale: 1,
             transition: springConfig
         }
@@ -85,18 +85,18 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                         className="fixed inset-x-0 bottom-0 top-12 bg-[var(--background)] rounded-t-[32px] overflow-hidden z-50 flex flex-col border-t border-white/10"
                     >
                         {/* Header & Drag Area */}
-                        <div 
+                        <div
                             onPointerDown={(e) => dragControls.start(e)}
                             className="flex flex-col items-center justify-center px-6 pt-3 pb-4 bg-[var(--background)] cursor-grab active:cursor-grabbing touch-none border-b border-white/5"
                         >
                             {/* Drag Handle Pill */}
                             <div className="w-12 h-1.5 bg-neutral-700 rounded-full mb-4" />
-                            
+
                             <h2 className="text-xl font-bold tracking-tight w-full text-center">Settings</h2>
                         </div>
 
                         {/* Scrollable Content */}
-                        <motion.div 
+                        <motion.div
                             variants={staggerContainer}
                             initial="hidden"
                             animate="show"
@@ -117,13 +117,13 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                                             <p className="text-xs text-neutral-500">Adjust the bounce & overshoot</p>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="px-1">
-                                        <input 
-                                            type="range" 
-                                            min="0" 
-                                            max="100" 
-                                            value={intensity} 
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="100"
+                                            value={intensity}
                                             onChange={(e) => setIntensity(Number(e.target.value))}
                                             className="w-full h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-white"
                                         />
@@ -151,16 +151,15 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                                                 <p className="text-xs text-neutral-500">Show pill navigation bar</p>
                                             </div>
                                         </div>
-                                        
+
                                         {/* Toggle Switch */}
                                         <button
                                             onClick={() => {
                                                 vibrate('medium');
                                                 onToggleBottomNav(!showBottomNav);
                                             }}
-                                            className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${
-                                                showBottomNav ? 'bg-white' : 'bg-neutral-800'
-                                            }`}
+                                            className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${showBottomNav ? 'bg-white' : 'bg-neutral-800'
+                                                }`}
                                         >
                                             <motion.div
                                                 initial={false}
@@ -191,20 +190,49 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                                                 <p className="text-xs text-neutral-500">Open keyboard on Quick Add</p>
                                             </div>
                                         </div>
-                                        
+
                                         <button
                                             onClick={() => {
                                                 vibrate('medium');
                                                 setAutoFocusQuickAdd(!autoFocusQuickAdd);
                                             }}
-                                            className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${
-                                                autoFocusQuickAdd ? 'bg-white' : 'bg-neutral-800'
-                                            }`}
+                                            className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${autoFocusQuickAdd ? 'bg-white' : 'bg-neutral-800'
+                                                }`}
                                         >
                                             <motion.div
                                                 initial={false}
                                                 animate={{
                                                     x: autoFocusQuickAdd ? 22 : 2
+                                                }}
+                                                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                                className="absolute top-1 left-0 w-5 h-5 bg-black rounded-full shadow-sm"
+                                            />
+                                        </button>
+                                    </div>
+
+                                    <div className="flex items-center justify-between p-4 border-t border-white/5">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-red-500/10 rounded-lg text-red-500">
+                                                <Trash2 size={20} />
+                                            </div>
+                                            <div>
+                                                <p className="font-medium text-white">Confirm Deletion</p>
+                                                <p className="text-xs text-neutral-500">Ask before removing items</p>
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            onClick={() => {
+                                                vibrate('medium');
+                                                setConfirmDelete(!confirmDelete);
+                                            }}
+                                            className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${confirmDelete ? 'bg-white' : 'bg-neutral-800'
+                                                }`}
+                                        >
+                                            <motion.div
+                                                initial={false}
+                                                animate={{
+                                                    x: confirmDelete ? 22 : 2
                                                 }}
                                                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
                                                 className="absolute top-1 left-0 w-5 h-5 bg-black rounded-full shadow-sm"
@@ -233,8 +261,8 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                                     <SettingsRow icon={Database} color="text-emerald-500" label="Backup & Sync" />
                                 </div>
                             </motion.section>
-                            
-                             <motion.div variants={slimyItem} className="pt-8 pb-12 text-center">
+
+                            <motion.div variants={slimyItem} className="pt-8 pb-12 text-center">
                                 <p className="text-xs text-neutral-600 font-medium">Life OS v0.1.0 (Alpha)</p>
                             </motion.div>
                         </motion.div>

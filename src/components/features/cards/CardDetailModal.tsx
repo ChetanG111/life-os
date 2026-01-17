@@ -7,6 +7,8 @@ import { useBackToClose } from '@/hooks/use-back-to-close';
 import { useState, useEffect } from 'react';
 import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
+import { useSettings } from '@/context/SettingsContext';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface CardDetailModalProps {
     isOpen: boolean;
@@ -27,7 +29,9 @@ interface CardDetailModalProps {
 export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }: CardDetailModalProps) {
     const dragControls = useDragControls();
     const springConfig = useSlimySpring();
+    const { confirmDelete } = useSettings();
     const [activeItem, setActiveItem] = useState(item);
+    const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
     useBackToClose(isOpen, onClose);
     useLockBodyScroll(isOpen);
@@ -165,14 +169,27 @@ export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }:
                             <button className="h-14 w-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center active:scale-95 transition-transform"
                                 onClick={() => {
                                     vibrate('medium');
-                                    if (onDelete) onDelete();
-                                    onClose();
+                                    if (confirmDelete) {
+                                        setIsConfirmingDelete(true);
+                                    } else {
+                                        if (onDelete) onDelete();
+                                        onClose();
+                                    }
                                 }}
                             >
                                 <Trash2 size={24} />
                             </button>
                         </div>
                     </motion.div>
+
+                    <ConfirmDeleteModal
+                        isOpen={isConfirmingDelete}
+                        onClose={() => setIsConfirmingDelete(false)}
+                        onConfirm={() => {
+                            if (onDelete) onDelete();
+                            onClose();
+                        }}
+                    />
                 </>
             )}
         </AnimatePresence>

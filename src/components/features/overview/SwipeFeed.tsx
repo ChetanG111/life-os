@@ -7,6 +7,8 @@ import { Check, Archive, Trash2, X, Info } from 'lucide-react';
 import clsx from 'clsx';
 import { vibrate } from '@/utils/haptics';
 import { CardDetailModal } from '../cards/CardDetailModal';
+import { ConfirmDeleteModal } from '../cards/ConfirmDeleteModal';
+import { useSettings } from '@/context/SettingsContext';
 
 export interface FeedItem {
     id: string;
@@ -103,6 +105,8 @@ function SwipeableCard({
 }) {
     const x = useMotionValue(0);
     const y = useMotionValue(0);
+    const { confirmDelete } = useSettings();
+    const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
     const rotate = useTransform(x, [-200, 200], [-8, 8]);
     const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]);
 
@@ -124,6 +128,9 @@ function SwipeableCard({
 
     const lastTap = useRef<number>(0);
     const handleTap = () => {
+        // Only trigger if we haven't dragged the card
+        if (Math.abs(x.get()) > 5 || Math.abs(y.get()) > 5) return;
+
         const now = Date.now();
         const DOUBLE_TAP_DELAY = 300;
         vibrate('light');
@@ -151,7 +158,11 @@ function SwipeableCard({
         } else {
             if (offsetY > threshold) {
                 vibrate('medium');
-                onSwipe('delete');
+                if (confirmDelete) {
+                    setIsConfirmingDelete(true);
+                } else {
+                    onSwipe('delete');
+                }
             } else if (offsetY < -threshold) {
                 vibrate('medium');
                 onDetails();
@@ -226,6 +237,15 @@ function SwipeableCard({
                     </div>
                 </div>
             </Card>
+
+            <ConfirmDeleteModal
+                isOpen={isConfirmingDelete}
+                onClose={() => setIsConfirmingDelete(false)}
+                onConfirm={() => {
+                    onSwipe('delete');
+                }}
+                title="Delete from Feed?"
+            />
         </motion.div>
     );
 }

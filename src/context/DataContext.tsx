@@ -8,6 +8,7 @@ interface AppSettings {
     autoFocusQuickAdd: boolean;
     motionIntensity: number;
     showBottomNav: boolean;
+    confirmDelete: boolean;
 }
 
 interface DataContextType {
@@ -25,6 +26,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     autoFocusQuickAdd: true,
     motionIntensity: 50,
     showBottomNav: true,
+    confirmDelete: true,
 };
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
