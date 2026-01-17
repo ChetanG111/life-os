@@ -22,11 +22,22 @@ const PlaceholderTab = ({ text }: { text: string }) => (
     </div>
 );
 
-const TabContent = ({ activeTab, onModalToggle }: { activeTab: TabId, onModalToggle: (isOpen: boolean) => void }) => {
+const TabContent = ({ 
+    activeTab, 
+    onModalToggle,
+    settings
+}: { 
+    activeTab: TabId, 
+    onModalToggle: (isOpen: boolean) => void,
+    settings: {
+        showBottomNav: boolean;
+        setShowBottomNav: (show: boolean) => void;
+    }
+}) => {
     switch (activeTab) {
         case 'tasks': return <TasksTab />;
         case 'notes': return <NotesTab />;
-        case 'overview': return <Feed onModalToggle={onModalToggle} />;
+        case 'overview': return <Feed onModalToggle={onModalToggle} settings={settings} />;
         case 'chat': return <ChatTab />;
         case 'weekly': return <WeeklyTab />;
         default: return null;
@@ -37,6 +48,7 @@ export function NavigationShell() {
     const [activeTab, setActiveTab] = useState<TabId>('overview');
     const [direction, setDirection] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
+    const [showBottomNav, setShowBottomNav] = useState(false);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -88,14 +100,13 @@ export function NavigationShell() {
     };
 
     const variants: Variants = {
-        hidden: { opacity: 0 },
         enter: (direction: number) => ({
             x: direction > 0 ? '100%' : '-100%',
             opacity: 1,
             zIndex: 0,
             pointerEvents: 'none', // Prevent interaction during entry
         }),
-        show: {
+        center: {
             zIndex: 1,
             x: 0,
             opacity: 1,
@@ -117,19 +128,15 @@ export function NavigationShell() {
         })
     };
 
-
-    // Navigation visibility rules from design.yaml
-    const showBottomNav = false;
-
     return (
         <div className="relative h-[100dvh] w-full overflow-hidden bg-background" >
-            <AnimatePresence initial={true} custom={direction} mode="popLayout">
+            <AnimatePresence initial={false} custom={direction} mode="popLayout">
                 <motion.main
                     key={activeTab}
                     custom={direction}
                     variants={variants}
-                    initial="hidden"
-                    animate="show"
+                    initial="enter"
+                    animate="center"
                     exit="exit"
                     // Drag configuration for swipe support
                     drag={isModalOpen ? false : "x"}
@@ -139,7 +146,11 @@ export function NavigationShell() {
                     onDragEnd={handleDragEnd}
                     className="absolute inset-0 h-full w-full touch-pan-y will-change-transform bg-background overflow-y-auto overflow-x-hidden"
                 >
-                    <TabContent activeTab={activeTab} onModalToggle={setIsModalOpen} />
+                    <TabContent 
+                        activeTab={activeTab} 
+                        onModalToggle={setIsModalOpen} 
+                        settings={{ showBottomNav, setShowBottomNav }}
+                    />
                 </motion.main>
             </AnimatePresence>
 
