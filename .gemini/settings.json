@@ -1,0 +1,10 @@
+{
+  "tools": {
+    "shell": {
+      "showColor": true
+    }
+  },
+  "experimental": {
+    "skills": true
+  }
+}

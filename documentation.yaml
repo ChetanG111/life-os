@@ -1,0 +1,1375 @@
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║                              LIFE OS DOCUMENTATION                             ║
+# ║                     Personal Productivity Second Brain App                    ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+#
+# This documentation covers all implemented features, architecture patterns, and
+# reusable systems in Life OS. Read this before modifying any code.
+#
+# Last Updated: 2026-01-18
+# Version: 0.1.0 (Alpha)
+
+---
+# ════════════════════════════════════════
+# OVERVIEW
+# ════════════════════════════════════════
+overview:
+  name: "Life OS"
+  description: |
+    Life OS is a mobile-first, gesture-driven personal productivity app built with 
+    Next.js and Framer Motion. It features a premium dark-only interface inspired by 
+    iOS design principles, with fluid spring animations and haptic feedback.
+  
+  philosophy:
+    - "Tool, not toy - high signal, low noise"
+    - "Gesture-first navigation - swipe to navigate, swipe to act"
+    - "Premium feel - animations must feel physical and satisfying"
+    - "Zero visual distraction - minimal, clean, and focused"
+  
+  tech_stack:
+    framework: "Next.js 14+ (App Router)"
+    animations: "Framer Motion 11+"
+    styling: "Tailwind CSS 4"
+    icons: "Lucide React"
+    language: "TypeScript"
+    font: "Fredoka (Google Fonts)"
+
+
+---
+# ════════════════════════════════════════
+# PROJECT STRUCTURE
+# ════════════════════════════════════════
+project_structure:
+  root_files:
+    - "documentation.yaml   # This file - complete system documentation"
+    - "1.instructions.md    # Quick start and development notes"
+    - "ARCHITECTURE.md      # High-level architecture overview"
+    - "README.md            # Project readme"
+  
+  context_folder:
+    path: "context/"
+    files:
+      - "design.yaml        # Design system tokens and motion rules"
+  
+  src_folder:
+    path: "src/"
+    subdirectories:
+      app:
+        description: "Next.js App Router pages and layouts"
+        files:
+          - "layout.tsx     # Root layout with providers"
+          - "page.tsx       # Main entry point (renders NavigationShell)"
+          - "globals.css    # Global styles and CSS variables"
+      
+      components:
+        description: "All React components organized by feature"
+        subdirectories:
+          layout:
+            description: "Navigation and shell components"
+            files:
+              - "NavigationShell.tsx  # Main app shell with tab switching"
+              - "BottomNav.tsx        # Animated bottom navigation bar"
+          
+          features:
+            description: "Feature-specific components"
+            subdirectories:
+              tasks: ["TasksTab.tsx", "TaskCard.tsx"]
+              notes: ["NotesTab.tsx", "NoteCard.tsx"]
+              weekly: ["WeeklyTab.tsx", "DayItem.tsx"]
+              overview: ["Feed.tsx", "SwipeFeed.tsx", "QuickAddModal.tsx"]
+              chat: ["ChatTab.tsx"]
+              settings: ["SettingsModal.tsx"]
+              cards: ["CardDetailModal.tsx", "ConfirmDeleteModal.tsx"]
+          
+          ui:
+            description: "Reusable UI primitives"
+            files: ["Card.tsx"]
+      
+      context:
+        description: "React Context providers for global state"
+        files:
+          - "DataContext.tsx      # Tasks, Notes, Settings state + persistence"
+          - "SettingsContext.tsx  # Settings abstraction layer"
+          - "MotionContext.tsx    # Dynamic spring configuration"
+      
+      hooks:
+        description: "Custom React hooks"
+        files:
+          - "use-back-to-close.ts  # Handle Android back button for modals"
+          - "use-lock-body-scroll.ts  # Prevent body scroll when modal open"
+          - "use-slimy-spring.ts   # Get current spring config from motion context"
+      
+      utils:
+        description: "Utility functions and animation helpers"
+        files:
+          - "animations.ts   # Universal stagger animation system"
+          - "haptics.ts      # Vibration patterns for feedback"
+      
+      types:
+        description: "TypeScript type definitions"
+        files:
+          - "index.ts   # Task, Note, TabId, and other types"
+      
+      data:
+        description: "Mock data for development"
+        files:
+          - "mock.ts   # Sample tasks and notes"
+
+
+---
+# ════════════════════════════════════════
+# DATA & STATE MANAGEMENT
+# ════════════════════════════════════════
+data_management:
+  overview: |
+    Life OS uses React Context for global state management, with automatic 
+    persistence to localStorage. All data flows through the DataContext provider.
+
+  # ─────────────────────────────────────
+  # DataContext (Primary State Store)
+  # ─────────────────────────────────────
+  data_context:
+    file: "src/context/DataContext.tsx"
+    description: |
+      The central state store that manages all application data including tasks, 
+      notes, and settings. Provides CRUD operations and automatic localStorage 
+      persistence.
+    
+    exports:
+      DataProvider:
+        type: "React Component"
+        description: "Wraps the app to provide data context"
+        usage: |
+          // In layout.tsx (already implemented)
+          <DataProvider>
+            <SettingsProvider>
+              <MotionProvider>
+                {children}
+              </MotionProvider>
+            </SettingsProvider>
+          </DataProvider>
+      
+      useData:
+        type: "React Hook"
+        description: "Access data context in any component"
+        returns:
+          tasks: "Task[] - Array of all tasks"
+          notes: "Note[] - Array of all notes"
+          settings: "AppSettings - Current settings object"
+          addTask: "(task: Omit<Task, 'id' | 'isCompleted'>) => void"
+          removeTask: "(id: string) => void"
+          addNote: "(note: Omit<Note, 'id' | 'date'>) => void"
+          removeNote: "(id: string) => void"
+          updateSettings: "(updates: Partial<AppSettings>) => void"
+        
+        usage: |
+          import { useData } from '@/context/DataContext';
+          
+          function MyComponent() {
+            const { tasks, addTask, removeTask } = useData();
+            
+            // Add a new task
+            addTask({
+              title: 'New Task',
+              priority: 'medium',
+              tags: ['work'],
+              description: 'Task description',
+            });
+            
+            // Remove a task
+            removeTask('task-id');
+          }
+    
+    settings_interface:
+      properties:
+        autoFocusQuickAdd:
+          type: "boolean"
+          default: true
+          description: "Whether to auto-focus input when QuickAddModal opens"
+        
+        motionIntensity:
+          type: "number (0-100)"
+          default: 50
+          description: "Controls spring animation bounciness"
+        
+        showBottomNav:
+          type: "boolean"
+          default: true
+          description: "Show/hide the bottom navigation pill bar"
+        
+        confirmDelete:
+          type: "boolean"
+          default: true
+          description: "Show confirmation modal before deleting items"
+    
+    persistence:
+      mechanism: "localStorage"
+      keys:
+        tasks: "life-os-tasks"
+        notes: "life-os-notes"
+        settings: "life-os-settings"
+      
+      how_it_works: |
+        1. On app load, data is read from localStorage (or mock data if empty)
+        2. The `isLoaded` flag prevents hydration mismatches
+        3. Separate useEffect hooks save each data type when changed
+        4. Children only render after data is loaded (prevents flicker)
+    
+    adding_new_settings: |
+      To add a new setting:
+      1. Add the property to the AppSettings interface
+      2. Add default value to DEFAULT_SETTINGS
+      3. It will auto-persist to localStorage
+      4. Access via useData().settings.yourNewSetting
+      5. Update via useData().updateSettings({ yourNewSetting: value })
+
+  # ─────────────────────────────────────
+  # SettingsContext (Convenience Layer)
+  # ─────────────────────────────────────
+  settings_context:
+    file: "src/context/SettingsContext.tsx"
+    description: |
+      A convenience abstraction over DataContext for settings. Provides direct 
+      getters and setters for common settings without needing updateSettings().
+    
+    exports:
+      SettingsProvider:
+        type: "React Component"
+        usage: "Already wrapped in layout.tsx (inside DataProvider)"
+      
+      useSettings:
+        type: "React Hook"
+        returns:
+          autoFocusQuickAdd: "boolean"
+          setAutoFocusQuickAdd: "(value: boolean) => void"
+          confirmDelete: "boolean"
+          setConfirmDelete: "(value: boolean) => void"
+        
+        usage: |
+          import { useSettings } from '@/context/SettingsContext';
+          
+          function MyComponent() {
+            const { confirmDelete, setConfirmDelete } = useSettings();
+            
+            // Toggle setting
+            setConfirmDelete(!confirmDelete);
+          }
+    
+    why_two_contexts: |
+      DataContext handles all data + raw settings object.
+      SettingsContext provides individual getter/setter pairs for convenience.
+      This separation keeps components clean and focused.
+
+
+---
+# ════════════════════════════════════════
+# ANIMATION SYSTEM
+# ════════════════════════════════════════
+animation_system:
+  overview: |
+    Life OS has a sophisticated animation system built on Framer Motion. It features 
+    user-adjustable spring physics, universal stagger animations, and gesture-based 
+    interactions. All animations feel physical and "slimy" - bouncy with overshoot.
+
+  # ─────────────────────────────────────
+  # Motion Context (Dynamic Springs)
+  # ─────────────────────────────────────
+  motion_context:
+    file: "src/context/MotionContext.tsx"
+    description: |
+      Provides dynamic spring configuration that adjusts based on user preference.
+      The "Motion Intensity" slider in settings controls how bouncy animations feel.
+    
+    exports:
+      MotionProvider:
+        type: "React Component"
+        usage: "Already wrapped in layout.tsx"
+      
+      useMotion:
+        type: "React Hook"
+        returns:
+          intensity: "number (0-100) - Current motion intensity"
+          setIntensity: "(value: number) => void - Update intensity"
+          getSpring: "() => SpringConfig - Get current spring values"
+        
+        usage: |
+          import { useMotion } from '@/context/MotionContext';
+          
+          function MyComponent() {
+            const { getSpring } = useMotion();
+            const springConfig = getSpring();
+            
+            // Use in Framer Motion
+            <motion.div
+              animate={{ y: 0 }}
+              transition={springConfig}
+            />
+          }
+    
+    intensity_mapping:
+      description: |
+        The intensity (0-100) maps to spring stiffness and damping using 
+        linear interpolation (lerp). Lower = rigid/fast, Higher = bouncy/fluid.
+      
+      values:
+        intensity_0:
+          label: "Minimal"
+          stiffness: 600
+          damping: 60
+          feel: "Fast, rigid, no bounce"
+        
+        intensity_50:
+          label: "Balanced"
+          stiffness: 410
+          damping: 33.5
+          feel: "Natural, subtle bounce"
+        
+        intensity_100:
+          label: "Slimy"
+          stiffness: 220
+          damping: 7
+          feel: "Fluid, chaotic bounce, high oscillation"
+
+  # ─────────────────────────────────────
+  # useSlimySpring Hook (Convenience)
+  # ─────────────────────────────────────
+  use_slimy_spring:
+    file: "src/hooks/use-slimy-spring.ts"
+    description: "Shorthand hook to get current spring config"
+    
+    usage: |
+      import { useSlimySpring } from '@/hooks/use-slimy-spring';
+      
+      function MyComponent() {
+        const springConfig = useSlimySpring();
+        
+        // springConfig = { type: "spring", stiffness: X, damping: Y }
+        <motion.div transition={springConfig} />
+      }
+
+  # ─────────────────────────────────────
+  # Universal Stagger System
+  # ─────────────────────────────────────
+  stagger_animations:
+    file: "src/utils/animations.ts"
+    description: |
+      A centralized stagger animation system for consistent list/card entrance 
+      animations. Follow iOS 18 fluid entrance patterns.
+    
+    design_tokens:
+      standard_gap: "0.08s (80ms) - For task/note lists"
+      modal_gap: "0.05s (50ms) - For dense modal content"
+      initial_delay: "0.1s (100ms) - Delay before first item animates"
+      slide_offset: "30px - Y-axis slide distance"
+      entrance_scale: "0.9 - Scale on entrance"
+    
+    exports:
+      STAGGER_CONFIG:
+        type: "Object"
+        description: "Raw timing constants"
+        usage: |
+          import { STAGGER_CONFIG } from '@/utils/animations';
+          
+          // STAGGER_CONFIG.standard = 0.08
+          // STAGGER_CONFIG.modal = 0.05
+          // STAGGER_CONFIG.initialDelay = 0.1
+      
+      UNIVERSAL_STAGGER_CONTAINER:
+        type: "(mode: 'standard' | 'modal') => Variants"
+        description: "Returns container variants for stagger parent"
+        usage: |
+          import { UNIVERSAL_STAGGER_CONTAINER } from '@/utils/animations';
+          
+          const containerVariants = UNIVERSAL_STAGGER_CONTAINER('standard');
+          
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+          >
+            {items.map(item => (
+              <motion.div key={item.id} variants={itemVariants}>
+                {item.content}
+              </motion.div>
+            ))}
+          </motion.div>
+      
+      createStaggerItemVariants:
+        type: "(springConfig: any) => Variants"
+        description: "Creates item variants with the current spring config"
+        usage: |
+          import { createStaggerItemVariants } from '@/utils/animations';
+          import { useSlimySpring } from '@/hooks/use-slimy-spring';
+          
+          function MyList() {
+            const springConfig = useSlimySpring();
+            const itemVariants = createStaggerItemVariants(springConfig);
+            
+            // itemVariants.hidden = { opacity: 0, y: 30, scale: 0.9 }
+            // itemVariants.show = { opacity: 1, y: 0, scale: 1, transition: springConfig }
+          }
+    
+    complete_implementation_example: |
+      // Full example of stagger animation in a list component
+      
+      import { motion, AnimatePresence } from 'framer-motion';
+      import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants } from '@/utils/animations';
+      import { useSlimySpring } from '@/hooks/use-slimy-spring';
+      
+      function TaskList({ tasks }) {
+        const springConfig = useSlimySpring();
+        const containerVariants = UNIVERSAL_STAGGER_CONTAINER('standard');
+        const itemVariants = createStaggerItemVariants(springConfig);
+        
+        return (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="space-y-3"
+          >
+            <AnimatePresence mode="sync">
+              {tasks.map((task) => (
+                <motion.div
+                  key={task.id}
+                  variants={itemVariants}
+                  layout
+                  exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
+                >
+                  <TaskCard task={task} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        );
+      }
+    
+    where_implemented:
+      - "TasksTab.tsx - Task list stagger"
+      - "NotesTab.tsx - Notes grid stagger"
+      - "WeeklyTab.tsx - Weekly days stagger"
+      - "SettingsModal.tsx - Settings sections stagger"
+      - "QuickAddModal.tsx - Type selector and content stagger"
+
+  # ─────────────────────────────────────
+  # Modal Animations
+  # ─────────────────────────────────────
+  modal_animations:
+    description: "Standard animation pattern for bottom sheet modals"
+    
+    pattern: |
+      All modals use the same animation pattern:
+      - Slide up from bottom with spring animation
+      - Drag-to-dismiss (swipe down to close)
+      - Backdrop blur with fade
+    
+    standard_modal_config:
+      initial: "{ y: '100%' }"
+      animate: "{ y: '0%' }"
+      exit: "{ y: '100%' }"
+      transition: "{ type: 'spring', damping: 25, stiffness: 200 }"
+      drag: "'y'"
+      dragConstraints: "{ top: 0, bottom: 0 }"
+      dragElastic: "{ top: 0.05, bottom: 0.7 }"
+      onDragEnd: |
+        (_, info) => {
+          if (info.offset.y > 100 || info.velocity.y > 300) {
+            vibrate('light');
+            onClose();
+          }
+        }
+    
+    implementing_a_new_modal: |
+      // Template for creating a new bottom sheet modal
+      
+      import { motion, AnimatePresence, useDragControls } from 'framer-motion';
+      import { useBackToClose } from '@/hooks/use-back-to-close';
+      import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
+      import { vibrate } from '@/utils/haptics';
+      
+      function NewModal({ isOpen, onClose }) {
+        const dragControls = useDragControls();
+        
+        // Handle Android back button
+        useBackToClose(isOpen, onClose);
+        // Lock body scroll (prevent pull-to-refresh)
+        useLockBodyScroll(isOpen);
+        
+        return (
+          <AnimatePresence>
+            {isOpen && (
+              <>
+                {/* Backdrop */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={onClose}
+                  className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+                />
+                
+                {/* Modal Content */}
+                <motion.div
+                  initial={{ y: '100%' }}
+                  animate={{ y: '0%' }}
+                  exit={{ y: '100%' }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                  drag="y"
+                  dragControls={dragControls}
+                  dragListener={false}  // Use dragControls for specific handle
+                  dragConstraints={{ top: 0, bottom: 0 }}
+                  dragElastic={{ top: 0.05, bottom: 0.7 }}
+                  onDragEnd={(_, info) => {
+                    if (info.offset.y > 100 || info.velocity.y > 300) {
+                      vibrate('light');
+                      onClose();
+                    }
+                  }}
+                  className="fixed inset-x-0 bottom-0 bg-[var(--surface)] rounded-t-[32px] z-50"
+                >
+                  {/* Drag Handle */}
+                  <div
+                    onPointerDown={(e) => dragControls.start(e)}
+                    className="flex justify-center pt-4 pb-2 cursor-grab touch-none"
+                  >
+                    <div className="w-12 h-1.5 bg-neutral-700 rounded-full" />
+                  </div>
+                  
+                  {/* Your content here */}
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        );
+      }
+
+
+---
+# ════════════════════════════════════════
+# HAPTIC FEEDBACK
+# ════════════════════════════════════════
+haptics:
+  file: "src/utils/haptics.ts"
+  description: |
+    Provides vibration patterns for haptic feedback. Uses the Web Vibration API 
+    (navigator.vibrate) which works on Android and some browsers.
+  
+  exports:
+    vibrate:
+      type: "(pattern: VibrationPattern) => void"
+      patterns:
+        light:
+          duration: "10ms"
+          usage: "Standard tap feedback, tab switches, minor interactions"
+        
+        medium:
+          duration: "35ms"
+          usage: "Toggle switches, swipe dismissals, button presses"
+        
+        heavy:
+          duration: "60ms"
+          usage: "Significant actions, drag starts"
+        
+        success:
+          duration: "[20, 40, 20]ms"
+          usage: "Task completion, successful saves"
+        
+        warning:
+          duration: "[40, 60, 20]ms"
+          usage: "Approaching limits, caution states"
+        
+        error:
+          duration: "[60, 60, 60, 60]ms"
+          usage: "Failed actions, validation errors"
+  
+  usage: |
+    import { vibrate } from '@/utils/haptics';
+    
+    // On button click
+    const handleClick = () => {
+      vibrate('medium');
+      doAction();
+    };
+    
+    // On swipe complete
+    if (swipeDirection === 'right') {
+      vibrate('success');
+      markComplete();
+    }
+  
+  where_used:
+    - "NavigationShell - Tab switches, FAB clicks"
+    - "TaskCard - Drag start, swipe complete/delete"
+    - "SettingsModal - Toggle switches"
+    - "QuickAddModal - Voice toggle, submit"
+    - "All modals - Drag-to-dismiss"
+
+
+---
+# ════════════════════════════════════════
+# CUSTOM HOOKS
+# ════════════════════════════════════════
+hooks:
+  # ─────────────────────────────────────
+  # useBackToClose
+  # ─────────────────────────────────────
+  use_back_to_close:
+    file: "src/hooks/use-back-to-close.ts"
+    description: |
+      Handles Android/browser back button to close modals instead of navigating away.
+      Essential for mobile web app feel.
+    
+    how_it_works: |
+      1. When modal opens: Pushes a dummy history state
+      2. When back button pressed: popstate fires → calls onClose
+      3. When closed via UI (not back button): Effect cleanup pops history
+    
+    usage: |
+      import { useBackToClose } from '@/hooks/use-back-to-close';
+      
+      function MyModal({ isOpen, onClose }) {
+        useBackToClose(isOpen, onClose);
+        
+        return (
+          <AnimatePresence>
+            {isOpen && <ModalContent />}
+          </AnimatePresence>
+        );
+      }
+    
+    important_notes:
+      - "Always call at the top of modal component"
+      - "The onClose callback should NOT push/pop history itself"
+      - "Works in tandem with drag-to-dismiss"
+  
+  # ─────────────────────────────────────
+  # useLockBodyScroll
+  # ─────────────────────────────────────
+  use_lock_body_scroll:
+    file: "src/hooks/use-lock-body-scroll.ts"
+    description: |
+      Prevents body scroll when a modal is open. Prevents iOS pull-to-refresh 
+      and scroll-behind issues.
+    
+    how_it_works: |
+      1. When isLocked=true: Sets document.body.style.overflow = 'hidden'
+      2. When isLocked=false (or unmount): Restores original overflow
+    
+    usage: |
+      import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
+      
+      function MyModal({ isOpen }) {
+        useLockBodyScroll(isOpen);
+        // Body scroll now locked when modal is open
+      }
+  
+  # ─────────────────────────────────────
+  # useSlimySpring
+  # ─────────────────────────────────────
+  use_slimy_spring:
+    file: "src/hooks/use-slimy-spring.ts"
+    description: "Convenience hook to get current spring configuration"
+    
+    usage: |
+      import { useSlimySpring } from '@/hooks/use-slimy-spring';
+      
+      function MyComponent() {
+        const springConfig = useSlimySpring();
+        // Returns: { type: "spring", stiffness: X, damping: Y }
+      }
+    
+    note: |
+      This is just syntactic sugar over useMotion().getSpring().
+      Use when you only need the spring config and not intensity/setIntensity.
+
+
+---
+# ════════════════════════════════════════
+# SETTINGS MENU
+# ════════════════════════════════════════
+settings_menu:
+  file: "src/components/features/settings/SettingsModal.tsx"
+  description: |
+    Full-screen bottom sheet modal for app settings. Features stagger animations, 
+    toggle switches, and the motion intensity slider.
+  
+  opening_the_settings: |
+    Settings modal is opened by tapping the title in any tab header.
+    The onOpenSettings callback is passed through NavigationShell → TabContent → Tab.
+    
+    Example in a tab:
+    <motion.button onClick={onOpenSettings}>
+      <h1>Tasks</h1>
+    </motion.button>
+  
+  current_settings:
+    motion_intensity:
+      section: "Experience"
+      type: "Slider (0-100)"
+      description: "Adjusts spring stiffness/damping for all animations"
+      implementation: |
+        Uses useMotion() context to read/write intensity.
+        Changes are automatically persisted to localStorage.
+    
+    bottom_navigation:
+      section: "Navigation"
+      type: "Toggle Switch"
+      description: "Show/hide the floating pill navigation bar"
+      implementation: |
+        Controlled via settings.showBottomNav in DataContext.
+        Toggled via onToggleBottomNav prop from NavigationShell.
+    
+    auto_focus_keyboard:
+      section: "Behavior"
+      type: "Toggle Switch"
+      description: "Auto-focus text input when QuickAddModal opens"
+      implementation: "Uses SettingsContext.setAutoFocusQuickAdd()"
+    
+    confirm_deletion:
+      section: "Behavior"
+      type: "Toggle Switch"
+      description: "Show confirmation modal before deleting items"
+      implementation: "Uses SettingsContext.setConfirmDelete()"
+  
+  placeholder_settings:
+    description: "These are UI placeholders for future implementation"
+    items:
+      - "Haptics & Motion - Future: Fine-tune haptic patterns"
+      - "Display - Future: Theme options, typography"
+      - "Backup & Sync - Future: Cloud sync, export/import"
+  
+  adding_a_new_setting: |
+    1. Add property to AppSettings interface in DataContext.tsx
+    2. Add default value to DEFAULT_SETTINGS
+    3. (Optional) Add convenience getter/setter in SettingsContext.tsx
+    4. Add UI control in SettingsModal.tsx:
+    
+    <motion.section variants={slimyItem}>
+      <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-4 px-1">
+        Your Section
+      </h3>
+      <div className="bg-[var(--surface)] rounded-2xl overflow-hidden border border-white/5">
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500">
+              <YourIcon size={20} />
+            </div>
+            <div>
+              <p className="font-medium text-white">Your Setting</p>
+              <p className="text-xs text-neutral-500">Description</p>
+            </div>
+          </div>
+          
+          <button
+            onClick={() => {
+              vibrate('medium');
+              updateYourSetting(!currentValue);
+            }}
+            className={`relative w-12 h-7 rounded-full transition-colors ${
+              currentValue ? 'bg-white' : 'bg-neutral-800'
+            }`}
+          >
+            <motion.div
+              animate={{ x: currentValue ? 22 : 2 }}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              className="absolute top-1 left-0 w-5 h-5 bg-black rounded-full"
+            />
+          </button>
+        </div>
+      </div>
+    </motion.section>
+  
+  toggle_switch_pattern: |
+    Standard toggle switch implementation:
+    
+    <button
+      onClick={() => {
+        vibrate('medium');
+        setYourState(!yourState);
+      }}
+      className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${
+        yourState ? 'bg-white' : 'bg-neutral-800'
+      }`}
+    >
+      <motion.div
+        initial={false}
+        animate={{ x: yourState ? 22 : 2 }}
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+        className="absolute top-1 left-0 w-5 h-5 bg-black rounded-full shadow-sm"
+      />
+    </button>
+
+
+---
+# ════════════════════════════════════════
+# NAVIGATION SYSTEM
+# ════════════════════════════════════════
+navigation:
+  overview: |
+    Life OS uses a gesture-first navigation system. Users can swipe horizontally 
+    to switch tabs, or tap the floating bottom navigation bar.
+  
+  # ─────────────────────────────────────
+  # NavigationShell
+  # ─────────────────────────────────────
+  navigation_shell:
+    file: "src/components/layout/NavigationShell.tsx"
+    description: "Main app shell that manages tab switching, modals, and gestures"
+    
+    responsibilities:
+      - "Manages active tab state"
+      - "Handles swipe gestures for tab switching"
+      - "Hosts all global modals (Settings, QuickAdd, CardDetail)"
+      - "Renders the FAB (Floating Action Button)"
+      - "Passes callbacks to child tabs"
+    
+    tab_order:
+      - "tasks (index 0)"
+      - "notes (index 1)"
+      - "overview (index 2)"
+      - "chat (index 3)"
+      - "weekly (index 4)"
+    
+    swipe_configuration:
+      threshold: "50px offset or 500 velocity"
+      elastic:
+        at_edges: "0.4 (stronger resistance)"
+        between_tabs: "0.1 (subtle)"
+      lockout: "350ms between swipes to prevent skipping"
+    
+    direction_logic: |
+      Direction determines animation direction (enter from left/right):
+      - direction = 1: Moving forward (e.g., tasks → notes)
+      - direction = -1: Moving backward (e.g., notes → tasks)
+    
+    modal_blocking: |
+      When any modal is open (isModalOpen = true):
+      - Horizontal swipe gesture is disabled
+      - This prevents accidental tab switches while using modals
+  
+  # ─────────────────────────────────────
+  # BottomNav
+  # ─────────────────────────────────────
+  bottom_nav:
+    file: "src/components/layout/BottomNav.tsx"
+    description: "Floating pill navigation bar at the bottom"
+    
+    features:
+      - "Only visible during drag/swipe (reveal on interaction)"
+      - "Active tab has white pill indicator with layoutId animation"
+      - "Pill tracks finger movement during swipe (parallax)"
+    
+    visibility: |
+      Controlled by isVisible prop from NavigationShell.
+      - isVisible = true: During active swipe drag
+      - isVisible = false: Hidden when not dragging
+    
+    parallax_effect: |
+      The white pill indicator moves opposite to swipe direction,
+      creating a feeling that it's tracking toward the next tab.
+      Implemented via useTransform on x motion value from NavigationShell.
+    
+    icons:
+      tasks: "CheckCircle2"
+      notes: "FileText"
+      overview: "Layers"
+      chat: "MessageSquare"
+      weekly: "Calendar"
+
+
+---
+# ════════════════════════════════════════
+# TASK SYSTEM
+# ════════════════════════════════════════
+tasks:
+  # ─────────────────────────────────────
+  # Task Type Definition
+  # ─────────────────────────────────────
+  type_definition:
+    file: "src/types/index.ts"
+    interface: |
+      interface Task {
+        id: string;
+        title: string;
+        dueTime?: string;
+        priority: 'high' | 'medium' | 'low';
+        tags: string[];
+        isCompleted: boolean;
+        description?: string;
+      }
+  
+  # ─────────────────────────────────────
+  # TasksTab
+  # ─────────────────────────────────────
+  tasks_tab:
+    file: "src/components/features/tasks/TasksTab.tsx"
+    description: "Main tasks list view with sorting and stagger animations"
+    
+    features:
+      - "Tasks sorted by priority (high → medium → low)"
+      - "Stagger entrance animation"
+      - "Empty state with icon"
+      - "Tap to open details, swipe to complete/delete"
+    
+    props:
+      onOpenSettings: "() => void - Opens settings modal"
+      onOpenDetails: "(item: any) => void - Opens card detail modal"
+      onOpenQuickAdd: "(type?: 'task' | 'note') => void - Opens quick add modal"
+  
+  # ─────────────────────────────────────
+  # TaskCard
+  # ─────────────────────────────────────
+  task_card:
+    file: "src/components/features/tasks/TaskCard.tsx"
+    description: "Swipeable task card with gesture actions"
+    
+    gesture_actions:
+      swipe_right:
+        threshold: "150px"
+        action: "Complete (remove) task"
+        feedback: "vibrate('success'), green border, scale up then shrink"
+        animation: "completing variant - scale [1, 1.05, 0]"
+      
+      swipe_left:
+        threshold: "150px"
+        action: "Delete task (with optional confirmation)"
+        feedback: "vibrate('medium'), red border"
+        animation: "deleting variant - scale [1, 0.95, 0]"
+      
+      tap:
+        action: "Open CardDetailModal"
+        condition: "Only if drag offset < 5px"
+    
+    visual_elements:
+      priority_dot: "2.5x2.5 circle with priority color"
+      title: "Truncated, changes color on action state"
+      due_time: "Clock icon + time string"
+      tag: "First tag displayed in pill"
+    
+    priority_colors:
+      high: "#EF4444 (red)"
+      medium: "#F59E0B (amber)"
+      low: "#3B82F6 (blue)"
+    
+    background_indicators: |
+      Behind the draggable card, there are indicator icons:
+      - Left half: Green check icon (complete action)
+      - Right half: Red trash icon (delete action)
+      These are revealed as the card is dragged.
+
+
+---
+# ════════════════════════════════════════
+# NOTES SYSTEM
+# ════════════════════════════════════════
+notes:
+  # ─────────────────────────────────────
+  # Note Type Definition
+  # ─────────────────────────────────────
+  type_definition:
+    file: "src/types/index.ts"
+    interface: |
+      type NoteType = 'text' | 'voice' | 'image';
+      
+      interface Note {
+        id: string;
+        content: string;
+        type: NoteType;
+        tags: string[];
+        date: string;
+        title?: string;
+      }
+  
+  # ─────────────────────────────────────
+  # NotesTab
+  # ─────────────────────────────────────
+  notes_tab:
+    file: "src/components/features/notes/NotesTab.tsx"
+    description: "Notes grid view with 2-column layout"
+    
+    features:
+      - "2-column CSS Grid layout (when notes exist)"
+      - "Stagger entrance animation"
+      - "Empty state fallback"
+      - "Tap to open details"
+    
+    layout_logic: |
+      When notes exist: grid grid-cols-2 gap-3 auto-rows-max
+      When empty: flex flex-col (for centering empty state)
+  
+  # ─────────────────────────────────────
+  # NoteCard
+  # ─────────────────────────────────────
+  note_card:
+    file: "src/components/features/notes/NoteCard.tsx"
+    description: "Individual note card with content preview"
+    
+    visual_elements:
+      title: "Optional, displayed if present"
+      content:
+        text: "Line-clamped to 4 lines"
+        image: "Thumbnail preview"
+      type_icon: "Mic (voice), Image, AlignLeft (text)"
+      tag: "First tag in pill format"
+    
+    note_types:
+      text: "Standard text content"
+      voice: "Voice memo (content is transcript)"
+      image: "Image URL (displayed as thumbnail)"
+
+
+---
+# ════════════════════════════════════════
+# MODALS
+# ════════════════════════════════════════
+modals:
+  shared_patterns:
+    - "Bottom sheet slide-up animation"
+    - "Drag-to-dismiss with threshold"
+    - "Backdrop blur with click-to-close"
+    - "useBackToClose for Android back button"
+    - "useLockBodyScroll to prevent scroll-behind"
+    - "Drag handle pill at the top"
+  
+  # ─────────────────────────────────────
+  # QuickAddModal
+  # ─────────────────────────────────────
+  quick_add_modal:
+    file: "src/components/features/overview/QuickAddModal.tsx"
+    description: "Modal for quickly capturing new tasks, notes, ideas, or goals"
+    
+    features:
+      - "Type selector grid (Task, Note, Idea, Goal)"
+      - "Title input (optional)"
+      - "Main content textarea"
+      - "Voice input simulation (mock)"
+      - "Priority selector (cycles through high/medium/low)"
+      - "Processing and success states"
+    
+    item_types:
+      task:
+        icon: "CheckCircle2"
+        saves_to: "DataContext.addTask()"
+        default_priority: "medium"
+      
+      note:
+        icon: "Hash"
+        saves_to: "DataContext.addNote()"
+      
+      idea:
+        icon: "Sparkles"
+        saves_to: "DataContext.addNote() with 'idea' tag"
+      
+      goal:
+        icon: "ArrowUp"
+        saves_to: "DataContext.addTask() with 'goal' tag"
+        default_priority: "high"
+    
+    states:
+      idle: "Normal input state"
+      listening: "Voice input active (mock)"
+      processing: "Submitting, shows spinner"
+      success: "Shows confirmation, auto-closes"
+    
+    props:
+      isOpen: "boolean"
+      onClose: "() => void"
+      onAdd: "(item: FeedItem) => void - Optional callback"
+      initialType: "'task' | 'note' | 'idea' | 'goal' - Pre-select type"
+  
+  # ─────────────────────────────────────
+  # CardDetailModal
+  # ─────────────────────────────────────
+  card_detail_modal:
+    file: "src/components/features/cards/CardDetailModal.tsx"
+    description: "Full detail view for tasks and notes"
+    
+    features:
+      - "Type badge and priority dot"
+      - "Full title and content"
+      - "Due time and date metadata"
+      - "Action footer: Complete, Edit, Delete"
+    
+    props:
+      isOpen: "boolean"
+      onClose: "() => void"
+      onDelete: "() => void - Called when delete confirmed"
+      onComplete: "() => void - Called on complete"
+      item:
+        id: "string"
+        title: "string"
+        type: "'task' | 'note'"
+        content: "string"
+        tags: "string[] (optional)"
+        dueTime: "string (optional)"
+        priority: "'high' | 'medium' | 'low' (optional)"
+    
+    action_buttons:
+      complete:
+        size: "flex-1 (takes most space)"
+        color: "bg-white text-black"
+        action: "Calls onComplete, then onClose"
+      
+      edit:
+        size: "w-16"
+        color: "bg-white/5 text-neutral-400"
+        action: "Currently just vibrates (placeholder)"
+      
+      delete:
+        size: "w-16"
+        color: "bg-red-500/10 text-red-500"
+        action: "Shows ConfirmDeleteModal if confirmDelete setting is on"
+  
+  # ─────────────────────────────────────
+  # ConfirmDeleteModal
+  # ─────────────────────────────────────
+  confirm_delete_modal:
+    file: "src/components/features/cards/ConfirmDeleteModal.tsx"
+    description: "Confirmation dialog before deletion"
+    
+    features:
+      - "Centered modal (not bottom sheet)"
+      - "Warning icon and message"
+      - "Delete and Cancel buttons"
+      - "Uses current spring config for animation"
+    
+    props:
+      isOpen: "boolean"
+      onClose: "() => void"
+      onConfirm: "() => void - Called when delete confirmed"
+      title: "string (default: 'Delete Item?')"
+    
+    usage: |
+      Shown when confirmDelete setting is enabled and user:
+      - Swipes left on TaskCard
+      - Clicks delete in CardDetailModal
+
+
+---
+# ════════════════════════════════════════
+# STYLING
+# ════════════════════════════════════════
+styling:
+  # ─────────────────────────────────────
+  # CSS Variables
+  # ─────────────────────────────────────
+  css_variables:
+    file: "src/app/globals.css"
+    
+    colors:
+      --background: "#0B0B0B (near-black)"
+      --surface: "#121212 (dark gray)"
+      --foreground: "#FFFFFF"
+      --foreground-secondary: "#E5E5E5"
+      --foreground-muted: "#9CA3AF"
+      --priority-high: "#EF4444"
+      --priority-medium: "#F59E0B"
+      --priority-low: "#3B82F6"
+    
+    usage: |
+      Use CSS variables for consistent theming:
+      
+      className="bg-[var(--background)]"
+      className="bg-[var(--surface)]"
+      className="text-[var(--foreground-muted)]"
+  
+  # ─────────────────────────────────────
+  # App-Like Behavior CSS
+  # ─────────────────────────────────────
+  app_behavior:
+    file: "src/app/globals.css"
+    
+    styles_applied:
+      - "overscroll-behavior-y: none - Prevents pull-to-refresh"
+      - "-webkit-tap-highlight-color: transparent - Removes tap highlight"
+      - "user-select: none - Prevents text selection (app feel)"
+      - "Scrollbar hidden globally"
+  
+  # ─────────────────────────────────────
+  # Custom Utilities
+  # ─────────────────────────────────────
+  custom_utilities:
+    py-safe-top: "padding-top: env(safe-area-inset-top)"
+    pb-safe-bottom: "padding-bottom: env(safe-area-inset-bottom)"
+    
+    usage: |
+      These utilities account for device notches and home indicators:
+      
+      <div className="py-safe-top pb-safe-bottom">
+        Content
+      </div>
+  
+  # ─────────────────────────────────────
+  # Common Patterns
+  # ─────────────────────────────────────
+  common_patterns:
+    card_container: |
+      className="bg-[var(--surface)] rounded-2xl border border-white/5"
+    
+    section_header: |
+      className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-4 px-1"
+    
+    badge: |
+      className="px-3 py-1 rounded-full bg-white/5 text-[10px] font-bold uppercase tracking-widest text-neutral-400 border border-white/5"
+    
+    priority_dot: |
+      className={clsx("w-2.5 h-2.5 rounded-full", priorityColors[priority])}
+
+
+---
+# ════════════════════════════════════════
+# LAYOUT HIERARCHY
+# ════════════════════════════════════════
+layout_hierarchy:
+  description: |
+    Understanding the component hierarchy is crucial for state flow and callbacks.
+  
+  tree: |
+    layout.tsx (DataProvider → SettingsProvider → MotionProvider)
+    └── page.tsx
+        └── NavigationShell
+            ├── TabContent (renders active tab)
+            │   ├── TasksTab
+            │   │   └── TaskCard
+            │   ├── NotesTab
+            │   │   └── NoteCard
+            │   ├── Feed (Overview)
+            │   ├── ChatTab
+            │   └── WeeklyTab
+            │       └── DayItem
+            │
+            ├── FAB (Floating Action Button)
+            │
+            ├── QuickAddModal
+            ├── CardDetailModal
+            │   └── ConfirmDeleteModal
+            ├── SettingsModal
+            │
+            └── BottomNav
+  
+  callback_flow: |
+    NavigationShell defines modal open/close handlers:
+    - onOpenSettings → opens SettingsModal
+    - onOpenDetails → opens CardDetailModal
+    - onOpenQuickAdd → opens QuickAddModal
+    
+    These are passed down: NavigationShell → TabContent → Individual Tab
+    
+    Each tab can call these to open global modals.
+
+
+---
+# ════════════════════════════════════════
+# WEEKLY TAB
+# ════════════════════════════════════════
+weekly_tab:
+  file: "src/components/features/weekly/WeeklyTab.tsx"
+  description: "Sprint/week view showing tasks distributed across days"
+  
+  features:
+    - "Current sprint header with title"
+    - "Progress ring showing completion percentage"
+    - "Focus and Velocity metrics cards"
+    - "7-day week list with stagger animation"
+  
+  week_calculation: |
+    The view shows Monday through Sunday of the current week.
+    Tasks are pseudo-randomly distributed (index % 7) for demo purposes.
+    In production, tasks would be filtered by actual date.
+  
+  components:
+    WeeklyTab: "Main view with header and day list"
+    DayItem: "Individual day row with date and task count"
+
+
+---
+# ════════════════════════════════════════
+# TIPS & BEST PRACTICES
+# ════════════════════════════════════════
+best_practices:
+  animations:
+    - "Always use useSlimySpring() for transitions"
+    - "Wrap list items in motion.div with containerVariants for stagger"
+    - "Use layout prop on motion components for smooth reorders"
+    - "Use AnimatePresence with mode='sync' for exit animations"
+  
+  haptics:
+    - "Use 'light' for minor interactions (taps, swipes)"
+    - "Use 'medium' for significant actions (toggles, drag ends)"
+    - "Use 'success' for completions and saves"
+  
+  modals:
+    - "Always use useBackToClose and useLockBodyScroll"
+    - "Include drag handle for swipe-to-dismiss"
+    - "Use stagger animations inside modal content"
+  
+  state:
+    - "Access data via useData() hook"
+    - "Don't create parallel localStorage calls"
+    - "Use updateSettings() for all setting changes"
+  
+  styling:
+    - "Use CSS variables for colors: var(--background), var(--surface)"
+    - "Prefer border-white/5 for subtle borders"
+    - "Use rounded-2xl for cards, rounded-full for pills"
+
+
+---
+# ════════════════════════════════════════
+# EXTENDING THE APP
+# ════════════════════════════════════════
+extending:
+  adding_a_new_tab:
+    steps:
+      - "1. Create component in src/components/features/newtab/"
+      - "2. Add tab ID to TabId type in src/types/index.ts"
+      - "3. Add to TABS array in src/types/index.ts"
+      - "4. Add icon to ICONS object in BottomNav.tsx"
+      - "5. Add case in TabContent switch in NavigationShell.tsx"
+  
+  adding_a_new_data_type:
+    steps:
+      - "1. Define interface in src/types/index.ts"
+      - "2. Add state, actions, and persistence in DataContext.tsx"
+      - "3. Create component for displaying the data"
+      - "4. Add mock data in src/data/mock.ts (optional)"
+  
+  adding_a_new_setting:
+    steps:
+      - "1. Add to AppSettings interface in DataContext.tsx"
+      - "2. Add default value to DEFAULT_SETTINGS"
+      - "3. (Optional) Add convenience methods in SettingsContext.tsx"
+      - "4. Add UI control in SettingsModal.tsx"
+
+
+---
+# ════════════════════════════════════════
+# QUICK REFERENCE
+# ════════════════════════════════════════
+quick_reference:
+  imports:
+    data: "import { useData } from '@/context/DataContext';"
+    settings: "import { useSettings } from '@/context/SettingsContext';"
+    motion: "import { useMotion } from '@/context/MotionContext';"
+    spring: "import { useSlimySpring } from '@/hooks/use-slimy-spring';"
+    stagger: "import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants } from '@/utils/animations';"
+    haptics: "import { vibrate } from '@/utils/haptics';"
+    back_close: "import { useBackToClose } from '@/hooks/use-back-to-close';"
+    lock_scroll: "import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';"
+  
+  stagger_setup: |
+    const springConfig = useSlimySpring();
+    const containerVariants = UNIVERSAL_STAGGER_CONTAINER('standard');
+    const itemVariants = createStaggerItemVariants(springConfig);
+  
+  spring_transition: |
+    transition={useSlimySpring()}
+  
+  modal_essentials: |
+    useBackToClose(isOpen, onClose);
+    useLockBodyScroll(isOpen);
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════
+# END OF DOCUMENTATION
+# ═══════════════════════════════════════════════════════════════════════════════════
