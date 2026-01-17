@@ -8,9 +8,10 @@ import { vibrate } from '@/utils/haptics';
 
 interface NoteCardProps {
     note: Note;
+    onTap?: () => void;
 }
 
-export const NoteCard = ({ note }: NoteCardProps) => {
+export const NoteCard = ({ note, onTap }: NoteCardProps) => {
     // Variable height simulation for masonry effect based on content length
     // In a real grid, the content drives this.
 
@@ -20,6 +21,7 @@ export const NoteCard = ({ note }: NoteCardProps) => {
             whileTap={{ scale: 0.98 }}
             onTap={() => {
                 vibrate('light');
+                if (onTap) onTap();
             }}
             transition={{ type: "spring", stiffness: 350, damping: 25 }}
             className="w-full bg-[#1A1A1A] rounded-2xl p-4 mb-3 border border-white/5 overflow-hidden break-inside-avoid"

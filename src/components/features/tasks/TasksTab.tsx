@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { Task } from '@/types';
 import { mockTasks } from '@/data/mock';
 import { TaskCard } from './TaskCard';
+import { CardDetailModal } from '../cards/CardDetailModal';
 
 /**
  * TasksTab - Clean, high-performance task list.
@@ -42,6 +43,7 @@ const itemVariants: Variants = {
 
 export const TasksTab = () => {
     const [tasks, setTasks] = useState<Task[]>(mockTasks);
+    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
     const handleRemove = (id: string) => {
         setTasks(prev => prev.filter(t => t.id !== id));
@@ -82,6 +84,7 @@ export const TasksTab = () => {
                             <TaskCard
                                 task={task}
                                 onRemove={() => handleRemove(task.id)}
+                                onTap={() => setSelectedTask(task)}
                             />
                         </motion.div>
                     ))}
@@ -98,6 +101,20 @@ export const TasksTab = () => {
                     <p className="text-sm font-medium uppercase tracking-widest">Completed everything</p>
                 </motion.div>
             )}
+
+            <CardDetailModal 
+                isOpen={!!selectedTask}
+                onClose={() => setSelectedTask(null)}
+                item={selectedTask ? {
+                    id: selectedTask.id,
+                    title: selectedTask.title,
+                    type: 'task',
+                    content: selectedTask.description || 'No description provided.',
+                    tags: selectedTask.tags,
+                    dueTime: selectedTask.dueTime,
+                    priority: selectedTask.priority
+                } : null}
+            />
         </div>
     );
 };

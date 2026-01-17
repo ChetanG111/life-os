@@ -1,8 +1,9 @@
-'use client';
-
 import { NoteCard } from './NoteCard';
 import { mockNotes } from '@/data/mock';
 import { motion, Variants } from 'framer-motion';
+import { useState } from 'react';
+import { Note } from '@/types';
+import { CardDetailModal } from '../cards/CardDetailModal';
 
 const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -29,6 +30,8 @@ const itemVariants: Variants = {
 };
 
 export const NotesTab = () => {
+    const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+
     return (
         <div className="w-full min-h-screen px-4 py-safe-top bg-background pb-32">
             <header className="relative flex justify-center items-center py-4 px-2 mb-2">
@@ -44,10 +47,22 @@ export const NotesTab = () => {
             >
                 {mockNotes.map(note => (
                     <motion.div key={note.id} variants={itemVariants} className="break-inside-avoid">
-                        <NoteCard note={note} />
+                        <NoteCard note={note} onTap={() => setSelectedNote(note)} />
                     </motion.div>
                 ))}
             </motion.div>
+
+            <CardDetailModal 
+                isOpen={!!selectedNote}
+                onClose={() => setSelectedNote(null)}
+                item={selectedNote ? {
+                    id: selectedNote.id,
+                    title: selectedNote.title || 'Untitled Note',
+                    type: 'note',
+                    content: selectedNote.content,
+                    tags: selectedNote.tags
+                } : null}
+            />
         </div>
     );
 };

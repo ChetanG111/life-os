@@ -8,9 +8,10 @@ import { vibrate } from '@/utils/haptics';
 interface TaskCardProps {
     task: Task;
     onRemove: () => void;
+    onTap?: () => void;
 }
 
-export const TaskCard = ({ task, onRemove }: TaskCardProps) => {
+export const TaskCard = ({ task, onRemove, onTap }: TaskCardProps) => {
     const [action, setAction] = useState<'idle' | 'completing' | 'deleting'>('idle');
     const controls = useAnimation();
     const x = useMotionValue(0);
@@ -88,6 +89,12 @@ export const TaskCard = ({ task, onRemove }: TaskCardProps) => {
                 dragElastic={0.4}
                 onDragStart={() => vibrate('light')}
                 onDragEnd={handleDragEnd}
+                onTap={() => {
+                    if (action === 'idle' && onTap) {
+                        vibrate('light');
+                        onTap();
+                    }
+                }}
                 animate={controls}
                 variants={cardVariants}
                 style={{ x }}
