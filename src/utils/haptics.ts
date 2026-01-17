@@ -10,19 +10,19 @@ export const vibrate = (pattern: VibrationPattern = 'light') => {
             navigator.vibrate(10); // Standard tap
             break;
         case 'medium':
-            navigator.vibrate(20); // More noticeable interaction
+            navigator.vibrate(35); // More noticeable interaction (was 20)
             break;
         case 'heavy':
-            navigator.vibrate(40); // Significant action
+            navigator.vibrate(60); // Significant action (was 40)
             break;
         case 'success':
-            navigator.vibrate([10, 30, 10]); // double tap-ish
+            navigator.vibrate([20, 40, 20]); // double tap-ish (boosted)
             break;
         case 'warning':
-            navigator.vibrate([30, 50, 10]);
+            navigator.vibrate([40, 60, 20]);
             break;
         case 'error':
-            navigator.vibrate([50, 50, 50, 50]);
+            navigator.vibrate([60, 60, 60, 60]);
             break;
     }
 };

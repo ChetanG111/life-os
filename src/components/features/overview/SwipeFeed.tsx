@@ -130,14 +130,10 @@ function SwipeableCard({
         const now = Date.now();
         const DOUBLE_TAP_DELAY = 300;
 
-        if (typeof navigator !== 'undefined' && navigator.vibrate) {
-            navigator.vibrate(10); // Light tap feedback
-        }
+        vibrate('light');
 
         if (now - lastTap.current < DOUBLE_TAP_DELAY) {
-            if (typeof navigator !== 'undefined' && navigator.vibrate) {
-                navigator.vibrate(50); // Stronger double-tap feedback
-            }
+            vibrate('medium');
             onDetails();
         }
         lastTap.current = now;
@@ -164,7 +160,7 @@ function SwipeableCard({
                 vibrate('medium');
                 onSwipe('delete');
             } else if (offsetY < -threshold) {
-                vibrate('medium');
+                vibrate('heavy');
                 onDetails();
             }
         }

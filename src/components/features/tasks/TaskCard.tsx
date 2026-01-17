@@ -5,6 +5,7 @@ import { motion, PanInfo } from 'framer-motion';
 import { useState } from 'react';
 import clsx from 'clsx';
 import { Check, Trash2, Clock } from 'lucide-react';
+import { vibrate } from '@/utils/haptics';
 
 interface TaskCardProps {
     task: Task;
@@ -17,11 +18,11 @@ export const TaskCard = ({ task }: TaskCardProps) => {
     const handleDragEnd = (_: any, info: PanInfo) => {
         if (info.offset.x > 100) {
             // Swiped right - Complete
-            if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(20);
+            vibrate('success');
             setIsComplete(true);
         } else if (info.offset.x < -100) {
             // Swiped left - Dismiss/Delete logic would go here
-            if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(20);
+            vibrate('light');
             setOffset(0);
         } else {
             setOffset(0);
@@ -29,9 +30,7 @@ export const TaskCard = ({ task }: TaskCardProps) => {
     };
 
     const handleTap = () => {
-        if (typeof navigator !== 'undefined' && navigator.vibrate) {
-            navigator.vibrate(10);
-        }
+        vibrate('light');
     };
 
     const priorityColors = {
@@ -43,7 +42,7 @@ export const TaskCard = ({ task }: TaskCardProps) => {
     if (isComplete) return null; // Simple completion logic for now
 
     return (
-        <div className="relative w-full h-[72px] mb-3">
+        <div className="relative w-full h-[72px] mb-1">
             {/* Background Actions */}
             <div className="absolute inset-0 rounded-2xl flex overflow-hidden">
                 <div className="w-1/2 bg-green-500/20 flex items-center justify-start pl-6">

@@ -17,10 +17,7 @@ export const TasksTab = () => {
     const Section = ({ title, tasks, color }: { title: string, tasks: Task[], color: string }) => {
         if (tasks.length === 0) return null;
         return (
-            <div className="mb-8">
-                <h2 className={`text-[13px] font-semibold tracking-wide uppercase mb-4 pl-1 ${color}`}>
-                    {title}
-                </h2>
+            <div>
                 <div className="flex flex-col">
                     {tasks.map(task => (
                         <TaskCard key={task.id} task={task} />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence, Variants, useMotionValue, useTransform } from 'framer-motion';
 import { TabId, TABS } from '@/types';
 import { BottomNav } from './BottomNav';
@@ -47,11 +47,22 @@ export function NavigationShell() {
     // Screen width swipe (~375px) should map to ~56px
     const navX = useTransform(x, (latest) => latest * -0.15);
 
+    // Lockout to prevent rapid double-swipes skipping tabs
+    const isLocked = useRef(false);
+
     const handleTabChange = (newTab: TabId) => {
+        if (isLocked.current) return;
+
         const currentIndex = TABS.indexOf(activeTab);
         const newIndex = TABS.indexOf(newTab);
 
         if (newIndex === currentIndex) return;
+
+        isLocked.current = true;
+        // Unlock after transition approx time (300ms + buffer)
+        setTimeout(() => {
+            isLocked.current = false;
+        }, 350);
 
         vibrate('light'); // Haptic feedback on tab switch
         setDirection(newIndex > currentIndex ? 1 : -1);
@@ -81,11 +92,13 @@ export function NavigationShell() {
             x: direction > 0 ? '100%' : '-100%',
             opacity: 1,
             zIndex: 0,
+            pointerEvents: 'none', // Prevent interaction during entry
         }),
         center: {
             zIndex: 1,
             x: 0,
             opacity: 1,
+            pointerEvents: 'auto', // Enable interaction when centered
             transition: {
                 x: { type: "spring", stiffness: 300, damping: 30 }, // High stiffness/damping = snappy linear-ish feel
                 opacity: { duration: 0.2 }
@@ -95,6 +108,7 @@ export function NavigationShell() {
             zIndex: 0,
             x: direction < 0 ? '100%' : '-100%',
             opacity: 1,
+            pointerEvents: 'none', // Critical: Disable interaction on exiting tab
             transition: {
                 x: { type: "spring", stiffness: 300, damping: 30 },
                 opacity: { duration: 0.2 }
@@ -118,36 +132,11 @@ export function NavigationShell() {
                     exit="exit"
                     // Drag configuration for swipe support
                     drag={isModalOpen ? false : "x"}
-                    dragConstraints={{
-                        left: activeTab === TABS[TABS.length - 1] ? 0 : -50, // Block left swipe if on last tab
-                        right: activeTab === TABS[0] ? 0 : 50 // Block right swipe if on first tab
-                    }}
+                    dragConstraints={{ left: 0, right: 0 }}
                     dragElastic={0.2}
-                    // Removed style={{ x }} to avoid conflict with AnimatePresence
-                    onDrag={(e, info) => {
-                        // Prevent updating x if we are trying to drag past boundaries
-                        const isFirstTab = activeTab === TABS[0];
-                        const isLastTab = activeTab === TABS[TABS.length - 1];
-
-                        // If on first tab (Tasks), allow only negative offset (swipe left)
-                        if (isFirstTab && info.offset.x > 0) {
-                            x.set(0);
-                            setIsDragging(false);
-                            return;
-                        }
-                        // If on last tab (Weekly), allow only positive offset (swipe right)
-                        if (isLastTab && info.offset.x < 0) {
-                            x.set(0);
-                            setIsDragging(false);
-                            return;
-                        }
-
-                        x.set(info.offset.x);
-                        setIsDragging(true);
-                    }}
                     onDragStart={() => setIsDragging(true)}
                     onDragEnd={handleDragEnd}
-                    className="absolute inset-0 h-full w-full touch-pan-y will-change-transform bg-background overflow-y-auto overflow-x-hidden" // Added overflow-y-auto
+                    className="absolute inset-0 h-full w-full touch-pan-y will-change-transform bg-background overflow-y-auto overflow-x-hidden"
                 >
                     <TabContent activeTab={activeTab} onModalToggle={setIsModalOpen} />
                 </motion.main>
@@ -160,8 +149,7 @@ export function NavigationShell() {
                     isVisible={isDragging}
                     offset={navX}
                 />
-            )
-            }
-        </div >
+            )}
+        </div>
     );
 }
