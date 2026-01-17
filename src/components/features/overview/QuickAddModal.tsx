@@ -7,6 +7,7 @@ import { useBackToClose } from '@/hooks/use-back-to-close';
 import { vibrate } from '@/utils/haptics';
 import clsx from 'clsx';
 import { FeedItem } from './SwipeFeed';
+import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
 
 type InputState = 'idle' | 'listening' | 'processing' | 'success';
 type ItemType = 'task' | 'note' | 'idea' | 'goal';
@@ -25,6 +26,7 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
     const inputRef = useRef<HTMLTextAreaElement>(null);
 
     useBackToClose(isOpen, onClose);
+    useLockBodyScroll(isOpen);
 
     // Reset state on open
     useEffect(() => {

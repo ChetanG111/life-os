@@ -5,6 +5,7 @@ import { X, Calendar, Clock, Tag, AlignLeft, CheckCircle2, Trash2 } from 'lucide
 import { vibrate } from '@/utils/haptics';
 import { useBackToClose } from '@/hooks/use-back-to-close';
 import { useState, useEffect } from 'react';
+import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
 
 interface CardDetailModalProps {
     isOpen: boolean;
@@ -22,6 +23,7 @@ interface CardDetailModalProps {
 
 export function CardDetailModal({ isOpen, onClose, item }: CardDetailModalProps) {
     useBackToClose(isOpen, onClose);
+    useLockBodyScroll(isOpen);
 
     const [activeItem, setActiveItem] = useState(item);
 

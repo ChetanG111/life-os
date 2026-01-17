@@ -59,7 +59,7 @@ export function SwipeFeed({ items, onSwipe }: SwipeFeedProps) {
     }
 
     return (
-        <div className="relative h-full w-full max-w-sm mx-auto flex flex-col justify-center items-center p-2">
+        <div className="relative h-full w-full max-w-sm mx-auto flex flex-col justify-start items-center p-2 pt-8">
             {/* Cards container */}
             <div className="relative w-full aspect-[4/5] max-h-[440px]">
                 <AnimatePresence>

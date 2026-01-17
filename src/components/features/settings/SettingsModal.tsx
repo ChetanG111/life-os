@@ -4,6 +4,7 @@ import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { ChevronRight, Smartphone, Layout, Zap, Database } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
 import { useBackToClose } from '@/hooks/use-back-to-close';
+import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -17,6 +18,8 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
     
     // Handle back button behavior
     useBackToClose(isOpen, onClose);
+    // Lock body scroll to prevent pull-to-refresh
+    useLockBodyScroll(isOpen);
 
     const staggerContainer = {
         hidden: { opacity: 0 },

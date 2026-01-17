@@ -57,7 +57,7 @@ export function Feed({ onModalToggle, settings }: FeedProps) {
                     className="group flex items-center gap-1.5 focus:outline-none"
                 >
                     <h1 className="text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200 transition-colors">
-                        Focus
+                        Overview
                     </h1>
                 </motion.button>
             </header>
