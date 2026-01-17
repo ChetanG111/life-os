@@ -3,6 +3,7 @@ import { Fredoka } from "next/font/google";
 import "./globals.css";
 import { MotionProvider } from "@/context/MotionContext";
 import { SettingsProvider } from "@/context/SettingsContext";
+import { DataProvider } from "@/context/DataContext";
 
 const fredoka = Fredoka({
   variable: "--font-sans",
@@ -39,11 +40,13 @@ export default function RootLayout({
       <body
         className={`${fredoka.variable} font-sans antialiased`}
       >
-        <SettingsProvider>
-          <MotionProvider>
-            {children}
-          </MotionProvider>
-        </SettingsProvider>
+        <DataProvider>
+          <SettingsProvider>
+            <MotionProvider>
+              {children}
+            </MotionProvider>
+          </SettingsProvider>
+        </DataProvider>
       </body>
     </html>
   );

@@ -6,6 +6,7 @@ import { QuickAddModal } from './QuickAddModal';
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
+import { useData } from '@/context/DataContext';
 
 // Future expansion: Toggle between Switch and List views
 type FeedMode = 'stack' | 'list';
@@ -17,9 +18,28 @@ interface FeedProps {
 
 export function Feed({ onModalToggle, onOpenSettings }: FeedProps) {
     const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+    const { tasks, notes, removeTask, removeNote, addTask } = useData();
 
-    // Lifted State for Feed Items
-    const [items, setItems] = useState<FeedItem[]>(MOCK_ITEMS);
+    // Map Tasks and Notes to FeedItems
+    const feedItems: FeedItem[] = [
+        ...tasks.map(t => ({
+            id: `task-${t.id}`,
+            originalId: t.id,
+            title: t.title,
+            type: 'task' as const,
+            content: t.description || '',
+            priority: t.priority,
+            tags: t.tags
+        })),
+        ...notes.map(n => ({
+            id: `note-${n.id}`,
+            originalId: n.id,
+            title: n.title || 'Untitled Note',
+            type: 'note' as const,
+            content: n.content,
+            tags: n.tags
+        }))
+    ];
 
     // Notify parent when modal state changes to disable/enable main swipes
     useEffect(() => {
@@ -29,14 +49,21 @@ export function Feed({ onModalToggle, onOpenSettings }: FeedProps) {
     }, [isQuickAddOpen, onModalToggle]);
 
     const handleSwipe = (id: string, action: 'done' | 'dismiss' | 'delete') => {
-        // In a real app, we'd trigger an API call here.
-        // For now, just remove it from the local view.
-        setItems(prev => prev.filter(item => item.id !== id));
-        console.log(`Item ${id} swiped: ${action}`);
+        const item = feedItems.find(i => i.id === id);
+        if (!item) return;
+
+        if (action === 'delete') {
+            if (item.type === 'task') removeTask(item.originalId!);
+            else removeNote(item.originalId!);
+        } else if (action === 'done') {
+            if (item.type === 'task') removeTask(item.originalId!);
+            // Notes don't have a 'done' state usually, but dismissing it from feed
+        }
     };
 
     const handleAdd = (newItem: FeedItem) => {
-        setItems(prev => [newItem, ...prev]);
+        // Handled by QuickAddModal directly calling addNote/addTask now, 
+        // but keeping it for secondary logic if needed.
     };
 
     return (
@@ -57,7 +84,7 @@ export function Feed({ onModalToggle, onOpenSettings }: FeedProps) {
             {/* Main Feed Content - Shifted up slightly with pb-16/mb-16 logic to accommodate FAB visually if needed, 
                 but user asked to "move cards slightly up". We'll use a wrapper with padding-bottom. */}
             <div className="h-[calc(100%-80px)] pb-16">
-                <SwipeFeed items={items} onSwipe={handleSwipe} />
+                <SwipeFeed items={feedItems} onSwipe={handleSwipe} />
             </div>
 
             {/* Quick Add FAB */}

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
+import { useData } from './DataContext';
 
 interface MotionContextType {
     intensity: number; // 0 to 100
@@ -11,18 +12,23 @@ interface MotionContextType {
 const MotionContext = createContext<MotionContextType | undefined>(undefined);
 
 export function MotionProvider({ children }: { children: ReactNode }) {
-    const [intensity, setIntensity] = useState(50); // Default to "middle ground" (50)
+    const { settings, updateSettings } = useData();
+    const intensity = settings.motionIntensity;
+
+    const setIntensity = (value: number) => {
+        updateSettings({ motionIntensity: value });
+    };
 
     const getSpring = () => {
         // Map 0-100 to stiffness/damping
         // Low intensity (0): stiff=600, damp=60 (Minimal, fast, no bounce)
         // High intensity (100): stiff=150, damp=12 (Very bouncy, slow, loose)
-        
+
         // Linear interpolation helper
         const lerp = (start: number, end: number, t: number) => start * (1 - t) + end * t;
-        
+
         const t = intensity / 100;
-        
+
         return {
             type: "spring" as const,
             // Minimal (0) -> Fast (600) | Bouncy (100) -> Slow (150)

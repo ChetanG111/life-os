@@ -9,6 +9,7 @@ import clsx from 'clsx';
 import { FeedItem } from './SwipeFeed';
 import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
 import { useSettings } from '@/context/SettingsContext';
+import { useData } from '@/context/DataContext';
 
 type InputState = 'idle' | 'listening' | 'processing' | 'success';
 type ItemType = 'task' | 'note' | 'idea' | 'goal';
@@ -28,6 +29,7 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const dragControls = useDragControls();
     const { autoFocusQuickAdd } = useSettings();
+    const { addTask, addNote } = useData();
 
     useBackToClose(isOpen, onClose);
     useLockBodyScroll(isOpen);
@@ -53,6 +55,22 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
 
         // Simulate AI Processing
         setTimeout(() => {
+            if (selectedType === 'task' || selectedType === 'goal') {
+                addTask({
+                    title: title.trim() || (selectedType === 'task' ? 'New Task' : 'New Goal'),
+                    priority: selectedType === 'goal' ? 'high' : 'medium',
+                    tags: [selectedType],
+                    description: text,
+                });
+            } else {
+                addNote({
+                    title: title.trim() || (selectedType === 'note' ? 'New Note' : 'New Idea'),
+                    content: text,
+                    type: 'text',
+                    tags: [selectedType],
+                });
+            }
+
             if (onAdd) {
                 const newItem: FeedItem = {
                     id: Date.now().toString(),

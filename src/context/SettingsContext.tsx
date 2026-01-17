@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
+import { useData } from './DataContext';
 
 interface SettingsContextType {
     autoFocusQuickAdd: boolean;
@@ -10,7 +11,12 @@ interface SettingsContextType {
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
-    const [autoFocusQuickAdd, setAutoFocusQuickAdd] = useState(true);
+    const { settings, updateSettings } = useData();
+    const autoFocusQuickAdd = settings.autoFocusQuickAdd;
+
+    const setAutoFocusQuickAdd = (value: boolean) => {
+        updateSettings({ autoFocusQuickAdd: value });
+    };
 
     return (
         <SettingsContext.Provider value={{ autoFocusQuickAdd, setAutoFocusQuickAdd }}>

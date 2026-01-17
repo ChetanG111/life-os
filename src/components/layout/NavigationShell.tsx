@@ -24,12 +24,12 @@ const PlaceholderTab = ({ text }: { text: string }) => (
     </div>
 );
 
-const TabContent = ({ 
-    activeTab, 
+const TabContent = ({
+    activeTab,
     onModalToggle,
     onOpenSettings
-}: { 
-    activeTab: TabId, 
+}: {
+    activeTab: TabId,
     onModalToggle: (isOpen: boolean) => void,
     onOpenSettings: () => void
 }) => {
@@ -43,11 +43,14 @@ const TabContent = ({
     }
 };
 
+import { useData } from '@/context/DataContext';
+
 export function NavigationShell() {
+    const { settings, updateSettings } = useData();
+    const showBottomNav = settings.showBottomNav;
     const [activeTab, setActiveTab] = useState<TabId>('overview');
     const [direction, setDirection] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
-    const [showBottomNav, setShowBottomNav] = useState(false);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -159,9 +162,9 @@ export function NavigationShell() {
                     onDragEnd={handleDragEnd}
                     className="absolute inset-0 h-full w-full touch-pan-y will-change-transform bg-background overflow-y-auto overflow-x-hidden"
                 >
-                    <TabContent 
-                        activeTab={activeTab} 
-                        onModalToggle={setIsModalOpen} 
+                    <TabContent
+                        activeTab={activeTab}
+                        onModalToggle={setIsModalOpen}
                         onOpenSettings={() => {
                             vibrate('light');
                             setIsSettingsOpen(true);
@@ -179,11 +182,11 @@ export function NavigationShell() {
                 />
             )}
 
-            <SettingsModal 
+            <SettingsModal
                 isOpen={isSettingsOpen}
                 onClose={() => setIsSettingsOpen(false)}
                 showBottomNav={showBottomNav}
-                onToggleBottomNav={setShowBottomNav}
+                onToggleBottomNav={(show) => updateSettings({ showBottomNav: show })}
             />
         </div>
     );

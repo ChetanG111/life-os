@@ -17,7 +17,10 @@ const containerVariants: Variants = {
     }
 };
 
+import { useData } from '@/context/DataContext';
+
 export const NotesTab = ({ onOpenSettings }: { onOpenSettings: () => void }) => {
+    const { notes, removeNote } = useData();
     const [selectedNote, setSelectedNote] = useState<Note | null>(null);
     const springConfig = useSlimySpring();
 
@@ -34,8 +37,8 @@ export const NotesTab = ({ onOpenSettings }: { onOpenSettings: () => void }) => 
     return (
         <div className="w-full min-h-screen px-4 py-safe-top bg-background pb-32">
             <header className="relative flex justify-center items-center py-4 px-2 mb-2">
-                <motion.button 
-                    whileTap={{ scale: 0.97 }} 
+                <motion.button
+                    whileTap={{ scale: 0.97 }}
                     onClick={onOpenSettings}
                     className="group flex items-center gap-1.5 focus:outline-none"
                 >
@@ -45,23 +48,24 @@ export const NotesTab = ({ onOpenSettings }: { onOpenSettings: () => void }) => 
                 </motion.button>
             </header>
 
-            {/* Masonry Layout using CSS Columns */}
             <motion.div
                 variants={containerVariants}
                 initial="hidden"
                 animate="show"
                 className="columns-2 gap-3 space-y-3 pb-8"
             >
-                {mockNotes.map(note => (
+                {notes.map(note => (
                     <motion.div key={note.id} variants={itemVariants} className="break-inside-avoid">
                         <NoteCard note={note} onTap={() => setSelectedNote(note)} />
                     </motion.div>
                 ))}
             </motion.div>
 
-            <CardDetailModal 
+            <CardDetailModal
                 isOpen={!!selectedNote}
                 onClose={() => setSelectedNote(null)}
+                onDelete={() => selectedNote && removeNote(selectedNote.id)}
+                onComplete={() => selectedNote && removeNote(selectedNote.id)}
                 item={selectedNote ? {
                     id: selectedNote.id,
                     title: selectedNote.title || 'Untitled Note',

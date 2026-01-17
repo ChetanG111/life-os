@@ -10,6 +10,7 @@ import { CardDetailModal } from '../cards/CardDetailModal';
 
 export interface FeedItem {
     id: string;
+    originalId?: string;
     title: string;
     type: 'task' | 'note';
     content: string;
@@ -78,9 +79,11 @@ export function SwipeFeed({ items, onSwipe }: SwipeFeedProps) {
                 </AnimatePresence>
             </div>
 
-            <CardDetailModal 
+            <CardDetailModal
                 isOpen={!!detailsId}
                 onClose={() => setDetailsId(null)}
+                onDelete={() => onSwipe(detailsId!, 'delete')}
+                onComplete={() => onSwipe(detailsId!, 'done')}
                 item={activeDetailItem}
             />
         </div>

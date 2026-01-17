@@ -27,13 +27,15 @@ const containerVariants: Variants = {
     }
 };
 
+import { useData } from '@/context/DataContext';
+
 export const TasksTab = ({ onOpenSettings }: { onOpenSettings: () => void }) => {
-    const [tasks, setTasks] = useState<Task[]>(mockTasks);
+    const { tasks, removeTask } = useData();
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const springConfig = useSlimySpring();
 
     const handleRemove = (id: string) => {
-        setTasks(prev => prev.filter(t => t.id !== id));
+        removeTask(id);
     };
 
     // Sort by priority (High -> Medium -> Low)
@@ -57,8 +59,8 @@ export const TasksTab = ({ onOpenSettings }: { onOpenSettings: () => void }) => 
     return (
         <div className="w-full min-h-screen px-4 py-safe-top bg-background pb-32">
             <header className="relative flex justify-center items-center py-4 px-2 mb-2">
-                <motion.button 
-                    whileTap={{ scale: 0.97 }} 
+                <motion.button
+                    whileTap={{ scale: 0.97 }}
                     onClick={onOpenSettings}
                     className="group flex items-center gap-1.5 focus:outline-none"
                 >
@@ -107,9 +109,11 @@ export const TasksTab = ({ onOpenSettings }: { onOpenSettings: () => void }) => 
                 </motion.div>
             )}
 
-            <CardDetailModal 
+            <CardDetailModal
                 isOpen={!!selectedTask}
                 onClose={() => setSelectedTask(null)}
+                onDelete={() => selectedTask && removeTask(selectedTask.id)}
+                onComplete={() => selectedTask && removeTask(selectedTask.id)}
                 item={selectedTask ? {
                     id: selectedTask.id,
                     title: selectedTask.title,

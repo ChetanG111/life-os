@@ -11,6 +11,8 @@ import { useSlimySpring } from '@/hooks/use-slimy-spring';
 interface CardDetailModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onDelete?: () => void;
+    onComplete?: () => void;
     item: {
         id: string;
         title: string;
@@ -22,7 +24,7 @@ interface CardDetailModalProps {
     } | null;
 }
 
-export function CardDetailModal({ isOpen, onClose, item }: CardDetailModalProps) {
+export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }: CardDetailModalProps) {
     const dragControls = useDragControls();
     const springConfig = useSlimySpring();
     const [activeItem, setActiveItem] = useState(item);
@@ -146,6 +148,7 @@ export function CardDetailModal({ isOpen, onClose, item }: CardDetailModalProps)
                             <button className="flex-1 h-14 bg-white text-black rounded-2xl font-bold text-lg flex items-center justify-center gap-2 active:scale-95 transition-transform"
                                 onClick={() => {
                                     vibrate('success');
+                                    if (onComplete) onComplete();
                                     onClose();
                                 }}
                             >
@@ -162,6 +165,7 @@ export function CardDetailModal({ isOpen, onClose, item }: CardDetailModalProps)
                             <button className="h-14 w-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center active:scale-95 transition-transform"
                                 onClick={() => {
                                     vibrate('medium');
+                                    if (onDelete) onDelete();
                                     onClose();
                                 }}
                             >
