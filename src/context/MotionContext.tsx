@@ -25,8 +25,8 @@ export function MotionProvider({ children }: { children: ReactNode }) {
         
         return {
             type: "spring" as const,
-            stiffness: lerp(500, 200, t),
-            damping: lerp(40, 10, t)
+            stiffness: lerp(220, 550, t),
+            damping: lerp(40, 14, t)
         };
     };
 
