@@ -11,6 +11,7 @@ import { TasksTab } from '@/components/features/tasks/TasksTab';
 import { NotesTab } from '@/components/features/notes/NotesTab';
 
 import { WeeklyTab } from '@/components/features/weekly/WeeklyTab';
+import { ChatTab } from '@/components/features/chat/ChatTab';
 
 // Placeholder content - To be replaced by actual Feature components
 const PlaceholderTab = ({ text }: { text: string }) => (
@@ -24,7 +25,7 @@ const TabContent: Record<TabId, React.ReactNode> = {
     tasks: <TasksTab />,
     notes: <NotesTab />,
     overview: <Feed />,
-    chat: <PlaceholderTab text="Chat" />,
+    chat: <ChatTab />,
     weekly: <WeeklyTab />,
 };
 

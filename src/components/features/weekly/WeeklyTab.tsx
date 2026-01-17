@@ -40,7 +40,7 @@ export const WeeklyTab = () => {
     const completionPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
 
     return (
-        <div className="w-full min-h-screen bg-black pb-32">
+        <div className="w-full min-h-screen bg-background pb-32">
             {/* Header Section */}
             <div className="px-6 pt-12 pb-8 bg-neutral-900/50 rounded-b-[40px] border-b border-white/5 mb-6">
                 <div className="flex justify-between items-start mb-6">

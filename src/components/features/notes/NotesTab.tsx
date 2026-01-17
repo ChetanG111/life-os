@@ -5,7 +5,7 @@ import { mockNotes } from '@/data/mock';
 
 export const NotesTab = () => {
     return (
-        <div className="w-full min-h-screen px-4 py-6 bg-black pb-32">
+        <div className="w-full min-h-screen px-4 py-6 bg-background pb-32">
             <header className="mb-6 px-1 flex justify-between items-end">
                 <div>
                     <h1 className="text-3xl font-bold text-white tracking-tight">Notes</h1>
