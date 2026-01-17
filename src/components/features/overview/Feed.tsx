@@ -95,7 +95,7 @@ export function Feed({ onModalToggle, onOpenSettings }: FeedProps) {
                     vibrate('medium');
                     setIsQuickAddOpen(true);
                 }}
-                className="absolute bottom-10 right-6 w-14 h-14 bg-white text-black rounded-full shadow-sm flex items-center justify-center z-30"
+                className="absolute bottom-10 right-6 w-12 h-12 bg-white text-black rounded-2xl shadow-2xl flex items-center justify-center z-30"
             >
                 <Plus size={24} strokeWidth={2.5} />
             </motion.button>
@@ -104,7 +104,7 @@ export function Feed({ onModalToggle, onOpenSettings }: FeedProps) {
             <QuickAddModal
                 isOpen={isQuickAddOpen}
                 onClose={() => setIsQuickAddOpen(false)}
-                onAdd={handleAdd}
+                initialType="task"
             />
         </div>
     );

@@ -4,7 +4,10 @@ import { motion, Variants } from 'framer-motion';
 import { useState } from 'react';
 import { Note } from '@/types';
 import { CardDetailModal } from '../cards/CardDetailModal';
+import { QuickAddModal } from '../overview/QuickAddModal';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
+import { Plus } from 'lucide-react';
+import { vibrate } from '@/utils/haptics';
 
 const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -22,6 +25,7 @@ import { useData } from '@/context/DataContext';
 export const NotesTab = ({ onOpenSettings }: { onOpenSettings: () => void }) => {
     const { notes, removeNote } = useData();
     const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+    const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
     const springConfig = useSlimySpring();
 
     const itemVariants: Variants = {
@@ -73,6 +77,24 @@ export const NotesTab = ({ onOpenSettings }: { onOpenSettings: () => void }) => 
                     content: selectedNote.content,
                     tags: selectedNote.tags
                 } : null}
+            />
+            {/* Quick Add FAB */}
+            <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                    vibrate('medium');
+                    setIsQuickAddOpen(true);
+                }}
+                className="absolute bottom-10 right-6 w-12 h-12 bg-white text-black rounded-2xl shadow-2xl flex items-center justify-center z-30"
+            >
+                <Plus size={24} strokeWidth={2.5} />
+            </motion.button>
+
+            <QuickAddModal
+                isOpen={isQuickAddOpen}
+                onClose={() => setIsQuickAddOpen(false)}
+                initialType="note"
             />
         </div>
     );
