@@ -1,17 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SwipeFeed } from './SwipeFeed';
+import { QuickAddModal } from './QuickAddModal';
 import { motion } from 'framer-motion';
+import { Plus } from 'lucide-react';
 
 // Future expansion: Toggle between Switch and List views
 type FeedMode = 'stack' | 'list';
 
-export function Feed() {
-    const [mode, setMode] = useState<FeedMode>('stack');
+export function Feed({ onModalToggle }: { onModalToggle?: (isOpen: boolean) => void }) {
+    const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+
+    // Notify parent when modal state changes to disable/enable main swipes
+    useEffect(() => {
+        if (onModalToggle) {
+            onModalToggle(isQuickAddOpen);
+        }
+    }, [isQuickAddOpen, onModalToggle]);
 
     return (
-        <div className="h-full w-full py-safe-top px-4">
+        <div className="relative h-full w-full py-safe-top px-4 overflow-hidden">
             {/* Header / Mode Switcher (Placeholder) */}
             <header className="flex justify-between items-center py-4 px-2 mb-2">
                 <h1 className="text-2xl font-bold text-white">Focus</h1>
@@ -20,10 +29,24 @@ export function Feed() {
                 </button>
             </header>
 
-            {/* Main Feed Content */}
-            <div className="h-[calc(100%-80px)]">
+            {/* Main Feed Content - Shifted up slightly with pb-16/mb-16 logic to accommodate FAB visually if needed, 
+                but user asked to "move cards slightly up". We'll use a wrapper with padding-bottom. */}
+            <div className="h-[calc(100%-80px)] pb-16">
                 <SwipeFeed />
             </div>
+
+            {/* Quick Add FAB */}
+            <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsQuickAddOpen(true)}
+                className="absolute bottom-8 right-6 w-14 h-14 bg-white text-black rounded-full shadow-lg flex items-center justify-center z-30"
+            >
+                <Plus size={24} strokeWidth={2.5} />
+            </motion.button>
+
+            {/* Quick Add Modal Overlay */}
+            <QuickAddModal isOpen={isQuickAddOpen} onClose={() => setIsQuickAddOpen(false)} />
         </div>
     );
 }

@@ -21,18 +21,23 @@ const PlaceholderTab = ({ text }: { text: string }) => (
     </div>
 );
 
-const TabContent: Record<TabId, React.ReactNode> = {
-    tasks: <TasksTab />,
-    notes: <NotesTab />,
-    overview: <Feed />,
-    chat: <ChatTab />,
-    weekly: <WeeklyTab />,
+const TabContent = ({ activeTab, onModalToggle }: { activeTab: TabId, onModalToggle: (isOpen: boolean) => void }) => {
+    switch (activeTab) {
+        case 'tasks': return <TasksTab />;
+        case 'notes': return <NotesTab />;
+        case 'overview': return <Feed onModalToggle={onModalToggle} />;
+        case 'chat': return <ChatTab />;
+        case 'weekly': return <WeeklyTab />;
+        default: return null;
+    }
 };
 
 export function NavigationShell() {
     const [activeTab, setActiveTab] = useState<TabId>('overview');
     const [direction, setDirection] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Track drag physics for BottomNav
     const x = useMotionValue(0);
@@ -115,7 +120,7 @@ export function NavigationShell() {
                     animate="center"
                     exit="exit"
                     // Drag configuration for swipe support
-                    drag="x"
+                    drag={isModalOpen ? false : "x"}
                     dragConstraints={{
                         left: activeTab === TABS[TABS.length - 1] ? 0 : -50, // Block left swipe if on last tab
                         right: activeTab === TABS[0] ? 0 : 50 // Block right swipe if on first tab
@@ -147,7 +152,7 @@ export function NavigationShell() {
                     onDragEnd={handleDragEnd}
                     className="absolute inset-0 h-full w-full touch-pan-y will-change-transform bg-background overflow-y-auto overflow-x-hidden" // Added overflow-y-auto
                 >
-                    {TabContent[activeTab]}
+                    <TabContent activeTab={activeTab} onModalToggle={setIsModalOpen} />
                 </motion.main>
             </AnimatePresence>
 
