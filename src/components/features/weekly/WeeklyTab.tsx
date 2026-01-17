@@ -7,16 +7,7 @@ import { Task } from '@/types';
 import { Calendar as CalendarIcon, Trophy, TrendingUp } from 'lucide-react';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
 
-const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    show: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.08,
-            delayChildren: 0.1
-        }
-    }
-};
+import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants } from '@/utils/animations';
 
 import { useData } from '@/context/DataContext';
 
@@ -24,15 +15,8 @@ export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) =>
     const { tasks } = useData();
     const springConfig = useSlimySpring();
 
-    const itemVariants: Variants = {
-        hidden: { opacity: 0, y: 30, scale: 0.9 },
-        show: {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            transition: springConfig
-        }
-    };
+    const containerVariants = UNIVERSAL_STAGGER_CONTAINER('standard');
+    const itemVariants = createStaggerItemVariants(springConfig);
 
     // Generate current week days
     const weekData = useMemo(() => {

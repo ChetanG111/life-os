@@ -10,6 +10,8 @@ import { FeedItem } from './SwipeFeed';
 import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
 import { useSettings } from '@/context/SettingsContext';
 import { useData } from '@/context/DataContext';
+import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants } from '@/utils/animations';
+import { useSlimySpring } from '@/hooks/use-slimy-spring';
 
 type InputState = 'idle' | 'listening' | 'processing' | 'success';
 type ItemType = 'task' | 'note' | 'idea' | 'goal';
@@ -133,30 +135,9 @@ export function QuickAddModal({
         setPriority(map[priority]);
     };
 
-    const staggerContainer = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.05,
-                delayChildren: 0.1
-            }
-        }
-    };
-
-    const slimyItem = {
-        hidden: { y: 30, opacity: 0, scale: 0.9 },
-        show: {
-            y: 0,
-            opacity: 1,
-            scale: 1,
-            transition: {
-                type: "spring" as const,
-                stiffness: 350,
-                damping: 18
-            }
-        }
-    };
+    const springConfig = useSlimySpring();
+    const staggerContainer = UNIVERSAL_STAGGER_CONTAINER('modal');
+    const slimyItem = createStaggerItemVariants(springConfig);
 
     return (
         <AnimatePresence>

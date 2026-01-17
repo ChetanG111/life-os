@@ -22,7 +22,7 @@ export function MotionProvider({ children }: { children: ReactNode }) {
     const getSpring = () => {
         // Map 0-100 to stiffness/damping
         // Low intensity (0): stiff=600, damp=60 (Minimal, fast, no bounce)
-        // High intensity (100): stiff=150, damp=12 (Very bouncy, slow, loose)
+        // High intensity (100): stiff=220, damp=7 (Ultra-slimy, chaotic bounce, high oscillation)
 
         // Linear interpolation helper
         const lerp = (start: number, end: number, t: number) => start * (1 - t) + end * t;
@@ -31,10 +31,11 @@ export function MotionProvider({ children }: { children: ReactNode }) {
 
         return {
             type: "spring" as const,
-            // Minimal (0) -> Fast (600) | Bouncy (100) -> Slow (150)
-            stiffness: lerp(600, 150, t),
-            // Minimal (0) -> Stable (60) | Bouncy (100) -> Bouncy (12)
-            damping: lerp(60, 12, t)
+            // Minimal (0) -> Fast/Rigid (600) | Slimy (100) -> Fluid/Active (220)
+            stiffness: lerp(600, 220, t),
+            // Minimal (0) -> Stable (60) | Slimy (100) -> Chaotic (7)
+            damping: lerp(60, 7, t),
+            mass: lerp(1, 1.2, t) // Add slight mass for momentum at high levels
         };
     };
 

@@ -6,6 +6,7 @@ import { Check, Trash2, Clock } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
 import { useSettings } from '@/context/SettingsContext';
 import { ConfirmDeleteModal } from '../cards/ConfirmDeleteModal';
+import { useSlimySpring } from '@/hooks/use-slimy-spring';
 
 interface TaskCardProps {
     task: Task;
@@ -17,12 +18,13 @@ export const TaskCard = ({ task, onRemove, onTap }: TaskCardProps) => {
     const [action, setAction] = useState<'idle' | 'completing' | 'deleting'>('idle');
     const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
     const { confirmDelete } = useSettings();
+    const springConfig = useSlimySpring();
     const controls = useAnimation();
     const x = useMotionValue(0);
 
     const handleDragEnd = async (_: any, info: PanInfo) => {
         const threshold = 150;
-        const fastSpring = { type: "spring", stiffness: 350, damping: 25 } as const;
+        const fastSpring = springConfig;
 
         if (info.offset.x > threshold) {
             vibrate('success');

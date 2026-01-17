@@ -15,19 +15,7 @@ import { vibrate } from '@/utils/haptics';
  * Implements premium staggered entrance wave from top-to-bottom.
  */
 
-// Container variant controls the stagger timing
-const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    enter: { opacity: 0 },
-    show: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.08,
-            delayChildren: 0.1,
-            when: "beforeChildren"
-        }
-    }
-};
+import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants } from '@/utils/animations';
 
 import { useData } from '@/context/DataContext';
 
@@ -58,17 +46,8 @@ export const TasksTab = ({
         return [...tasks].sort((a, b) => priorityScore[a.priority] - priorityScore[b.priority]);
     }, [tasks]);
 
-    // Item variant controls individual card entrance (Fade + Slide + Overshoot)
-    const itemVariants: Variants = {
-        hidden: { opacity: 0, y: 30, scale: 0.9 },
-        enter: { opacity: 0, y: 30, scale: 0.9 },
-        show: {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            transition: springConfig
-        }
-    };
+    const containerVariants = UNIVERSAL_STAGGER_CONTAINER('standard');
+    const itemVariants = createStaggerItemVariants(springConfig);
 
     return (
         <div className="w-full min-h-screen px-4 py-safe-top bg-background pb-32 flex flex-col">

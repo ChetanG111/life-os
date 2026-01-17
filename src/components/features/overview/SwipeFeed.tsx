@@ -141,8 +141,8 @@ function SwipeableCard({
     const rotate = useTransform(x, [-200, 200], [-8, 8]);
     const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]);
 
-    // Spring configuration from design.yaml (Updated for snappier feel)
-    const springConfig = { type: "spring", stiffness: 280, damping: 28 } as const;
+    // Spring configuration from MotionContext (Dynamic based on settings)
+    const springConfig = useSlimySpring();
 
     // Background color indicators (Physical feel)
     const bgRightOpacity = useTransform(x, [40, 150], [0, 1]);

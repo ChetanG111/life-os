@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import clsx from 'clsx';
 import { Mic, Image as ImageIcon, AlignLeft } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
+import { useSlimySpring } from '@/hooks/use-slimy-spring';
 
 interface NoteCardProps {
     note: Note;
@@ -14,6 +15,7 @@ interface NoteCardProps {
 export const NoteCard = ({ note, onTap }: NoteCardProps) => {
     // Variable height simulation for masonry effect based on content length
     // In a real grid, the content drives this.
+    const springConfig = useSlimySpring();
 
     return (
         <motion.div
@@ -23,7 +25,7 @@ export const NoteCard = ({ note, onTap }: NoteCardProps) => {
                 vibrate('light');
                 if (onTap) onTap();
             }}
-            transition={{ type: "spring", stiffness: 350, damping: 25 }}
+            transition={springConfig}
             className="w-full bg-[#1A1A1A] rounded-2xl p-4 mb-3 border border-white/5 overflow-hidden break-inside-avoid"
         >
             {/* Header / Title */}
