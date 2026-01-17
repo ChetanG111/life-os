@@ -130,10 +130,12 @@ export const TaskCard = ({ task, onRemove, onTap }: TaskCardProps) => {
                     )}>
                         {task.title}
                     </h3>
-                    {task.dueTime && (
+                    {(task.dueTime || task.dueDate) && (
                         <div className="flex items-center mt-1 space-x-1.5 text-neutral-500">
                             <Clock className="w-3 h-3" />
-                            <span className="text-sm font-normal">{task.dueTime}</span>
+                            <span className="text-sm font-normal">
+                                {task.dueDate ? new Date(task.dueDate).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : task.dueTime}
+                            </span>
                         </div>
                     )}
                 </div>

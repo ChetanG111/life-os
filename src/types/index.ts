@@ -11,6 +11,7 @@ export interface Task {
     id: string;
     title: string;
     dueTime?: string;
+    dueDate?: string;
     priority: Priority;
     tags: string[];
     isCompleted: boolean;
@@ -26,6 +27,7 @@ export interface Note {
     tags: string[];
     date: string;
     title?: string;
+    images?: string[];
 }
 
 export const TABS: TabId[] = ['tasks', 'notes', 'overview', 'chat', 'weekly'];

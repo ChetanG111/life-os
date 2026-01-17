@@ -892,6 +892,7 @@ tasks:
         id: string;
         title: string;
         dueTime?: string;
+        dueDate?: string;
         priority: 'high' | 'medium' | 'low';
         tags: string[];
         isCompleted: boolean;
@@ -943,7 +944,7 @@ tasks:
     visual_elements:
       priority_dot: "2.5x2.5 circle with priority color"
       title: "Truncated, changes color on action state"
-      due_time: "Clock icon + time string"
+      due_time: "Clock icon + formatted dueDate (or legacy dueTime)"
       tag: "First tag displayed in pill"
     
     priority_colors:
@@ -978,6 +979,7 @@ notes:
         tags: string[];
         date: string;
         title?: string;
+        images?: string[];
       }
   
   # ─────────────────────────────────────
@@ -1008,7 +1010,8 @@ notes:
       title: "Optional, displayed if present"
       content:
         text: "Line-clamped to 4 lines"
-        image: "Thumbnail preview"
+        image_attachments: "Thumbnail preview of images[0] with count badge"
+        legacy_image: "Thumbnail preview (URL-based)"
       type_icon: "Mic (voice), Image, AlignLeft (text)"
       tag: "First tag in pill format"
     
@@ -1044,6 +1047,7 @@ modals:
       - "Main content textarea"
       - "Voice input simulation (mock)"
       - "Priority selector (cycles through high/medium/low)"
+      - "Accessory Toolbar: Date/Time picker (All) & Image attachments (Notes/Ideas only)"
       - "Processing and success states"
     
     item_types:

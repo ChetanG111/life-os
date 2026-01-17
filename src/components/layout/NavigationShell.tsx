@@ -179,7 +179,15 @@ export function NavigationShell() {
                             vibrate('light');
                             setIsSettingsOpen(true);
                         }}
-                        onOpenDetails={(item) => setSelectedItem(item)}
+                        onOpenDetails={(item) => {
+                            // Ensure all relevant fields are mapped for the modal
+                            const modalItem = {
+                                ...item,
+                                type: item.type || (activeTab === 'tasks' ? 'task' : 'note'),
+                                content: item.content || item.description || ''
+                            };
+                            setSelectedItem(modalItem);
+                        }}
                         onOpenQuickAdd={(type) => {
                             if (type) setQuickAddType(type);
                             setIsQuickAddOpen(true);

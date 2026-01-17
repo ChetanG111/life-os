@@ -22,7 +22,9 @@ interface CardDetailModalProps {
         content: string;
         tags?: string[];
         dueTime?: string;
+        dueDate?: string;
         priority?: 'high' | 'medium' | 'low';
+        images?: string[];
     } | null;
 }
 
@@ -109,17 +111,35 @@ export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }:
                             <div className="space-y-8">
                                 {/* Meta Data Grid */}
                                 <div className="flex flex-wrap gap-3">
-                                    {activeItem.dueTime && (
+                                    {(activeItem.dueDate || activeItem.dueTime) && (
                                         <div className="flex items-center gap-2 text-sm bg-white/5 px-4 py-2 rounded-2xl border border-white/5 text-neutral-300">
                                             <Clock size={16} className="text-neutral-500" />
-                                            <span className="font-medium">{activeItem.dueTime}</span>
+                                            <span className="font-medium">
+                                                {activeItem.dueDate ? new Date(activeItem.dueDate).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : activeItem.dueTime}
+                                            </span>
                                         </div>
                                     )}
                                     <div className="flex items-center gap-2 text-sm bg-white/5 px-4 py-2 rounded-2xl border border-white/5 text-neutral-300">
                                         <Calendar size={16} className="text-neutral-500" />
-                                        <span className="font-medium">Today</span>
+                                        <span className="font-medium">
+                                            {activeItem.dueDate ? new Date(activeItem.dueDate).toLocaleDateString('en-US', { weekday: 'long' }) : 'Today'}
+                                        </span>
                                     </div>
                                 </div>
+
+                                {/* Images Section */}
+                                {activeItem.images && activeItem.images.length > 0 && (
+                                    <div className="flex flex-col gap-3">
+                                        <h4 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest px-1">Attachments</h4>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {activeItem.images.map((img, i) => (
+                                                <div key={i} className="aspect-square rounded-2xl overflow-hidden border border-white/5 bg-neutral-800">
+                                                    <img src={img} alt="Attachment" className="w-full h-full object-cover" />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Main Body Text */}
                                 <div className="space-y-4">

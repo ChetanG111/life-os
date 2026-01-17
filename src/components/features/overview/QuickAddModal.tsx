@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
-import { Mic, Image, Link, ArrowUp, CheckCircle2, Sparkles, Hash, Flag } from 'lucide-react';
+import { Mic, Image as ImageIcon, Link, ArrowUp, CheckCircle2, Sparkles, Hash, Calendar, X } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useBackToClose } from '@/hooks/use-back-to-close';
 import { vibrate } from '@/utils/haptics';
@@ -39,7 +39,15 @@ export function QuickAddModal({
     const [status, setStatus] = useState<InputState>('idle');
     const [selectedType, setSelectedType] = useState<ItemType>(initialType || 'task');
     const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
+    
+    // New Fields
+    const [dueDate, setDueDate] = useState<string>('');
+    const [images, setImages] = useState<string[]>([]);
+    
     const inputRef = useRef<HTMLTextAreaElement>(null);
+    const dateInputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    
     const dragControls = useDragControls();
     const { autoFocusQuickAdd } = useSettings();
     const { addTask, addNote } = useData();
@@ -53,6 +61,8 @@ export function QuickAddModal({
             setStatus('idle');
             setText('');
             setTitle('');
+            setDueDate('');
+            setImages([]);
             if (initialType) setSelectedType(initialType);
             setPriority(initialType === 'goal' ? 'high' : 'medium');
             // Focus input after animation
@@ -62,8 +72,26 @@ export function QuickAddModal({
         }
     }, [isOpen, autoFocusQuickAdd]);
 
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64 = reader.result as string;
+                setImages(prev => [...prev, base64]);
+                vibrate('success');
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const removeImage = (index: number) => {
+        vibrate('medium');
+        setImages(prev => prev.filter((_, i) => i !== index));
+    };
+
     const handleSubmit = () => {
-        if (!text.trim()) return;
+        if (!text.trim() && images.length === 0) return;
 
         vibrate('medium');
         setStatus('processing');
@@ -76,13 +104,15 @@ export function QuickAddModal({
                     priority: priority,
                     tags: [selectedType],
                     description: text,
+                    dueDate: dueDate || undefined
                 });
             } else {
                 addNote({
                     title: title.trim() || (selectedType === 'note' ? 'New Note' : 'New Idea'),
                     content: text,
-                    type: 'text',
+                    type: images.length > 0 ? 'image' : 'text',
                     tags: [selectedType],
+                    images: images
                 });
             }
 
@@ -135,6 +165,17 @@ export function QuickAddModal({
         setPriority(map[priority]);
     };
 
+    const formatDisplayDate = (dateStr: string) => {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        return date.toLocaleString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            hour: 'numeric', 
+            minute: '2-digit' 
+        });
+    };
+
     const springConfig = useSlimySpring();
     const staggerContainer = UNIVERSAL_STAGGER_CONTAINER('modal');
     const slimyItem = createStaggerItemVariants(springConfig);
@@ -143,6 +184,24 @@ export function QuickAddModal({
         <AnimatePresence>
             {isOpen && (
                 <>
+                    {/* Hidden Inputs */}
+                    <input 
+                        type="datetime-local" 
+                        ref={dateInputRef} 
+                        className="hidden" 
+                        onChange={(e) => {
+                            setDueDate(e.target.value);
+                            vibrate('success');
+                        }}
+                    />
+                    <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageSelect}
+                    />
+
                     {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
@@ -254,6 +313,38 @@ export function QuickAddModal({
                                     </motion.div>
                                 )}
 
+                                {/* Attachments Display (Date & Images) */}
+                                {(dueDate || (images.length > 0 && (selectedType === 'note' || selectedType === 'idea'))) && (
+                                    <motion.div variants={slimyItem} className="flex flex-wrap gap-2 mt-4 mb-1">
+                                        {/* Date Chip */}
+                                        {dueDate && (
+                                            <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 pl-3 pr-2 py-1.5 rounded-full text-blue-400">
+                                                <Calendar size={14} />
+                                                <span className="text-xs font-bold uppercase tracking-wider">{formatDisplayDate(dueDate)}</span>
+                                                <button 
+                                                    onClick={() => setDueDate('')}
+                                                    className="w-5 h-5 flex items-center justify-center bg-blue-500/20 rounded-full hover:bg-blue-500/40"
+                                                >
+                                                    <X size={12} />
+                                                </button>
+                                            </div>
+                                        )}
+                                        
+                                        {/* Image Thumbnails */}
+                                        {(selectedType === 'note' || selectedType === 'idea') && images.map((img, i) => (
+                                            <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden border border-white/10 group">
+                                                <img src={img} alt="Attachment" className="w-full h-full object-cover" />
+                                                <button 
+                                                    onClick={() => removeImage(i)}
+                                                    className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <X size={16} className="text-white" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </motion.div>
+                                )}
+
                                 {/* Input Area */}
                                 <motion.div variants={slimyItem} className="flex flex-col mt-4">
                                     <input
@@ -261,14 +352,14 @@ export function QuickAddModal({
                                         value={title}
                                         onChange={(e) => setTitle(e.target.value)}
                                         placeholder="Title (Optional)"
-                                        className="w-full bg-transparent text-xl font-bold text-white placeholder-neutral-700 outline-none mb-2 px-6"
+                                        className="w-full bg-transparent text-xl font-bold text-white placeholder-neutral-700 outline-none mb-2 px-1"
                                     />
                                     <textarea
                                         ref={inputRef}
                                         value={text}
                                         onChange={(e) => setText(e.target.value)}
                                         placeholder={status === 'listening' ? "Listening..." : "What's on your mind?"}
-                                        className="w-full h-40 bg-transparent text-lg leading-tight text-white placeholder-neutral-700 resize-none outline-none font-medium p-6 transition-colors"
+                                        className="w-full h-40 bg-transparent text-lg leading-tight text-white placeholder-neutral-700 resize-none outline-none font-medium p-1 transition-colors"
                                     />
                                 </motion.div>
 
@@ -279,17 +370,28 @@ export function QuickAddModal({
                                 >
                                     {/* Left Side: Tools Group */}
                                     <div className="flex items-center gap-1 bg-white/5 rounded-2xl p-1 pr-2">
+                                        {(selectedType === 'note' || selectedType === 'idea') && (
+                                            <button
+                                                className="p-3 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                                                onClick={() => {
+                                                    vibrate('light');
+                                                    fileInputRef.current?.click();
+                                                }}
+                                            >
+                                                <ImageIcon size={20} />
+                                            </button>
+                                        )}
                                         <button
-                                            className="p-3 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
-                                            onClick={() => vibrate('light')}
+                                            className={clsx(
+                                                "p-3 rounded-xl transition-colors",
+                                                dueDate ? "text-blue-400 bg-blue-500/10" : "text-neutral-400 hover:text-white hover:bg-white/10"
+                                            )}
+                                            onClick={() => {
+                                                vibrate('light');
+                                                dateInputRef.current?.showPicker();
+                                            }}
                                         >
-                                            <Image size={20} />
-                                        </button>
-                                        <button
-                                            className="p-3 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
-                                            onClick={() => vibrate('light')}
-                                        >
-                                            <Link size={20} />
+                                            <Calendar size={20} />
                                         </button>
                                         <button
                                             onClick={toggleListening}
@@ -327,15 +429,15 @@ export function QuickAddModal({
                                         {/* Submit Button (Icon Only) */}
                                         <button
                                             onClick={handleSubmit}
-                                            disabled={!text.trim() || status !== 'idle'}
+                                            disabled={(!text.trim() && images.length === 0) || status !== 'idle'}
                                             className={clsx(
                                                 "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-lg",
-                                                text.trim() && status === 'idle'
+                                                (text.trim() || images.length > 0) && status === 'idle'
                                                     ? "bg-white text-black shadow-white/10 active:scale-90"
                                                     : "bg-neutral-800 text-neutral-600 cursor-not-allowed"
                                             )}
                                         >
-                                            <ArrowUp size={20} strokeWidth={3} className={text.trim() ? "rotate-45" : ""} />
+                                            <ArrowUp size={20} strokeWidth={3} className={(text.trim() || images.length > 0) ? "rotate-45" : ""} />
                                         </button>
                                     </div>
                                 </motion.div>

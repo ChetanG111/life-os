@@ -35,8 +35,20 @@ export const NoteCard = ({ note, onTap }: NoteCardProps) => {
                 </h3>
             )}
 
-            {/* Content Preview */}
-            {note.type === 'image' && note.content.startsWith('http') ? (
+            {/* Image Attachments */}
+            {note.images && note.images.length > 0 && (
+                <div className="w-full h-32 rounded-lg overflow-hidden mb-3 bg-neutral-800 relative">
+                    <img src={note.images[0]} alt="Note attachment" className="w-full h-full object-cover" />
+                    {note.images.length > 1 && (
+                        <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] text-white font-medium">
+                            +{note.images.length - 1}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Content Preview (Legacy Image or Text) */}
+            {!note.images?.length && note.type === 'image' && note.content.startsWith('http') ? (
                 <div className="w-full h-32 rounded-lg overflow-hidden mb-3 bg-neutral-800">
                     <img src={note.content} alt={note.title || 'Note image'} className="w-full h-full object-cover" />
                 </div>
