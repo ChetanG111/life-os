@@ -19,24 +19,25 @@ const containerVariants: Variants = {
     show: {
         opacity: 1,
         transition: {
-            staggerChildren: 0.12,
-            delayChildren: 0.2,
+            staggerChildren: 0.08,
+            delayChildren: 0.1,
             when: "beforeChildren"
         }
     }
 };
 
-// Item variant controls individual card entrance (Fade + Slide)
+// Item variant controls individual card entrance (Fade + Slide + Overshoot)
 const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 30 },
-    enter: { opacity: 0, y: 30 },
+    hidden: { opacity: 0, y: 30, scale: 0.9 },
+    enter: { opacity: 0, y: 30, scale: 0.9 },
     show: {
         opacity: 1,
         y: 0,
+        scale: 1,
         transition: {
             type: "spring",
-            stiffness: 180,
-            damping: 24
+            stiffness: 350,
+            damping: 18
         }
     }
 };
@@ -69,7 +70,7 @@ export const TasksTab = () => {
                 animate="show"
                 className="flex flex-col space-y-3"
             >
-                <AnimatePresence mode="popLayout" initial={false}>
+                <AnimatePresence mode="popLayout">
                     {sortedTasks.map((task) => (
                         <motion.div
                             key={task.id}

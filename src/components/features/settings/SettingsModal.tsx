@@ -18,6 +18,31 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
     // Handle back button behavior
     useBackToClose(isOpen, onClose);
 
+    const staggerContainer = {
+        hidden: { opacity: 0 },
+        show: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.06,
+                delayChildren: 0.1
+            }
+        }
+    };
+
+    const slimyItem = {
+        hidden: { y: 30, opacity: 0, scale: 0.9 },
+        show: { 
+            y: 0, 
+            opacity: 1, 
+            scale: 1,
+            transition: { 
+                type: "spring", 
+                stiffness: 350, 
+                damping: 18 
+            } 
+        }
+    };
+
     return (
         <AnimatePresence>
             {isOpen && (
@@ -66,10 +91,15 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                         </div>
 
                         {/* Scrollable Content */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                        <motion.div 
+                            variants={staggerContainer}
+                            initial="hidden"
+                            animate="show"
+                            className="flex-1 overflow-y-auto p-6 space-y-8"
+                        >
                             
                             {/* Section: Navigation */}
-                            <section>
+                            <motion.section variants={slimyItem}>
                                 <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-4 px-1">
                                     Navigation
                                 </h3>
@@ -106,10 +136,10 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                                         </button>
                                     </div>
                                 </div>
-                            </section>
+                            </motion.section>
 
                             {/* Placeholder Sections */}
-                            <section>
+                            <motion.section variants={slimyItem}>
                                 <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-4 px-1">
                                     Preferences
                                 </h3>
@@ -117,21 +147,21 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                                     <SettingsRow icon={Zap} color="text-amber-500" label="Haptics & Motion" />
                                     <SettingsRow icon={Smartphone} color="text-purple-500" label="Display" />
                                 </div>
-                            </section>
+                            </motion.section>
 
-                            <section>
+                            <motion.section variants={slimyItem}>
                                 <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-4 px-1">
                                     Data
                                 </h3>
                                 <div className="bg-[var(--surface)] rounded-2xl overflow-hidden border border-white/5">
                                     <SettingsRow icon={Database} color="text-emerald-500" label="Backup & Sync" />
                                 </div>
-                            </section>
+                            </motion.section>
                             
-                             <div className="pt-8 pb-12 text-center">
+                             <motion.div variants={slimyItem} className="pt-8 pb-12 text-center">
                                 <p className="text-xs text-neutral-600 font-medium">Life OS v0.1.0 (Alpha)</p>
-                            </div>
-                        </div>
+                            </motion.div>
+                        </motion.div>
                     </motion.div>
                 </>
             )}

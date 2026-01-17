@@ -12,21 +12,22 @@ const containerVariants: Variants = {
     show: {
         opacity: 1,
         transition: {
-            staggerChildren: 0.05,
+            staggerChildren: 0.08,
             delayChildren: 0.1
         }
     }
 };
 
 const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 12 },
+    hidden: { opacity: 0, y: 30, scale: 0.9 },
     show: {
         opacity: 1,
         y: 0,
+        scale: 1,
         transition: {
             type: "spring",
-            stiffness: 260,
-            damping: 24
+            stiffness: 350,
+            damping: 18
         }
     }
 };

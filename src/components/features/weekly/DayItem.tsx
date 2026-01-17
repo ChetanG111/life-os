@@ -107,7 +107,7 @@ export const DayItem = ({ dayName, dayNumber, tasks, summary, isToday = false }:
                                 show: {
                                     opacity: 1,
                                     transition: {
-                                        staggerChildren: 0.05
+                                        staggerChildren: 0.08
                                     }
                                 }
                             }}
@@ -117,8 +117,13 @@ export const DayItem = ({ dayName, dayNumber, tasks, summary, isToday = false }:
                                 <motion.div
                                     key={task.id}
                                     variants={{
-                                        hidden: { opacity: 0, y: 10 },
-                                        show: { opacity: 1, y: 0 }
+                                        hidden: { opacity: 0, y: 30, scale: 0.9 },
+                                        show: { 
+                                            opacity: 1, 
+                                            y: 0, 
+                                            scale: 1,
+                                            transition: { type: "spring", stiffness: 350, damping: 18 }
+                                        }
                                     }}
                                 >
                                     <TaskCard task={task} onRemove={() => { }} />

@@ -67,8 +67,8 @@ motion:
   engine: "framer-motion"
   physics:
     type: "spring"
-    stiffness: 180
-    damping: 22
+    stiffness: 350
+    damping: 18
   gestures:
     hand_reactive: true
     follow_finger: true
@@ -145,7 +145,7 @@ quality_rules:
 stagger:
   enabled: true
   rule: "all_lists_and_cards"
-  delay_between_items: "40-80ms"
+  delay_between_items: "50ms"
   order: "top_to_bottom"
-  animation: "fade + slight translateY"
-  purpose: "make UI feel alive, not robotic"
+  animation: "fade + slideY + overshoot spring"
+  purpose: "springy, slimy, bounce into place"

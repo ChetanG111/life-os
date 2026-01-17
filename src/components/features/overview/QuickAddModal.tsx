@@ -83,6 +83,31 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
         }
     };
 
+    const staggerContainer = {
+        hidden: { opacity: 0 },
+        show: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1,
+                delayChildren: 0.2
+            }
+        }
+    };
+
+    const slimyItem = {
+        hidden: { y: 30, opacity: 0, scale: 0.9 },
+        show: { 
+            y: 0, 
+            opacity: 1, 
+            scale: 1,
+            transition: { 
+                type: "spring", 
+                stiffness: 350, 
+                damping: 18 
+            } 
+        }
+    };
+
     return (
         <AnimatePresence>
             {isOpen && (
@@ -180,13 +205,19 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
                         {/* Bottom Controls */}
                         <div className="flex-none p-6 pb-safe-bottom bg-[var(--surface)] border-t border-white/5">
                              {/* Type Selector */}
-                             <div className="flex gap-2 mb-6 overflow-x-auto no-scrollbar pb-1">
+                             <motion.div 
+                                variants={staggerContainer}
+                                initial="hidden"
+                                animate="show"
+                                className="flex gap-2 mb-6 overflow-x-auto no-scrollbar pb-1"
+                            >
                                 {ITEM_TYPES.map((type) => {
                                     const Icon = type.icon;
                                     const isSelected = selectedType === type.id;
                                     return (
-                                        <button
+                                        <motion.button
                                             key={type.id}
+                                            variants={slimyItem}
                                             onClick={() => {
                                                 vibrate('light');
                                                 setSelectedType(type.id);
@@ -200,13 +231,18 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
                                         >
                                             <Icon size={16} />
                                             {type.label}
-                                        </button>
+                                        </motion.button>
                                     );
                                 })}
-                            </div>
+                            </motion.div>
 
                             {/* Action Bar */}
-                            <div className="flex items-center justify-between">
+                            <motion.div 
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.3, type: "spring", stiffness: 350, damping: 18 }}
+                                className="flex items-center justify-between"
+                            >
                                 <div className="flex items-center gap-2">
                                     <button 
                                         className="p-3 rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
@@ -245,7 +281,7 @@ export function QuickAddModal({ isOpen, onClose, onAdd }: { isOpen: boolean; onC
                                 >
                                     <ArrowUp size={28} strokeWidth={2.5} />
                                 </button>
-                            </div>
+                            </motion.div>
                         </div>
                     </motion.div>
                 </>

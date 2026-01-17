@@ -78,9 +78,9 @@ export function ChatTab() {
                     <motion.div
                         key={msg.id}
                         layout
-                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                        initial={{ opacity: 0, scale: 0.9, y: 30 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        transition={{ type: "spring", stiffness: 350, damping: 18 }}
                         className={`flex flex-col ${msg.isUser ? 'items-end' : 'items-start'}`}
                     >
                         <div
