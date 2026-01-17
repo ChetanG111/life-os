@@ -141,8 +141,16 @@ export function NavigationShell() {
                     // Drag configuration for swipe support
                     drag={isModalOpen ? false : "x"}
                     dragConstraints={{ left: 0, right: 0 }}
-                    dragElastic={0.2}
-                    onDragStart={() => setIsDragging(true)}
+                    dragElastic={{
+                        left: activeTab === 'weekly' ? 0.4 : 0.1, // Stronger resistance at the very end
+                        right: activeTab === 'tasks' ? 0.4 : 0.1, // Stronger resistance at the very start
+                        top: 0,
+                        bottom: 0
+                    }}
+                    onDragStart={() => {
+                        vibrate('light');
+                        setIsDragging(true);
+                    }}
                     onDragEnd={handleDragEnd}
                     className="absolute inset-0 h-full w-full touch-pan-y will-change-transform bg-background overflow-y-auto overflow-x-hidden"
                 >

@@ -86,6 +86,7 @@ export const TaskCard = ({ task, onRemove }: TaskCardProps) => {
                 drag={action === 'idle' ? "x" : false}
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={0.4}
+                onDragStart={() => vibrate('light')}
                 onDragEnd={handleDragEnd}
                 animate={controls}
                 variants={cardVariants}
