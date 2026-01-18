@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
-import { Mic, Image as ImageIcon, Link, ArrowUp, CheckCircle2, Sparkles, Hash, Calendar, X } from 'lucide-react';
+import { Mic, Image as ImageIcon, Link, ArrowUp, CheckCircle2, Sparkles, Hash, Calendar, X, User } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useBackToClose } from '@/hooks/use-back-to-close';
 import { vibrate } from '@/utils/haptics';
@@ -15,13 +15,14 @@ import { useSlimySpring } from '@/hooks/use-slimy-spring';
 import { useToast } from '@/context/ToastContext';
 
 type InputState = 'idle' | 'listening' | 'processing' | 'success';
-type ItemType = 'task' | 'note' | 'idea' | 'goal';
+type ItemType = 'task' | 'note' | 'idea' | 'goal' | 'identity';
 
 const ITEM_TYPES: { id: ItemType; label: string; icon: any }[] = [
     { id: 'task', label: 'Task', icon: CheckCircle2 },
     { id: 'note', label: 'Note', icon: Hash },
     { id: 'idea', label: 'Idea', icon: Sparkles },
     { id: 'goal', label: 'Goal', icon: ArrowUp },
+    { id: 'identity', label: 'Identity', icon: User },
 ];
 
 export function QuickAddModal({
@@ -109,8 +110,14 @@ export function QuickAddModal({
                     dueDate: dueDate || undefined
                 });
             } else {
+                // note, idea, identity all stored as notes
+                const typeLabels: Record<string, string> = {
+                    note: 'New Note',
+                    idea: 'New Idea',
+                    identity: 'Identity Update'
+                };
                 addNote({
-                    title: title.trim() || (selectedType === 'note' ? 'New Note' : 'New Idea'),
+                    title: title.trim() || typeLabels[selectedType] || 'New Note',
                     content: text,
                     type: images.length > 0 ? 'image' : 'text',
                     tags: [selectedType],
@@ -258,7 +265,7 @@ export function QuickAddModal({
                         >
                             {/* Type Selector Grid - Integrated into main stagger */}
                             <div className="px-6 py-2">
-                                <div className="grid grid-cols-4 gap-2">
+                                <div className="grid grid-cols-5 gap-2">
                                     {ITEM_TYPES.map((type) => {
                                         const Icon = type.icon;
                                         const isSelected = selectedType === type.id;

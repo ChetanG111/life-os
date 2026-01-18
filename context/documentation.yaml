@@ -1520,10 +1520,12 @@ memory_review:
   
   ui_features:
     - "Card stack with swipe gestures"
+    - "List view toggle (per memory_review_logic.ui.list_toggle)"
     - "Progress indicator (X of Y notes)"
     - "Date and tags displayed on cards"
     - "Toast notifications for each action"
     - "Auto-close when all notes reviewed"
+    - "Per-item action buttons in list mode"
   
   usage: |
     // In NavigationShell.tsx (already implemented)
@@ -1531,6 +1533,55 @@ memory_review:
       isOpen={isMemoryReviewOpen}
       onClose={() => setIsMemoryReviewOpen(false)}
     />
+
+
+---
+# ════════════════════════════════════════
+# QUICK ADD MODAL
+# ════════════════════════════════════════
+quick_add:
+  file: "src/components/features/overview/QuickAddModal.tsx"
+  description: |
+    Full-featured modal for quickly adding content. Supports multiple input types,
+    voice input simulation, priority selection, due dates, and image attachments.
+  
+  input_types:
+    task:
+      icon: "CheckCircle2"
+      storage: "DataContext.addTask()"
+      default_priority: "medium"
+    note:
+      icon: "Hash"
+      storage: "DataContext.addNote()"
+      supports_images: true
+    idea:
+      icon: "Sparkles"
+      storage: "DataContext.addNote() with tag: 'idea'"
+      supports_images: true
+    goal:
+      icon: "ArrowUp"
+      storage: "DataContext.addTask() with tag: 'goal'"
+      default_priority: "high"
+    identity:
+      icon: "User"
+      storage: "DataContext.addNote() with tag: 'identity'"
+      description: "Per logic.yaml quick_add_modal.inputs.identity_update"
+  
+  features:
+    - "5-column type selector grid"
+    - "Priority cycle button (low → medium → high)"
+    - "Date/time picker integration"
+    - "Image attachment (note/idea only)"
+    - "Voice input simulation"
+    - "Swipe-down to close"
+    - "Toast notification on success"
+  
+  flow: |
+    1. user_input: Type selection + text/title input
+    2. ai_parse: (future) AI categorization
+    3. preview: (future) Show parsed result
+    4. confirm: User submits
+    5. save: Stored to DataContext + localStorage
 
 
 ---
@@ -1550,9 +1601,15 @@ task_completion:
     swipe_left: |
       Calls removeTask(id) - permanently deletes task
       Shows info toast (or confirmation modal if setting enabled)
+    
+    swipe_down: |
+      Calls removeTask(id) - permanently deletes task
+      Per logic.yaml card_swipe.down: delete
+      Lower threshold (80px vs 150px for horizontal)
+      Shows warning vibration
   
   where_implemented:
-    - "TaskCard.tsx - Separate onComplete/onDelete props"
+    - "TaskCard.tsx - Supports X+Y drag with separate thresholds"
     - "TasksTab.tsx - Uses completeTask() for swipe-right"
     - "Feed.tsx - Uses completeTask() for swipe-right"
   
@@ -1560,6 +1617,42 @@ task_completion:
     tasks_tab: "Shows only tasks where isCompleted === false"
     overview_feed: "Shows only tasks where isCompleted === false"
     weekly_tab: "Shows all tasks (uses completion for progress ring)"
+
+
+---
+# ════════════════════════════════════════
+# PERFORMANCE OPTIMIZATIONS
+# ════════════════════════════════════════
+performance:
+  lazy_loading:
+    description: |
+      All tab components are lazy-loaded using next/dynamic to reduce initial bundle size.
+      Per logic.yaml performance_rules.lazy_load_tabs.
+    
+    implementation: |
+      // In NavigationShell.tsx
+      const Feed = dynamic(() => import('@/components/features/overview/Feed').then(mod => ({ default: mod.Feed })), {
+        loading: () => <TabLoadingState />,
+      });
+    
+    loading_state: |
+      TabLoadingState shows a centered spinning loader while tab loads.
+      Typically only visible on slow connections or first load.
+    
+    tabs_lazy_loaded:
+      - Feed (Overview)
+      - TasksTab
+      - NotesTab
+      - WeeklyTab
+      - ChatTab
+  
+  memoization:
+    description: "Heavy computations are memoized with useMemo"
+    examples:
+      - "sortedTasks in TasksTab - sorted by priority"
+      - "sortedItems in Feed - sorted by overdue then priority"
+      - "weekData in WeeklyTab - computed week days"
+      - "expiringNotes in MemoryReviewCards - filtered by date"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════

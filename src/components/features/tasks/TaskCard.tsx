@@ -22,19 +22,36 @@ export const TaskCard = ({ task, onComplete, onDelete, onTap }: TaskCardProps) =
     const springConfig = useSlimySpring();
     const controls = useAnimation();
     const x = useMotionValue(0);
+    const y = useMotionValue(0);
 
     const handleDragEnd = async (_: any, info: PanInfo) => {
         const threshold = 150;
+        const yThreshold = 80; // Lower threshold for down-swipe
         const fastSpring = springConfig;
 
-        if (info.offset.x > threshold) {
+        // Down-swipe to delete (per logic.yaml card_swipe.down: delete)
+        if (info.offset.y > yThreshold && Math.abs(info.offset.x) < threshold) {
+            vibrate('warning');
+            controls.start({ x: 0, y: 0, transition: fastSpring });
+
+            if (confirmDelete) {
+                setIsConfirmingDelete(true);
+            } else {
+                setAction('deleting');
+                controls.start('deleting').then(() => onDelete());
+            }
+        }
+        // Right-swipe to complete
+        else if (info.offset.x > threshold) {
             vibrate('success');
-            controls.start({ x: 0, transition: fastSpring });
+            controls.start({ x: 0, y: 0, transition: fastSpring });
             setAction('completing');
             controls.start('completing').then(() => onComplete());
-        } else if (info.offset.x < -threshold) {
+        }
+        // Left-swipe to dismiss/delete
+        else if (info.offset.x < -threshold) {
             vibrate('medium');
-            controls.start({ x: 0, transition: fastSpring });
+            controls.start({ x: 0, y: 0, transition: fastSpring });
 
             if (confirmDelete) {
                 setIsConfirmingDelete(true);
@@ -43,7 +60,7 @@ export const TaskCard = ({ task, onComplete, onDelete, onTap }: TaskCardProps) =
                 controls.start('deleting').then(() => onDelete());
             }
         } else {
-            controls.start({ x: 0, transition: fastSpring });
+            controls.start({ x: 0, y: 0, transition: fastSpring });
         }
     };
 
@@ -84,33 +101,40 @@ export const TaskCard = ({ task, onComplete, onDelete, onTap }: TaskCardProps) =
         >
             {/* Background Actions (Indicators) */}
             {action === 'idle' && (
-                <div className="absolute inset-0 rounded-2xl flex overflow-hidden z-0">
-                    <div className="w-1/2 bg-[#10B981]/5 flex items-center justify-start pl-6">
-                        <Check className="text-[#10B981]/20 w-6 h-6" />
+                <>
+                    {/* Horizontal indicators */}
+                    <div className="absolute inset-0 rounded-2xl flex overflow-hidden z-0">
+                        <div className="w-1/2 bg-[#10B981]/5 flex items-center justify-start pl-6">
+                            <Check className="text-[#10B981]/20 w-6 h-6" />
+                        </div>
+                        <div className="w-1/2 bg-[#EF4444]/5 flex items-center justify-end pr-6">
+                            <Trash2 className="text-[#EF4444]/20 w-6 h-6" />
+                        </div>
                     </div>
-                    <div className="w-1/2 bg-[#EF4444]/5 flex items-center justify-end pr-6">
-                        <Trash2 className="text-[#EF4444]/20 w-6 h-6" />
+                    {/* Down-swipe indicator */}
+                    <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#EF4444]/10 to-transparent rounded-b-2xl flex items-end justify-center pb-1 z-0">
+                        <Trash2 className="text-[#EF4444]/20 w-4 h-4" />
                     </div>
-                </div>
+                </>
             )}
 
             {/* The Main Interactive Card */}
             <motion.div
-                drag={action === 'idle' ? "x" : false}
-                dragConstraints={{ left: 0, right: 0 }}
+                drag={action === 'idle'}
+                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
                 dragElastic={0.4}
                 onDragStart={() => vibrate('light')}
                 onDragEnd={handleDragEnd}
                 onTap={() => {
                     // Only trigger tap if we haven't dragged significantly
-                    if (action === 'idle' && Math.abs(x.get()) < 5 && onTap) {
+                    if (action === 'idle' && Math.abs(x.get()) < 5 && Math.abs(y.get()) < 5 && onTap) {
                         vibrate('light');
                         onTap();
                     }
                 }}
                 animate={controls}
                 variants={cardVariants}
-                style={{ x }}
+                style={{ x, y }}
                 whileTap={action === 'idle' ? { scale: 0.98 } : {}}
                 className={clsx(
                     "absolute inset-0 bg-[var(--surface)] rounded-2xl flex items-center px-4 z-10",

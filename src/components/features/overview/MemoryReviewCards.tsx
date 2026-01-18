@@ -5,7 +5,7 @@ import { vibrate } from '@/utils/haptics';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
 import { useMemo, useState } from 'react';
-import { Archive, Trash2, Bookmark, Clock } from 'lucide-react';
+import { Archive, Trash2, Bookmark, Clock, Layers, List as ListIcon } from 'lucide-react';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
 import { Note } from '@/types';
 
@@ -14,6 +14,8 @@ interface MemoryReviewProps {
     onClose: () => void;
 }
 
+type ViewMode = 'stack' | 'list';
+
 // Memory review shows notes that are "expiring" (older than 7 days)
 // User can: save_permanently, archive, or delete
 export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
@@ -21,6 +23,7 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
     const { showToast } = useToast();
     const springConfig = useSlimySpring();
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [viewMode, setViewMode] = useState<ViewMode>('stack');
 
     // Filter to "expiring" notes - older than 7 days per memory_review_logic
     const expiringNotes = useMemo(() => {
@@ -35,28 +38,37 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
 
     const currentNote = expiringNotes[currentIndex];
 
-    const handleSavePermanently = () => {
+    const handleSavePermanently = (noteId?: string) => {
         vibrate('success');
         showToast('Note saved permanently', 'success');
-        // In real app, would mark as permanent - for now just move to next
-        nextCard();
+        if (viewMode === 'stack') {
+            nextCard();
+        }
+        // In list mode, just show toast (would mark as permanent in real app)
     };
 
-    const handleArchive = () => {
+    const handleArchive = (noteId?: string) => {
         vibrate('medium');
         showToast('Note archived', 'info');
-        // In real app, would mark as archived
-        nextCard();
+        if (viewMode === 'stack') {
+            nextCard();
+        }
+        // In list mode, just show toast (would archive in real app)
     };
 
-    const handleDelete = () => {
-        if (!currentNote) return;
+    const handleDelete = (noteId?: string) => {
+        const idToDelete = noteId || currentNote?.id;
+        if (!idToDelete) return;
+
         vibrate('warning');
-        removeNote(currentNote.id);
+        removeNote(idToDelete);
         showToast('Note deleted', 'info');
-        // Index stays same but array shrinks
-        if (currentIndex >= expiringNotes.length - 1) {
-            setCurrentIndex(Math.max(0, expiringNotes.length - 2));
+
+        if (viewMode === 'stack') {
+            // Index stays same but array shrinks
+            if (currentIndex >= expiringNotes.length - 1) {
+                setCurrentIndex(Math.max(0, expiringNotes.length - 2));
+            }
         }
     };
 
@@ -79,6 +91,11 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
         } else if (info.offset.y > threshold) {
             handleDelete();
         }
+    };
+
+    const toggleViewMode = () => {
+        vibrate('medium');
+        setViewMode(prev => prev === 'stack' ? 'list' : 'stack');
     };
 
     if (!isOpen || expiringNotes.length === 0) return null;
@@ -109,101 +126,181 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
                         <div>
                             <h2 className="text-xl font-bold text-white">Memory Review</h2>
                             <p className="text-sm text-neutral-500">
-                                {currentIndex + 1} of {expiringNotes.length} notes to review
+                                {viewMode === 'stack'
+                                    ? `${currentIndex + 1} of ${expiringNotes.length} notes`
+                                    : `${expiringNotes.length} notes to review`
+                                }
                             </p>
                         </div>
-                        <div className="flex items-center gap-2 text-neutral-500">
-                            <Clock size={16} />
-                            <span className="text-xs font-medium">7+ days old</span>
+                        <div className="flex items-center gap-3">
+                            {/* View Toggle */}
+                            <motion.button
+                                whileTap={{ scale: 0.9 }}
+                                onClick={toggleViewMode}
+                                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                            >
+                                {viewMode === 'stack' ? <ListIcon size={18} /> : <Layers size={18} />}
+                            </motion.button>
+                            <div className="flex items-center gap-2 text-neutral-500">
+                                <Clock size={16} />
+                                <span className="text-xs font-medium">7+ days old</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Card Area */}
+                {/* Content Area */}
                 <div className="flex-1 relative overflow-hidden px-6">
                     <AnimatePresence mode="wait">
-                        {currentNote && (
+                        {viewMode === 'stack' ? (
+                            /* Stack View */
+                            currentNote && (
+                                <motion.div
+                                    key={`stack-${currentNote.id}`}
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9, x: -100 }}
+                                    transition={springConfig}
+                                    drag
+                                    dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                                    dragElastic={0.5}
+                                    onDragStart={() => vibrate('light')}
+                                    onDragEnd={handleDragEnd}
+                                    className="absolute inset-x-6 top-0 bg-neutral-900 rounded-3xl p-6 border border-white/10 shadow-2xl cursor-grab active:cursor-grabbing"
+                                >
+                                    <NoteCardContent note={currentNote} />
+                                </motion.div>
+                            )
+                        ) : (
+                            /* List View */
                             <motion.div
-                                key={currentNote.id}
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9, x: -100 }}
-                                transition={springConfig}
-                                drag
-                                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                                dragElastic={0.5}
-                                onDragStart={() => vibrate('light')}
-                                onDragEnd={handleDragEnd}
-                                className="absolute inset-x-6 top-0 bg-neutral-900 rounded-3xl p-6 border border-white/10 shadow-2xl cursor-grab active:cursor-grabbing"
+                                key="list"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="h-full overflow-y-auto pb-4 space-y-3"
                             >
-                                {/* Note Title */}
-                                <h3 className="text-lg font-bold text-white mb-2">
-                                    {currentNote.title || 'Untitled Note'}
-                                </h3>
-
-                                {/* Note Content */}
-                                <p className="text-neutral-400 text-sm leading-relaxed line-clamp-6">
-                                    {currentNote.content}
-                                </p>
-
-                                {/* Tags */}
-                                {currentNote.tags.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 mt-4">
-                                        {currentNote.tags.map(tag => (
-                                            <span
-                                                key={tag}
-                                                className="px-3 py-1 bg-white/5 rounded-full text-xs text-neutral-500 font-medium"
-                                            >
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {/* Date */}
-                                <p className="text-xs text-neutral-600 mt-4">
-                                    Created: {new Date(currentNote.date).toLocaleDateString('en-US', {
-                                        month: 'long',
-                                        day: 'numeric',
-                                        year: 'numeric'
-                                    })}
-                                </p>
+                                {expiringNotes.map(note => (
+                                    <motion.div
+                                        key={note.id}
+                                        layout
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: 20 }}
+                                        className="bg-neutral-900 rounded-2xl p-4 border border-white/10"
+                                    >
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="text-sm font-bold text-white truncate">
+                                                    {note.title || 'Untitled Note'}
+                                                </h4>
+                                                <p className="text-xs text-neutral-500 line-clamp-2 mt-1">
+                                                    {note.content}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-1 flex-shrink-0">
+                                                <button
+                                                    onClick={() => handleSavePermanently(note.id)}
+                                                    className="p-2 rounded-xl text-green-400 hover:bg-green-500/10 transition-colors"
+                                                >
+                                                    <Bookmark size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleArchive(note.id)}
+                                                    className="p-2 rounded-xl text-neutral-400 hover:bg-white/5 transition-colors"
+                                                >
+                                                    <Archive size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(note.id)}
+                                                    className="p-2 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                ))}
                             </motion.div>
                         )}
                     </AnimatePresence>
 
-                    {/* Swipe Hints */}
-                    <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-6 text-xs text-neutral-600 font-medium uppercase tracking-wider">
-                        <span>← Archive</span>
-                        <span>↓ Delete</span>
-                        <span>Save →</span>
-                    </div>
+                    {/* Swipe Hints - Stack view only */}
+                    {viewMode === 'stack' && (
+                        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-6 text-xs text-neutral-600 font-medium uppercase tracking-wider">
+                            <span>← Archive</span>
+                            <span>↓ Delete</span>
+                            <span>Save →</span>
+                        </div>
+                    )}
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex-none px-6 pb-8 pt-4 flex gap-3">
-                    <button
-                        onClick={handleArchive}
-                        className="flex-1 py-4 rounded-2xl bg-neutral-800 text-white font-medium flex items-center justify-center gap-2 hover:bg-neutral-700 transition-colors"
-                    >
-                        <Archive size={18} />
-                        Archive
-                    </button>
-                    <button
-                        onClick={handleDelete}
-                        className="py-4 px-6 rounded-2xl bg-red-500/10 text-red-400 font-medium flex items-center justify-center gap-2 hover:bg-red-500/20 transition-colors"
-                    >
-                        <Trash2 size={18} />
-                    </button>
-                    <button
-                        onClick={handleSavePermanently}
-                        className="flex-1 py-4 rounded-2xl bg-white text-black font-medium flex items-center justify-center gap-2 hover:bg-neutral-200 transition-colors"
-                    >
-                        <Bookmark size={18} />
-                        Keep
-                    </button>
-                </div>
+                {/* Action Buttons - Stack view only */}
+                {viewMode === 'stack' && (
+                    <div className="flex-none px-6 pb-8 pt-4 flex gap-3">
+                        <button
+                            onClick={() => handleArchive()}
+                            className="flex-1 py-4 rounded-2xl bg-neutral-800 text-white font-medium flex items-center justify-center gap-2 hover:bg-neutral-700 transition-colors"
+                        >
+                            <Archive size={18} />
+                            Archive
+                        </button>
+                        <button
+                            onClick={() => handleDelete()}
+                            className="py-4 px-6 rounded-2xl bg-red-500/10 text-red-400 font-medium flex items-center justify-center gap-2 hover:bg-red-500/20 transition-colors"
+                        >
+                            <Trash2 size={18} />
+                        </button>
+                        <button
+                            onClick={() => handleSavePermanently()}
+                            className="flex-1 py-4 rounded-2xl bg-white text-black font-medium flex items-center justify-center gap-2 hover:bg-neutral-200 transition-colors"
+                        >
+                            <Bookmark size={18} />
+                            Keep
+                        </button>
+                    </div>
+                )}
             </motion.div>
+        </>
+    );
+}
+
+// Extracted card content component for reuse
+function NoteCardContent({ note }: { note: Note }) {
+    return (
+        <>
+            {/* Note Title */}
+            <h3 className="text-lg font-bold text-white mb-2">
+                {note.title || 'Untitled Note'}
+            </h3>
+
+            {/* Note Content */}
+            <p className="text-neutral-400 text-sm leading-relaxed line-clamp-6">
+                {note.content}
+            </p>
+
+            {/* Tags */}
+            {note.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-4">
+                    {note.tags.map(tag => (
+                        <span
+                            key={tag}
+                            className="px-3 py-1 bg-white/5 rounded-full text-xs text-neutral-500 font-medium"
+                        >
+                            {tag}
+                        </span>
+                    ))}
+                </div>
+            )}
+
+            {/* Date */}
+            <p className="text-xs text-neutral-600 mt-4">
+                Created: {new Date(note.date).toLocaleDateString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                })}
+            </p>
         </>
     );
 }
