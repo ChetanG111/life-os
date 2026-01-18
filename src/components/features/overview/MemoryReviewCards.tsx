@@ -10,6 +10,7 @@ import { useSlimySpring } from '@/hooks/use-slimy-spring';
 import { Note } from '@/types';
 import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants } from '@/utils/animations';
 import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
+import clsx from 'clsx';
 
 interface MemoryReviewProps {
     isOpen: boolean;
@@ -93,66 +94,46 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
         return null;
     }
 
-    if (!isOpen) return null;
-
     // No expiring notes at all
-    if (expiringNotes.length === 0) {
-        return (
-            <AnimatePresence>
-                {isOpen && (
-                    <>
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={onClose}
-                            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
-                        />
-                        <motion.div
-                            variants={modalVariants}
-                            initial="hidden"
-                            animate="show"
-                            exit="exit"
-                            className="fixed inset-x-0 bottom-0 h-[60vh] bg-[var(--surface)] rounded-t-[32px] z-50 flex flex-col items-center justify-center"
-                        >
-                            <div className="w-12 h-1.5 bg-neutral-700 rounded-full absolute top-6" />
-                            <motion.div variants={slimyItem}><CheckCircle2 size={48} className="text-neutral-600 mb-4" /></motion.div>
-                            <motion.p variants={slimyItem} className="text-neutral-500 text-sm font-medium">No notes to review</motion.p>
-                            <motion.button
-                                variants={slimyItem}
-                                onClick={onClose}
-                                className="mt-6 px-6 py-3 bg-white/10 rounded-full text-white text-sm font-medium"
-                            >
-                                Close
-                            </motion.button>
-                        </motion.div>
-                    </>
-                )}
-            </AnimatePresence>
-        );
-    }
+    const isEmpty = expiringNotes.length === 0;
 
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <>
-                    {/* Backdrop */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={onClose}
-                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
-                    />
+        <>
+            {/* Backdrop */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={onClose}
+                className="fixed inset-0 bg-black/60 backdrop-blur-md z-50"
+            />
 
-                    {/* Modal */}
-                    <motion.div
-                        variants={modalVariants}
-                        initial="hidden"
-                        animate="show"
-                        exit="exit"
-                        className="fixed inset-x-0 bottom-0 h-[75vh] bg-[var(--surface)] rounded-t-[32px] z-50 flex flex-col"
-                    >
+            {/* Modal */}
+            <motion.div
+                variants={modalVariants}
+                initial="hidden"
+                animate="show"
+                exit="exit"
+                className={clsx(
+                    "fixed inset-x-0 bottom-0 bg-[var(--surface)] rounded-t-[32px] z-50 flex flex-col",
+                    isEmpty ? "h-[60vh] items-center justify-center" : "h-[75vh]"
+                )}
+            >
+                {isEmpty ? (
+                    <>
+                        <div className="w-12 h-1.5 bg-neutral-700 rounded-full absolute top-6" />
+                        <motion.div variants={slimyItem}><CheckCircle2 size={48} className="text-neutral-600 mb-4" /></motion.div>
+                        <motion.p variants={slimyItem} className="text-neutral-500 text-sm font-medium">No notes to review</motion.p>
+                        <motion.button
+                            variants={slimyItem}
+                            onClick={onClose}
+                            className="mt-6 px-6 py-3 bg-white/10 rounded-full text-white text-sm font-medium"
+                        >
+                            Close
+                        </motion.button>
+                    </>
+                ) : (
+                    <>
                         {/* Header */}
                         <div className="flex-none px-6 pt-6 pb-4">
                             <div className="w-12 h-1.5 bg-neutral-700 rounded-full mx-auto mb-4" />
@@ -212,10 +193,10 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
                                 )}
                             </AnimatePresence>
                         </motion.div>
-                    </motion.div>
-                </>
-            )}
-        </AnimatePresence>
+                    </>
+                )}
+            </motion.div>
+        </>
     );
 }
 
