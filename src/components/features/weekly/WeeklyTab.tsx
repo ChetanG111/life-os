@@ -51,7 +51,7 @@ export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) =>
 
     return (
         <div className="w-full min-h-screen bg-background pb-32 flex flex-col items-center">
-            <header className="w-full sticky top-0 z-30 flex justify-center items-center py-4 px-6 liquid-glass mb-4">
+            <header className="w-full sticky top-0 z-30 flex justify-center items-center py-4 px-6 bg-background border-b border-white/5 mb-4">
                 <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={onOpenSettings}

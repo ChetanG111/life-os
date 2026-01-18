@@ -78,12 +78,12 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                                 onClose();
                             }
                         }}
-                        className="fixed inset-x-0 bottom-0 top-12 bg-neutral-900/80 backdrop-blur-3xl rounded-t-[32px] overflow-hidden z-50 flex flex-col border-t border-white/20 shadow-[0_-8px_32px_rgba(0,0,0,0.4)]"
+                        className="fixed inset-x-0 bottom-0 top-12 bg-background rounded-t-[32px] overflow-hidden z-50 flex flex-col border-t border-white/20 shadow-[0_-8px_32px_rgba(0,0,0,0.4)]"
                     >
                         {/* Header & Drag Area */}
                         <div
                             onPointerDown={(e) => dragControls.start(e)}
-                            className="flex-none flex flex-col items-center justify-center px-6 pt-3 pb-4 liquid-glass cursor-grab active:cursor-grabbing touch-none z-10"
+                            className="flex-none flex flex-col items-center justify-center px-6 pt-3 pb-4 bg-background border-b border-white/5 cursor-grab active:cursor-grabbing touch-none z-10"
                         >
                             {/* Drag Handle Pill */}
                             <div className="w-12 h-1.5 bg-neutral-700 rounded-full mb-4" />

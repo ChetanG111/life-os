@@ -21,28 +21,20 @@ export const TaskCard = ({ task, onComplete, onDelete, onTap }: TaskCardProps) =
     const y = useMotionValue(0);
 
     const handleDragEnd = async (_: any, info: PanInfo) => {
-        const threshold = 150;
-        const yThreshold = 80; // Lower threshold for down-swipe
+        const threshold = 180;
+        const yThreshold = 100;
         const fastSpring = springConfig;
 
-        // Down-swipe to delete (per logic.yaml card_swipe.down: delete)
-        if (info.offset.y > yThreshold && Math.abs(info.offset.x) < threshold) {
+        if (info.offset.y > yThreshold && Math.abs(info.offset.x) < 120) {
             vibrate('warning');
             controls.start({ x: 0, y: 0, transition: fastSpring });
             onDelete();
         }
-        // Right-swipe to complete
-        else if (info.offset.x > threshold) {
+        else if (Math.abs(info.offset.x) > threshold) {
             vibrate('success');
-            controls.start({ x: 0, y: 0, transition: fastSpring });
+            controls.start({ x: info.offset.x > 0 ? 500 : -500, opacity: 0, transition: fastSpring });
             setAction('completing');
-            controls.start('completing').then(() => onComplete());
-        }
-        // Left-swipe to dismiss/delete
-        else if (info.offset.x < -threshold) {
-            vibrate('medium');
-            controls.start({ x: 0, y: 0, transition: fastSpring });
-            onDelete();
+            setTimeout(() => onComplete(), 200);
         } else {
             controls.start({ x: 0, y: 0, transition: fastSpring });
         }
@@ -106,11 +98,11 @@ export const TaskCard = ({ task, onComplete, onDelete, onTap }: TaskCardProps) =
             <motion.div
                 drag={action === 'idle'}
                 dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                dragElastic={0.4}
+                dragElastic={0.8}
                 onDragStart={() => vibrate('light')}
                 onDragEnd={handleDragEnd}
                 onTap={() => {
-                    if (action === 'idle' && Math.abs(x.get()) < 5 && Math.abs(y.get()) < 5 && onTap) {
+                    if (action === 'idle' && Math.abs(x.get()) < 15 && Math.abs(y.get()) < 15 && onTap) {
                         vibrate('light');
                         onTap();
                     }

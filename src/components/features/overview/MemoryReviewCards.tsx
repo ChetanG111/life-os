@@ -78,9 +78,14 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
     const slimyItem = createStaggerItemVariants(springConfig);
 
     // Check if review is complete
+    useEffect(() => {
+        if (expiringNotes.length === 0 && processedIds.size > 0) {
+            showToast('Memory review complete! ✨', 'success');
+            onClose();
+        }
+    }, [expiringNotes.length, processedIds.size, onClose, showToast]);
+
     if (expiringNotes.length === 0 && processedIds.size > 0) {
-        showToast('Memory review complete! ✨', 'success');
-        onClose();
         return null;
     }
 
@@ -95,7 +100,7 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={onClose}
-                className="fixed inset-0 glass-material z-50 overflow-hidden"
+                className="fixed inset-0 bg-black/60 z-50 overflow-hidden"
             >
                 <div className="absolute inset-0 noise-overlay opacity-[0.015]" />
             </motion.div>
@@ -118,7 +123,7 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
                     }
                 }}
                 className={clsx(
-                    "fixed inset-x-0 bottom-0 liquid-glass rounded-t-[32px] z-50 flex flex-col shadow-[0_-8px_32px_rgba(0,0,0,0.4)]",
+                    "fixed inset-x-0 bottom-0 bg-background rounded-t-[32px] z-50 flex flex-col shadow-[0_-8px_32px_rgba(0,0,0,0.4)] border-t border-white/5",
                     isEmpty ? "h-[60vh] items-center justify-center" : "h-[75vh]"
                 )}
             >
@@ -140,7 +145,7 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
                         {/* Header & Drag Handle */}
                         <div
                             onPointerDown={(e) => dragControls.start(e)}
-                            className="flex-none px-6 pt-3 pb-4 cursor-grab active:cursor-grabbing touch-none liquid-glass rounded-t-[32px]"
+                            className="flex-none px-6 pt-3 pb-4 cursor-grab active:cursor-grabbing touch-none bg-background rounded-t-[32px] border-b border-white/5"
                         >
                             <div className="w-12 h-1.5 bg-neutral-700/50 rounded-full mx-auto mb-4" />
                             <div className="flex items-center justify-between">
@@ -174,7 +179,7 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
 
                         {/* Content Area */}
                         <motion.div custom={3} variants={slimyItem} className="flex-1 relative overflow-hidden mb-6">
-                            <div className="h-full w-full overscroll-contain touch-pan-y [web-kit-overflow-scrolling:touch]">
+                            <div className="h-full w-full overscroll-contain touch-pan-y">
                                 {viewMode === 'stack' ? (
                                     <StackView
                                         key="stack"
@@ -218,8 +223,13 @@ function StackView({
 }) {
     const topNote = notes[0];
 
+    const containerVariants = UNIVERSAL_STAGGER_CONTAINER('modal');
+
     return (
-        <div
+        <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
             className="relative h-full w-full max-w-sm mx-auto flex flex-col justify-start items-center p-4 pt-2"
         >
             {/* Card Stack Container */}
@@ -251,7 +261,7 @@ function StackView({
                 <span>↓ Delete</span>
                 <span>Save →</span>
             </div>
-        </div>
+        </motion.div>
     );
 }
 
@@ -295,32 +305,32 @@ function StackCard({
         }
     };
 
+    const itemVariants = {
+        hidden: { opacity: 0, y: 30, scale: 0.9 },
+        show: (i: number) => ({
+            opacity: 1,
+            y: stackIndex * 12,
+            scale: 1 - (stackIndex * 0.03),
+            zIndex: 10 - stackIndex,
+            transition: {
+                ...springConfig,
+                delay: i * 0.02 + (Math.pow(i, 1.2) * 0.005)
+            }
+        }),
+        exit: {
+            x: x.get() > 50 ? 400 : (x.get() < -50 ? -400 : 0),
+            y: y.get() > 50 ? 400 : 0,
+            opacity: 0,
+            transition: { duration: 0.2 }
+        }
+    };
+
     return (
         <motion.div
-            initial={{
-                opacity: 0,
-                y: 40,
-                scale: 0.95
-            }}
-            animate={{
-                opacity: 1,
-                y: stackIndex * 12,
-                scale: 1 - (stackIndex * 0.03),
-                zIndex: 10 - stackIndex
-            }}
-            exit={{
-                x: x.get() > 50 ? 400 : (x.get() < -50 ? -400 : 0),
-                y: y.get() > 50 ? 400 : 0,
-                opacity: 0,
-                transition: { duration: 0.2 }
-            }}
-            transition={{
-                ...springConfig,
-                delay: stackIndex * 0.05 // Tiny relative delay within the stack
-            }}
+            variants={itemVariants}
+            custom={stackIndex}
             style={{
                 x: isTop ? x : 0,
-                y: isTop ? y : stackIndex * 12,
                 rotate: isTop ? rotate : 0,
             }}
             drag={isTop}
@@ -328,9 +338,9 @@ function StackCard({
             dragElastic={0.6}
             onDragStart={() => vibrate('light')}
             onDragEnd={handleDragEnd}
-            className="absolute inset-0 cursor-grab active:cursor-grabbing"
+            className="absolute inset-0 cursor-grab active:cursor-grabbing will-change-transform"
         >
-            <div className="h-full bg-neutral-900 rounded-3xl p-6 border border-white/10 shadow-2xl flex flex-col relative overflow-hidden">
+            <div className="h-full bg-surface rounded-3xl p-6 border border-white/5 shadow-2xl flex flex-col relative overflow-hidden">
                 {/* Swipe Indicators */}
                 <motion.div
                     style={{ opacity: bgRightOpacity }}
@@ -411,11 +421,12 @@ function ListView({
             animate="show"
             className="h-full overflow-y-auto px-6 pb-8 space-y-3"
         >
-            {notes.map(note => (
+            {notes.map((note, index) => (
                 <motion.div
                     key={note.id}
                     variants={itemVariants}
-                    className="bg-neutral-900/60 backdrop-blur-xl rounded-2xl p-4 border border-white/10"
+                    custom={index}
+                    className="bg-surface rounded-2xl p-4 border border-white/5"
                 >
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">

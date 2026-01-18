@@ -108,7 +108,7 @@ export function Feed({ onOpenSettings, onOpenDetails, onOpenQuickAdd }: FeedProp
     return (
         <div className="relative h-full w-full bg-background overflow-hidden flex flex-col">
             {/* Header */}
-            <header className="w-full sticky top-0 z-30 flex justify-center items-center py-4 px-6 liquid-glass mb-4 flex-none">
+            <header className="w-full sticky top-0 z-30 flex justify-center items-center py-4 px-6 bg-background border-b border-white/5 mb-4 flex-none">
                 {/* Header Actions */}
                 <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2">
                     {/* Settings: Desktop Only */}

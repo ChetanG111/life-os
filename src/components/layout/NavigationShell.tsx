@@ -85,13 +85,18 @@ export function NavigationShell() {
     const [isStatePopupOpen, setIsStatePopupOpen] = useState(false);
     const [isMemoryReviewOpen, setIsMemoryReviewOpen] = useState(false);
 
-    // Determine time of day for state popup
-    const timeOfDay = useMemo(() => {
-        const hour = new Date().getHours();
-        // Morning: 5am - 12pm, Evening: 6pm - 11pm
-        if (hour >= 5 && hour < 12) return 'morning';
-        if (hour >= 18 && hour < 23) return 'evening';
-        return null; // Outside check-in windows
+    const [timeOfDay, setTimeOfDay] = useState<'morning' | 'evening' | null>(null);
+
+    useEffect(() => {
+        const checkTime = () => {
+            const hour = new Date().getHours();
+            if (hour >= 5 && hour < 12) setTimeOfDay('morning');
+            else if (hour >= 18 && hour < 23) setTimeOfDay('evening');
+            else setTimeOfDay(null);
+        };
+        checkTime();
+        const interval = setInterval(checkTime, 60000); // Check every minute
+        return () => clearInterval(interval);
     }, []);
 
     // Check if user already logged state today for this time of day
@@ -212,7 +217,7 @@ export function NavigationShell() {
     }, [notes]);
 
     return (
-        <div className="relative h-[100dvh] w-full overflow-hidden bg-black" >
+        <div className="relative h-[100dvh] w-full overflow-hidden bg-background" >
             {/* Main Application Shell with Depth Effect */}
             <motion.div
                 animate={{
@@ -279,12 +284,11 @@ export function NavigationShell() {
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0, opacity: 0 }}
                             whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => {
+                            onTap={() => {
                                 vibrate('medium');
                                 setIsMemoryReviewOpen(true);
                             }}
-                            className="relative w-12 h-12 bg-neutral-800 text-white rounded-2xl shadow-2xl flex items-center justify-center border border-white/10"
+                            className="relative w-12 h-12 bg-neutral-800 text-white rounded-2xl shadow-2xl flex items-center justify-center border border-white/10 active:scale-95 transition-transform"
                         >
                             <Brain size={20} />
                             {expiringNotesCount > 0 && (
@@ -301,14 +305,13 @@ export function NavigationShell() {
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0, opacity: 0 }}
                         whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => {
+                        onTap={() => {
                             vibrate('medium');
                             const defaultType = activeTab === 'notes' ? 'note' : 'task';
                             setQuickAddType(defaultType);
                             setIsQuickAddOpen(true);
                         }}
-                        className="w-12 h-12 bg-white text-black rounded-2xl shadow-2xl flex items-center justify-center"
+                        className="w-12 h-12 bg-white text-black rounded-2xl shadow-2xl flex items-center justify-center active:scale-95 transition-transform"
                     >
                         <Plus size={24} strokeWidth={2.5} />
                     </motion.button>

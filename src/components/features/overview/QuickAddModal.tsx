@@ -255,7 +255,7 @@ export function QuickAddModal({
                             }
                         }}
                         className={clsx(
-                            "fixed z-50 liquid-glass overflow-hidden flex flex-col shadow-[0_-8px_32px_rgba(0,0,0,0.4)]",
+                            "fixed z-50 bg-background overflow-hidden flex flex-col shadow-[0_-8px_32px_rgba(0,0,0,0.4)] border-t border-white/5",
                             "inset-x-0 bottom-0 h-[85vh] rounded-t-[32px] md:rounded-[32px]",
                             "md:inset-auto md:top-1/2 md:left-1/2 md:w-full md:max-w-2xl md:h-auto md:max-h-[85vh] md:shadow-2xl md:shadow-black/50"
                         )}

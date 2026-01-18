@@ -103,7 +103,7 @@ export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }:
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={onClose}
-                className="fixed inset-0 glass-material z-50 overflow-hidden"
+                className="fixed inset-0 bg-black/60 z-50 overflow-hidden"
             >
                 <div className="absolute inset-0 noise-overlay opacity-[0.015]" />
             </motion.div>
@@ -125,12 +125,12 @@ export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }:
                         onClose();
                     }
                 }}
-                className="fixed inset-x-0 bottom-0 z-50 h-[85vh] liquid-glass rounded-t-[32px] overflow-hidden flex flex-col shadow-[0_-8px_32px_rgba(0,0,0,0.4)]"
+                className="fixed inset-x-0 bottom-0 z-50 h-[85vh] bg-background rounded-t-[32px] overflow-hidden flex flex-col shadow-[0_-8px_32px_rgba(0,0,0,0.4)] border-t border-white/5"
             >
                 {/* Header & Drag Handle */}
                 <div
                     onPointerDown={(e) => dragControls.start(e)}
-                    className="flex-none pt-4 pb-2 px-6 flex flex-col items-center cursor-grab active:cursor-grabbing touch-none liquid-glass rounded-t-[32px]"
+                    className="flex-none pt-4 pb-2 px-6 flex flex-col items-center cursor-grab active:cursor-grabbing touch-none bg-background rounded-t-[32px] border-b border-white/5"
                 >
                     <div className="w-12 h-1.5 bg-neutral-700 rounded-full mb-4" />
                     <div className="w-full flex items-center justify-center relative">
@@ -194,7 +194,7 @@ export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }:
                 </div>
 
                 {/* Sticky Action Footer */}
-                <motion.div custom={4} variants={slimyItem} className="p-6 pb-12 bg-neutral-900/60 backdrop-blur-xl border-t border-white/10 flex gap-3">
+                <motion.div custom={4} variants={slimyItem} className="p-6 pb-12 bg-background border-t border-white/10 flex gap-3">
                     <button className="flex-1 h-14 bg-white text-black rounded-2xl font-bold text-lg flex items-center justify-center gap-2 active:scale-95 transition-transform"
                         onClick={() => {
                             vibrate('success');

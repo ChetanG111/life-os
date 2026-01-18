@@ -70,7 +70,7 @@ export function ChatTab({ onOpenSettings }: { onOpenSettings: () => void }) {
 
     return (
         <div className="relative w-full h-full bg-background flex flex-col">
-            <header className="w-full sticky top-0 z-30 flex justify-center items-center py-4 px-6 liquid-glass mb-4 flex-none">
+            <header className="w-full sticky top-0 z-30 flex justify-center items-center py-4 px-6 bg-background border-b border-white/5 mb-4 flex-none">
                 <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={onOpenSettings}
@@ -95,8 +95,8 @@ export function ChatTab({ onOpenSettings }: { onOpenSettings: () => void }) {
                     >
                         <div
                             className={`max-w-[85%] px-5 py-3 text-[17px] leading-snug rounded-[20px] ${msg.isUser
-                                    ? 'bg-[#0A84FF] text-white rounded-br-sm shadow-lg shadow-blue-500/20'
-                                    : 'bg-[#262626] text-neutral-100 rounded-bl-sm'
+                                ? 'bg-[#0A84FF] text-white rounded-br-sm shadow-lg shadow-blue-500/20'
+                                : 'bg-[#262626] text-neutral-100 rounded-bl-sm'
                                 }`}
                         >
                             {msg.text}
