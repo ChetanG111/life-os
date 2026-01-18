@@ -77,17 +77,14 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
     const modalVariants = UNIVERSAL_MODAL_VARIANTS(springConfig);
     const slimyItem = createStaggerItemVariants(springConfig);
 
-    // Check if review is complete
+    // Check if review is complete (all processed)
     useEffect(() => {
-        if (expiringNotes.length === 0 && processedIds.size > 0) {
+        if (expiringNotes.length === 0 && processedIds.size > 0 && notes.length > 0) {
+            // Only show toast if user actually processed items
             showToast('Memory review complete! ✨', 'success');
-            onClose();
+            // We don't auto close anymore to allow user to see "all caught up" state
         }
-    }, [expiringNotes.length, processedIds.size, onClose, showToast]);
-
-    if (expiringNotes.length === 0 && processedIds.size > 0) {
-        return null;
-    }
+    }, [expiringNotes.length, processedIds.size, showToast, notes.length]);
 
     // No expiring notes at all
     const isEmpty = expiringNotes.length === 0;
