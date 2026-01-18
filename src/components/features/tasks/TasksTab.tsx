@@ -48,12 +48,12 @@ export const TasksTab = ({
     const itemVariants = createStaggerItemVariants(springConfig);
 
     return (
-        <div className="w-full min-h-screen px-4 py-safe-top bg-background pb-32 flex flex-col">
-            <header className="relative flex justify-center items-center py-4 px-2 mb-2">
+        <div className="w-full min-h-screen px-4 py-safe-top bg-background pb-32 flex flex-col items-center">
+            <header className="w-full max-w-2xl relative flex justify-center items-center py-4 px-2 mb-2">
                 <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={onOpenSettings}
-                    className="group flex items-center gap-1.5 focus:outline-none"
+                    className="group flex flex-col items-center gap-1 focus:outline-none"
                 >
                     <h1 className="text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200 transition-colors">
                         Tasks
@@ -65,7 +65,7 @@ export const TasksTab = ({
                 variants={containerVariants}
                 initial="hidden"
                 animate="show"
-                className="flex-1 flex flex-col space-y-3"
+                className="w-full max-w-2xl flex-1 flex flex-col space-y-4"
             >
                 <AnimatePresence mode="sync">
                     {sortedTasks.map((task) => (

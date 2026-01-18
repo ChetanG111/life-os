@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo, Suspense } from 'react';
 import { motion, AnimatePresence, Variants, useMotionValue, useTransform } from 'framer-motion';
-import { TabId, TABS } from '@/types';
+import { TabId, TABS, Note } from '@/types';
 import { BottomNav } from './BottomNav';
 import { vibrate } from '@/utils/haptics';
 import dynamic from 'next/dynamic';
@@ -71,7 +71,7 @@ const TabContent = ({
 import { useData } from '@/context/DataContext';
 
 export function NavigationShell() {
-    const { settings, updateSettings, removeTask, removeNote, addTask, addNote, stateHistory, saveState, currentState } = useData();
+    const { settings, updateSettings, removeTask, removeNote, addTask, addNote, stateHistory, saveState, currentState, tasks, notes } = useData();
     const springConfig = useSlimySpring();
     const showBottomNav = settings.showBottomNav;
     const [activeTab, setActiveTab] = useState<TabId>('overview');
@@ -196,6 +196,17 @@ export function NavigationShell() {
         })
     };
 
+    // Memory Review attention indicator logic - notes older than 7 days
+    const expiringNotesCount = useMemo(() => {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        return notes.filter((n: Note) => {
+            const noteDate = new Date(n.date);
+            return noteDate < sevenDaysAgo;
+        }).length;
+    }, [notes]);
+
     return (
         <div className="relative h-[100dvh] w-full overflow-hidden bg-background" >
             <AnimatePresence initial={false} custom={direction} mode="popLayout">
@@ -260,9 +271,14 @@ export function NavigationShell() {
                                 vibrate('medium');
                                 setIsMemoryReviewOpen(true);
                             }}
-                            className="w-12 h-12 bg-neutral-800 text-white rounded-2xl shadow-2xl flex items-center justify-center border border-white/10"
+                            className="relative w-12 h-12 bg-neutral-800 text-white rounded-2xl shadow-2xl flex items-center justify-center border border-white/10"
                         >
                             <Brain size={20} />
+                            {expiringNotesCount > 0 && (
+                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-[10px] font-black border-2 border-neutral-900 shadow-lg">
+                                    {expiringNotesCount}
+                                </span>
+                            )}
                         </motion.button>
                     )}
 

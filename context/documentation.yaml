@@ -6,8 +6,8 @@
 # This documentation covers all implemented features, architecture patterns, and
 # reusable systems in Life OS. Read this before modifying any code.
 #
-# Last Updated: 2026-01-18
-# Version: 0.2.0 (Alpha)
+# Last Updated: 2026-01-19
+# Version: 0.3.0 (Responsive Update)
 
 ---
 # ════════════════════════════════════════
@@ -17,13 +17,14 @@ overview:
   name: "Life OS"
   description: |
     Life OS is a mobile-first, gesture-driven personal productivity app built with 
-    Next.js and Framer Motion. It features a premium dark-only interface inspired by 
-    iOS design principles, with fluid spring animations and haptic feedback.
+    Next.js and Framer Motion. It features a premium dark-mode interface with 
+    distinct layouts for mobile (swipe-heavy) and desktop (information-dense).
   
   philosophy:
     - "Tool, not toy - high signal, low noise"
     - "Gesture-first navigation - swipe to navigate, swipe to act"
     - "Premium feel - animations must feel physical and satisfying"
+    - "Responsive but optimized - unique layouts per screen size, not just scaling"
     - "Zero visual distraction - minimal, clean, and focused"
   
   tech_stack:
@@ -1617,6 +1618,89 @@ task_completion:
     tasks_tab: "Shows only tasks where isCompleted === false"
     overview_feed: "Shows only tasks where isCompleted === false"
     weekly_tab: "Shows all tasks (uses completion for progress ring)"
+
+
+---
+# ════════════════════════════════════════
+# RESPONSIVE DESKTOP LAYOUTS
+# ════════════════════════════════════════
+desktop_layouts:
+  overview: |
+    On desktop (md: 768px+), screens transition from mobile-first single-column 
+    to optimized multi-column/centered layouts.
+  
+  # ─────────────────────────────────────
+  # Quick Add Modal (Desktop)
+  # ─────────────────────────────────────
+  quick_add_desktop:
+    file: "src/components/features/overview/QuickAddModal.tsx"
+    layout: |
+      - Centered modal box (fixed postion, scale/opacity animation)
+      - Header "New Task" centered
+      - Type selector: 4-column grid with labeled icons (Task, Note, Reminder, Idea)
+      - Main input: Wider area with title and content fields
+      - Action bar: Simplified with priority dot indicator and ArrowUp submit button
+  
+  # ─────────────────────────────────────
+  # Tasks Tab (Desktop)
+  # ─────────────────────────────────────
+  tasks_tab_desktop:
+    file: "src/components/features/tasks/TasksTab.tsx"
+    layout: |
+      - Header "TASKS" centered with wide tracking
+      - List container: Centered with max-w-2xl width
+    card_changes:
+      - Left side: Circular checkbox (clickable)
+      - Center: Inline priority dot + Title + Subtitle (time/date)
+      - Right side: Category badge (tag)
+  
+  # ─────────────────────────────────────
+  # Weekly Tab (Desktop)
+  # ─────────────────────────────────────
+  weekly_tab_desktop:
+    file: "src/components/features/weekly/WeeklyTab.tsx"
+    layout: |
+      Two-column grid layout (Sidebar + Main Area):
+      - Sidebar (Left): 
+          - Sprint stats (Name, Progress Ring)
+          - Metric cards (Focus, Velocity)
+          - Sprint Insights (AI-driven summary)
+          - "View Backlog" button
+      - Main Area (Right):
+          - "Weekly Agenda" header
+          - Daily list with expanded spacing
+  
+  # ─────────────────────────────────────
+  # Overview / Swipe Feed (Desktop)
+  # ─────────────────────────────────────
+  swipe_feed_desktop:
+    file: "src/components/features/overview/SwipeFeed.tsx"
+    layout: |
+      Transitions from vertical stack to Horizontal Carousel:
+      - Center: Large active card
+      - Sides: Partially visible, blurred/rotated placeholders for prev/next
+      - Navigation: "PREV" and "NEXT" labels with icons
+      - Pagination: 5 horizontal dots indicating position
+
+
+---
+# ════════════════════════════════════════
+# NOTIFICATION & TOAST SYSTEM
+# ════════════════════════════════════════
+notifications:
+  toast_system:
+    file: "src/context/ToastContext.tsx"
+    description: "Premium notification system with single-toast logic."
+    behavior:
+      single_mode: "Only one toast is shown at a time. New toasts trigger exit of old ones first."
+      animation: "Uses AnimatePresence with mode='popLayout' for sequential transitions."
+      dismissal: "Supports horizontal swipe-to-dismiss in both directions."
+  
+  attention_indicators:
+    brain_fab:
+      file: "src/components/layout/NavigationShell.tsx"
+      description: "Memory Review FAB (Brain icon) shows a red notification bubble."
+      logic: "Count of notes expiring within 3 days. Computed via memoized useData hook."
 
 
 ---

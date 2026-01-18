@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { vibrate } from '@/utils/haptics';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
-import { Layers, List as ListIcon } from 'lucide-react';
+import { Layers, List as ListIcon, Settings as SettingsIcon } from 'lucide-react';
 
 interface FeedProps {
     onOpenSettings: () => void;
@@ -108,46 +108,55 @@ export function Feed({ onOpenSettings, onOpenDetails, onOpenQuickAdd }: FeedProp
     return (
         <div className="relative h-full w-full py-safe-top px-4 overflow-hidden flex flex-col">
             {/* Header */}
-            <header className="relative flex justify-between items-center py-4 px-2 mb-2 flex-none">
-                <div className="w-10" /> {/* Spacer for centering */}
+            <header className="relative w-full max-w-7xl mx-auto flex justify-center items-center py-4 px-2 mb-2 flex-none">
+                {/* Desktop: Settings on Right (Image 2) */}
+                <div className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 items-center gap-3">
+                    <motion.button
+                        whileTap={{ scale: 0.9 }}
+                        onClick={onOpenSettings}
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                        <SettingsIcon size={20} />
+                    </motion.button>
+
+                    {/* View Toggle */}
+                    <motion.button
+                        whileTap={{ scale: 0.9 }}
+                        onClick={toggleView}
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                        <AnimatePresence mode='wait' initial={false}>
+                            {viewMode === 'stack' ? (
+                                <motion.div
+                                    key="list"
+                                    initial={{ opacity: 0, rotate: -90 }}
+                                    animate={{ opacity: 1, rotate: 0 }}
+                                    exit={{ opacity: 0, rotate: 90 }}
+                                >
+                                    <ListIcon size={20} />
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="stack"
+                                    initial={{ opacity: 0, rotate: 90 }}
+                                    animate={{ opacity: 1, rotate: 0 }}
+                                    exit={{ opacity: 0, rotate: -90 }}
+                                >
+                                    <Layers size={20} />
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </motion.button>
+                </div>
 
                 <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={onOpenSettings}
-                    className="group flex items-center gap-1.5 focus:outline-none"
+                    className="group focus:outline-none"
                 >
                     <h1 className="text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200 transition-colors">
                         Overview
                     </h1>
-                </motion.button>
-
-                {/* View Toggle */}
-                <motion.button
-                    whileTap={{ scale: 0.9 }}
-                    onClick={toggleView}
-                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
-                >
-                    <AnimatePresence mode='wait' initial={false}>
-                        {viewMode === 'stack' ? (
-                            <motion.div
-                                key="list"
-                                initial={{ opacity: 0, rotate: -90 }}
-                                animate={{ opacity: 1, rotate: 0 }}
-                                exit={{ opacity: 0, rotate: 90 }}
-                            >
-                                <ListIcon size={20} />
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key="stack"
-                                initial={{ opacity: 0, rotate: 90 }}
-                                animate={{ opacity: 1, rotate: 0 }}
-                                exit={{ opacity: 0, rotate: -90 }}
-                            >
-                                <Layers size={20} />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
                 </motion.button>
             </header>
 

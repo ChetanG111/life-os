@@ -118,7 +118,7 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'tween', duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-                className="fixed inset-x-0 bottom-0 h-[85vh] bg-[var(--surface)] rounded-t-[32px] z-50 flex flex-col"
+                className="fixed inset-x-0 bottom-0 h-[75vh] bg-[var(--surface)] rounded-t-[32px] z-50 flex flex-col"
             >
                 {/* Header */}
                 <div className="flex-none px-6 pt-6 pb-4">
@@ -157,7 +157,7 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
                 </div>
 
                 {/* Content Area */}
-                <div className="flex-1 relative overflow-hidden">
+                <div className="flex-1 relative overflow-hidden mb-6">
                     <AnimatePresence mode="wait">
                         {viewMode === 'stack' ? (
                             <StackView
@@ -179,32 +179,6 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
                         )}
                     </AnimatePresence>
                 </div>
-
-                {/* Action Buttons - Stack view only */}
-                {viewMode === 'stack' && expiringNotes.length > 0 && (
-                    <div className="flex-none px-6 pb-8 pt-4 flex gap-3">
-                        <button
-                            onClick={() => handleArchive(expiringNotes[0].id)}
-                            className="flex-1 py-4 rounded-2xl bg-neutral-800 text-white font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform"
-                        >
-                            <Archive size={18} />
-                            Archive
-                        </button>
-                        <button
-                            onClick={() => handleDelete(expiringNotes[0].id)}
-                            className="py-4 px-6 rounded-2xl bg-red-500/10 text-red-400 font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform"
-                        >
-                            <Trash2 size={18} />
-                        </button>
-                        <button
-                            onClick={() => handleSavePermanently(expiringNotes[0].id)}
-                            className="flex-1 py-4 rounded-2xl bg-white text-black font-medium flex items-center justify-center gap-2 active:scale-95 transition-transform"
-                        >
-                            <Bookmark size={18} />
-                            Keep
-                        </button>
-                    </div>
-                )}
             </motion.div>
         </>
     );

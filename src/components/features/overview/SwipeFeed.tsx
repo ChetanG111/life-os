@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
-import { CheckCircle2, Archive, Trash2, X, Info } from 'lucide-react';
+import { CheckCircle2, Archive, Trash2, X, Info, ChevronLeft, ChevronRight } from 'lucide-react';
 import clsx from 'clsx';
 import { vibrate } from '@/utils/haptics';
 import { ConfirmDeleteModal } from '../cards/ConfirmDeleteModal';
@@ -42,13 +42,19 @@ interface SwipeFeedProps {
 
 export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
     const springConfig = useSlimySpring();
+    const [currentIndex, setCurrentIndex] = useState(0);
 
-    // We only show the top 2 cards effectively for performance/visuals
-    // Parent manages the list, so 'items' are all active items.
-    const activeItems = items;
-    const topCard = activeItems[0];
+    const next = () => {
+        vibrate('light');
+        setCurrentIndex(prev => (prev + 1) % items.length);
+    };
 
-    if (!topCard) {
+    const prev = () => {
+        vibrate('light');
+        setCurrentIndex(prev => (prev - 1 + items.length) % items.length);
+    };
+
+    if (items.length === 0) {
         return (
             <motion.div
                 initial="hidden"
@@ -99,31 +105,117 @@ export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
     };
 
     return (
-        <div className="relative h-full w-full max-w-sm mx-auto flex flex-col justify-start items-center p-2 pt-8">
-            {/* Cards container */}
-            <motion.div
-                className="relative w-full aspect-[4/5] max-h-[440px]"
-                variants={stackVariants}
-                initial="hidden"
-                animate="show"
-            >
-                <AnimatePresence>
-                    {activeItems.slice(0, 2).reverse().map((item, index) => {
-                        const isTop = item.id === topCard.id;
-                        return (
-                            <SwipeableCard
-                                key={item.id}
-                                item={item}
-                                isTop={isTop}
-                                staggerIndex={index}
-                                onSwipe={(action) => onSwipe(item.id, action)}
-                                onDetails={() => onDetails(item)}
-                            />
-                        );
-                    })}
-                </AnimatePresence>
-            </motion.div>
+        <div className="h-full w-full flex flex-col justify-start items-center">
+            {/* Desktop Carousel Layout (Image 2) */}
+            <div className="hidden md:flex flex-col items-center justify-center w-full max-w-5xl h-full py-10">
+                <div className="relative w-full flex items-center justify-center gap-12 mb-16">
+                    {/* Left Card Placeholder */}
+                    <div className="w-[180px] h-[260px] opacity-20 scale-90 blur-[1px] transform -rotate-6">
+                        <DesktopCard item={items[(currentIndex - 1 + items.length) % items.length]} />
+                    </div>
+
+                    {/* Active Card */}
+                    <div className="w-[380px] h-[520px] z-10">
+                        <motion.div
+                            key={items[currentIndex].id}
+                            initial={{ x: 100, opacity: 0, scale: 0.9 }}
+                            animate={{ x: 0, opacity: 1, scale: 1 }}
+                            exit={{ x: -100, opacity: 0, scale: 0.9 }}
+                            transition={springConfig}
+                            className="h-full w-full"
+                        >
+                            <DesktopCard item={items[currentIndex]} onSwipe={onSwipe} onDetails={onDetails} />
+                        </motion.div>
+                    </div>
+
+                    {/* Right Card Placeholder */}
+                    <div className="w-[180px] h-[260px] opacity-20 scale-90 blur-[1px] transform rotate-6">
+                        <DesktopCard item={items[(currentIndex + 1) % items.length]} />
+                    </div>
+                </div>
+
+                {/* Desktop Controls (Image 2) */}
+                <div className="flex flex-col items-center gap-8">
+                    <div className="flex items-center gap-10">
+                        <button onClick={prev} className="flex flex-col items-center gap-2 group">
+                            <ChevronLeft size={20} className="text-neutral-500 group-hover:text-white transition-colors" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500 group-hover:text-white transition-colors">Prev</span>
+                        </button>
+
+                        {/* Dots */}
+                        <div className="flex items-center gap-3">
+                            {items.slice(0, 5).map((_, i) => (
+                                <div
+                                    key={i}
+                                    className={clsx(
+                                        "transition-all duration-300 rounded-full",
+                                        i === currentIndex % 5 ? "w-8 h-1.5 bg-red-500" : "w-1.5 h-1.5 bg-neutral-800"
+                                    )}
+                                />
+                            ))}
+                        </div>
+
+                        <button onClick={next} className="flex flex-col items-center gap-2 group">
+                            <ChevronRight size={20} className="text-neutral-500 group-hover:text-white transition-colors" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500 group-hover:text-white transition-colors">Next</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Mobile Vertical Stack Layout */}
+            <div className="md:hidden relative h-full w-full max-w-sm mx-auto flex flex-col justify-start items-center p-2 pt-8">
+                <motion.div
+                    className="relative w-full aspect-[4/5] max-h-[440px]"
+                    variants={stackVariants}
+                    initial="hidden"
+                    animate="show"
+                >
+                    <AnimatePresence>
+                        {items.slice(0, 2).reverse().map((item, index) => {
+                            const isTop = item.id === items[0].id;
+                            return (
+                                <SwipeableCard
+                                    key={item.id}
+                                    item={item}
+                                    isTop={isTop}
+                                    staggerIndex={index}
+                                    onSwipe={(action) => onSwipe(item.id, action)}
+                                    onDetails={() => onDetails(item)}
+                                />
+                            );
+                        })}
+                    </AnimatePresence>
+                </motion.div>
+            </div>
         </div>
+    );
+}
+
+function DesktopCard({ item, onSwipe, onDetails }: { item: FeedItem, onSwipe?: any, onDetails?: any }) {
+    return (
+        <Card className="h-full flex flex-col justify-between bg-neutral-900 border-white/5 overflow-hidden relative shadow-2xl rounded-[32px] p-10">
+            <div className="relative z-10">
+                <div className="flex items-center justify-between mb-8">
+                    <span className="text-xs font-black uppercase tracking-[0.3em] text-neutral-500">
+                        {item.type}
+                    </span>
+                    <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                </div>
+                <h3 className="text-4xl font-black text-white mb-6 uppercase tracking-tight leading-none">{item.title}</h3>
+                <p className="text-xl text-neutral-400 leading-relaxed font-medium">{item.content}</p>
+            </div>
+
+            <div className="relative z-10 mt-auto">
+                <div className="h-1 w-full bg-neutral-800 rounded-full overflow-hidden">
+                    <motion.div
+                        className="h-full bg-neutral-700"
+                        initial={{ width: "30%" }}
+                        animate={{ width: "60%" }}
+                    />
+                </div>
+            </div>
+        </Card>
     );
 }
 

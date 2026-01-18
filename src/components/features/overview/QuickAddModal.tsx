@@ -226,11 +226,17 @@ export function QuickAddModal({
 
                     {/* Modal Content */}
                     <motion.div
-                        initial={{ y: '100%' }}
-                        animate={{ y: '0%' }}
-                        exit={{ y: '100%' }}
+                        initial={typeof window !== 'undefined' && window.innerWidth >= 768
+                            ? { opacity: 0, scale: 0.9, x: '-50%', y: '-50%' }
+                            : { y: '100%' }}
+                        animate={typeof window !== 'undefined' && window.innerWidth >= 768
+                            ? { opacity: 1, scale: 1, x: '-50%', y: '-50%' }
+                            : { y: '0%' }}
+                        exit={typeof window !== 'undefined' && window.innerWidth >= 768
+                            ? { opacity: 0, scale: 0.9, x: '-50%', y: '-50%' }
+                            : { y: '100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        drag="y"
+                        drag={typeof window !== 'undefined' && window.innerWidth >= 768 ? false : "y"}
                         dragControls={dragControls}
                         dragListener={false}
                         dragConstraints={{ top: 0, bottom: 0 }}
@@ -241,12 +247,48 @@ export function QuickAddModal({
                                 onClose();
                             }
                         }}
-                        className="fixed inset-x-0 bottom-0 z-50 h-[85vh] bg-[var(--surface)] rounded-t-[32px] overflow-hidden flex flex-col border-t border-white/10"
+                        className={clsx(
+                            "fixed z-50 bg-[var(--surface)] overflow-hidden flex flex-col border-t md:border border-white/10",
+                            "inset-x-0 bottom-0 h-[85vh] rounded-t-[32px] md:rounded-[32px]",
+                            "md:inset-auto md:top-1/2 md:left-1/2 md:w-full md:max-w-2xl md:h-auto md:max-h-[85vh] md:shadow-2xl md:shadow-black/50"
+                        )}
                     >
-                        {/* Header & Drag Handle */}
+                        {/* Desktop Header (Image 0) */}
+                        <div className="hidden md:flex flex-none pt-8 pb-4 px-8 flex-col items-center">
+                            <div className="w-12 h-1 bg-neutral-800 rounded-full mb-6 opacity-50" />
+                            <h2 className="text-2xl font-bold text-white mb-8">New Task</h2>
+
+                            {/* Desktop Type Selector Grid */}
+                            <div className="w-full grid grid-cols-4 gap-4 mb-8">
+                                {ITEM_TYPES.filter(t => t.id !== 'identity').map((type) => {
+                                    const Icon = type.icon;
+                                    const isSelected = selectedType === type.id;
+                                    return (
+                                        <button
+                                            key={type.id}
+                                            onClick={() => {
+                                                vibrate('light');
+                                                setSelectedType(type.id);
+                                            }}
+                                            className={clsx(
+                                                "flex flex-col items-center justify-center gap-2 py-6 rounded-2xl transition-all border",
+                                                isSelected
+                                                    ? "bg-white text-black border-white"
+                                                    : "bg-white/5 text-neutral-500 border-transparent hover:bg-white/10 hover:text-neutral-300"
+                                            )}
+                                        >
+                                            <Icon size={24} strokeWidth={isSelected ? 2.5 : 2} />
+                                            <span className="text-xs font-bold uppercase tracking-widest">{type.label}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Mobile Header & Drag Handle */}
                         <div
                             onPointerDown={(e) => dragControls.start(e)}
-                            className="flex-none pt-4 pb-2 px-6 flex flex-col items-center cursor-grab active:cursor-grabbing touch-none"
+                            className="flex md:hidden flex-none pt-4 pb-2 px-6 flex-col items-center cursor-grab active:cursor-grabbing touch-none"
                         >
                             <div className="w-12 h-1.5 bg-neutral-700 rounded-full mb-4" />
                             <div className="w-full flex items-center justify-center">
@@ -263,8 +305,8 @@ export function QuickAddModal({
                             animate="show"
                             className="flex-1 overflow-y-auto"
                         >
-                            {/* Type Selector Grid - Integrated into main stagger */}
-                            <div className="px-6 py-2">
+                            {/* Mobile Type Selector Grid */}
+                            <div className="px-6 py-2 block md:hidden">
                                 <div className="grid grid-cols-5 gap-2">
                                     {ITEM_TYPES.map((type) => {
                                         const Icon = type.icon;
@@ -296,9 +338,9 @@ export function QuickAddModal({
                                 </div>
                             </div>
 
-                            {/* Main Content */}
-                            <div className="flex flex-col px-6 relative pb-12">
-                                {/* State: Success */}
+                            {/* Main Content Area */}
+                            <div className="flex flex-col px-6 md:px-10 relative pb-12 md:pb-10">
+                                {/* Success/Processing Overlays */}
                                 {status === 'success' && (
                                     <motion.div
                                         initial={{ opacity: 0, scale: 0.9 }}
@@ -312,8 +354,6 @@ export function QuickAddModal({
                                         <p className="text-neutral-400">Processed by Life OS</p>
                                     </motion.div>
                                 )}
-
-                                {/* State: Processing */}
                                 {status === 'processing' && (
                                     <motion.div
                                         initial={{ opacity: 0 }}
@@ -326,74 +366,31 @@ export function QuickAddModal({
                                     </motion.div>
                                 )}
 
-                                {/* Attachments Display (Date & Images) */}
-                                {(dueDate || (images.length > 0 && (selectedType === 'note' || selectedType === 'idea'))) && (
-                                    <motion.div variants={slimyItem} className="flex flex-wrap gap-2 mt-4 mb-1">
-                                        {/* Date Chip */}
-                                        {dueDate && (
-                                            <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 pl-3 pr-2 py-1.5 rounded-full text-blue-400">
-                                                <Calendar size={14} />
-                                                <span className="text-xs font-bold uppercase tracking-wider">{formatDisplayDate(dueDate)}</span>
-                                                <button
-                                                    onClick={() => setDueDate('')}
-                                                    className="w-5 h-5 flex items-center justify-center bg-blue-500/20 rounded-full hover:bg-blue-500/40"
-                                                >
-                                                    <X size={12} />
-                                                </button>
-                                            </div>
-                                        )}
-
-                                        {/* Image Thumbnails */}
-                                        {(selectedType === 'note' || selectedType === 'idea') && images.map((img, i) => (
-                                            <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden border border-white/10 group">
-                                                <img src={img} alt="Attachment" className="w-full h-full object-cover" />
-                                                <button
-                                                    onClick={() => removeImage(i)}
-                                                    className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                                >
-                                                    <X size={16} className="text-white" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </motion.div>
-                                )}
-
-                                {/* Input Area */}
-                                <motion.div variants={slimyItem} className="flex flex-col mt-4">
+                                {/* Desktop Input Layout (Image 0) */}
+                                <motion.div variants={slimyItem} className="flex flex-col md:gap-4">
                                     <input
                                         type="text"
                                         value={title}
                                         onChange={(e) => setTitle(e.target.value)}
                                         placeholder="Title (Optional)"
-                                        className="w-full bg-transparent text-xl font-bold text-white placeholder-neutral-700 outline-none mb-2 px-1"
+                                        className="w-full bg-transparent text-xl font-bold text-white placeholder-neutral-700 outline-none mb-2 md:mb-0 px-1"
                                     />
                                     <textarea
                                         ref={inputRef}
                                         value={text}
                                         onChange={(e) => setText(e.target.value)}
                                         placeholder={status === 'listening' ? "Listening..." : "What's on your mind?"}
-                                        className="w-full h-40 bg-transparent text-lg leading-tight text-white placeholder-neutral-700 resize-none outline-none font-medium p-1 transition-colors"
+                                        className="w-full h-40 md:h-32 bg-transparent text-lg leading-tight text-white placeholder-neutral-700 resize-none outline-none font-medium p-1 transition-colors"
                                     />
                                 </motion.div>
 
-                                {/* Action Bar & Tools */}
+                                {/* Action Bar (Image 0 Desktop vs Mobile) */}
                                 <motion.div
                                     variants={slimyItem}
-                                    className="flex items-center justify-between mt-6"
+                                    className="flex items-center justify-between mt-6 md:mt-8"
                                 >
-                                    {/* Left Side: Tools Group */}
+                                    {/* Left Group */}
                                     <div className="flex items-center gap-1 bg-white/5 rounded-2xl p-1 pr-2">
-                                        {(selectedType === 'note' || selectedType === 'idea') && (
-                                            <button
-                                                className="p-3 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
-                                                onClick={() => {
-                                                    vibrate('light');
-                                                    fileInputRef.current?.click();
-                                                }}
-                                            >
-                                                <ImageIcon size={20} />
-                                            </button>
-                                        )}
                                         <button
                                             className={clsx(
                                                 "p-3 rounded-xl transition-colors",
@@ -417,68 +414,59 @@ export function QuickAddModal({
                                         >
                                             <Mic size={20} />
                                         </button>
+                                        {(selectedType === 'note' || selectedType === 'idea') && (
+                                            <button
+                                                className="hidden md:flex p-3 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                                                onClick={() => {
+                                                    vibrate('light');
+                                                    fileInputRef.current?.click();
+                                                }}
+                                            >
+                                                <ImageIcon size={20} />
+                                            </button>
+                                        )}
                                     </div>
 
-                                    {/* Right Side: Priority & Submit */}
+                                    {/* Right Group */}
                                     <div className="flex items-center gap-3">
-                                        {/* Priority Selector */}
+                                        {/* Priority (Indicator Dot for Desktop Image 0) */}
                                         <button
                                             onClick={cyclePriority}
                                             className={clsx(
-                                                "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300",
-                                                priority === 'high' ? "bg-red-500/10 text-red-500" :
-                                                    priority === 'medium' ? "bg-amber-500/10 text-amber-500" :
-                                                        "bg-blue-500/10 text-blue-500"
+                                                "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 bg-neutral-800",
+                                                priority === 'high' ? "bg-red-500/10" :
+                                                    priority === 'medium' ? "bg-amber-500/10" :
+                                                        "bg-blue-500/10"
                                             )}
                                         >
                                             <div className={clsx(
-                                                "w-6 h-6 rounded-full transition-all duration-300 shadow-sm",
-                                                priority === 'high' ? "bg-red-500 shadow-red-500/40" :
-                                                    priority === 'medium' ? "bg-amber-500 shadow-amber-500/40" :
-                                                        "bg-blue-500 shadow-blue-500/40"
+                                                "w-4 h-4 rounded-full transition-all duration-300",
+                                                priority === 'high' ? "bg-red-500" :
+                                                    priority === 'medium' ? "bg-amber-500" :
+                                                        "bg-blue-500"
                                             )} />
                                         </button>
 
-                                        {/* Submit Button (Icon Only) */}
+                                        {/* Submit (Image 0 uses an Arrow/Submit button) */}
                                         <button
                                             onClick={handleSubmit}
                                             disabled={(!text.trim() && images.length === 0) || status !== 'idle'}
                                             className={clsx(
-                                                "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-lg",
+                                                "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300",
                                                 (text.trim() || images.length > 0) && status === 'idle'
-                                                    ? "bg-white text-black shadow-white/10 active:scale-90"
+                                                    ? "bg-neutral-800 hover:bg-neutral-700 text-white active:scale-95"
                                                     : "bg-neutral-800 text-neutral-600 cursor-not-allowed"
                                             )}
                                         >
-                                            <ArrowUp size={20} strokeWidth={3} className={(text.trim() || images.length > 0) ? "rotate-45" : ""} />
+                                            <ArrowUp size={20} strokeWidth={3} />
                                         </button>
                                     </div>
                                 </motion.div>
-
-                                {/* Listening Visualizer Overlay */}
-                                {status === 'listening' && (
-                                    <div className="absolute bottom-32 left-0 right-0 flex justify-center gap-1.5 items-end h-16 pointer-events-none">
-                                        {[1, 2, 3, 4, 5].map((i) => (
-                                            <motion.div
-                                                key={i}
-                                                animate={{ height: [10, 40, 15, 50, 20] }}
-                                                transition={{
-                                                    repeat: Infinity,
-                                                    duration: 1.5,
-                                                    ease: "easeInOut",
-                                                    delay: i * 0.1
-                                                }}
-                                                className="w-1.5 bg-red-500 rounded-full"
-                                            />
-                                        ))}
-                                    </div>
-                                )}
                             </div>
                         </motion.div>
 
-                        {/* Bottom Spacer */}
-                        <div className="flex-none h-24 pb-safe-bottom" />
-
+                        {/* Bottom Spacer - only mobile */}
+                        <div className="flex-none h-24 pb-safe-bottom md:hidden" />
                     </motion.div>
                 </>
             )}
