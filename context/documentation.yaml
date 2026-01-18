@@ -1655,6 +1655,66 @@ performance:
       - "expiringNotes in MemoryReviewCards - filtered by date"
 
 
+---
+# ════════════════════════════════════════
+# TESTING
+# ════════════════════════════════════════
+testing:
+  framework: "Vitest with React Testing Library"
+  config_file: "vitest.config.ts"
+  setup_file: "src/__tests__/setup.ts"
+  
+  run_commands:
+    all_tests: "npm test"
+    single_run: "npm run test:run"
+    with_coverage: "npm run test:coverage"
+  
+  test_files:
+    swipe_thresholds:
+      file: "src/__tests__/swipe-thresholds.test.tsx"
+      tests:
+        - "TaskCard rendering"
+        - "Threshold constant validation (150px horizontal, 80px vertical)"
+        - "XY drag support verification"
+    
+    tab_snapping:
+      file: "src/__tests__/tab-snapping.test.ts"
+      tests:
+        - "Tab order verification"
+        - "Swipe offset threshold (50px)"
+        - "Velocity threshold (500px/s)"
+        - "Edge constraints"
+        - "Tab transitions"
+    
+    modal_open_close:
+      file: "src/__tests__/modal-open-close.test.ts"
+      tests:
+        - "useBackToClose hook behavior"
+        - "useLockBodyScroll hook behavior"
+        - "Modal state management"
+        - "Multiple modal prevention"
+    
+    state_popup_flow:
+      file: "src/__tests__/state-popup-flow.test.ts"
+      tests:
+        - "Time of day detection (morning/evening windows)"
+        - "Has logged state today check"
+        - "Emoji options validation"
+        - "State entry creation"
+        - "Auto-trigger logic"
+  
+  mocking:
+    description: |
+      Test setup mocks these dependencies to avoid side effects:
+    mocked_modules:
+      - "framer-motion (simplified components)"
+      - "@/utils/haptics (vibrate function)"
+      - "next/dynamic (component loading)"
+      - "localStorage (in-memory mock)"
+      - "matchMedia (responsive queries)"
+      - "ResizeObserver (element sizing)"
+
+
 # ═══════════════════════════════════════════════════════════════════════════════════
 # END OF DOCUMENTATION
 # ═══════════════════════════════════════════════════════════════════════════════════
