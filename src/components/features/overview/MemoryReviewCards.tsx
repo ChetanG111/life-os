@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'framer-motion';
+import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform, Variants } from 'framer-motion';
 import { vibrate } from '@/utils/haptics';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
@@ -65,23 +65,23 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
     };
 
     const baseContainer = UNIVERSAL_STAGGER_CONTAINER('modal');
-    const modalVariants = {
+    const modalVariants: Variants = {
         hidden: { y: '100%', opacity: 0 },
         show: {
             y: 0,
             opacity: 1,
             transition: {
                 ...springConfig,
-                staggerChildren: 0.05,
-                delayChildren: 0.02,
+                delayChildren: 0,
             }
         },
         exit: {
             y: '100%',
             opacity: 0,
             transition: {
-                duration: 0.2,
-                ease: 'easeIn' as any
+                type: 'spring',
+                damping: 30,
+                stiffness: 400
             }
         }
     };
@@ -105,8 +105,10 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={onClose}
-                className="fixed inset-0 bg-black/60 backdrop-blur-md z-50"
-            />
+                className="fixed inset-0 glass-material z-50 overflow-hidden"
+            >
+                <div className="absolute inset-0 noise-overlay opacity-[0.015]" />
+            </motion.div>
 
             {/* Modal */}
             <motion.div
@@ -139,12 +141,12 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
                             <div className="w-12 h-1.5 bg-neutral-700 rounded-full mx-auto mb-4" />
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <motion.h2 variants={slimyItem} className="text-xl font-bold text-white">Memory Review</motion.h2>
-                                    <motion.p variants={slimyItem} className="text-sm text-neutral-500">
+                                    <motion.h2 custom={0} variants={slimyItem} className="text-xl font-bold text-white">Memory Review</motion.h2>
+                                    <motion.p custom={1} variants={slimyItem} className="text-sm text-neutral-500">
                                         {expiringNotes.length} notes to review
                                     </motion.p>
                                 </div>
-                                <motion.div variants={slimyItem} className="flex items-center gap-3">
+                                <motion.div custom={2} variants={slimyItem} className="flex items-center gap-3">
                                     <motion.button
                                         whileTap={{ scale: 0.9 }}
                                         onClick={toggleViewMode}
@@ -171,8 +173,8 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
                         </div>
 
                         {/* Content Area */}
-                        <motion.div variants={slimyItem} className="flex-1 relative overflow-hidden mb-6">
-                            <AnimatePresence mode="wait">
+                        <motion.div custom={3} variants={slimyItem} className="flex-1 relative overflow-hidden mb-6">
+                            <div className="h-full w-full">
                                 {viewMode === 'stack' ? (
                                     <StackView
                                         key="stack"
@@ -191,7 +193,7 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
                                         onDelete={handleDelete}
                                     />
                                 )}
-                            </AnimatePresence>
+                            </div>
                         </motion.div>
                     </>
                 )}

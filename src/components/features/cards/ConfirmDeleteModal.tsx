@@ -26,7 +26,7 @@ export function ConfirmDeleteModal({ isOpen, onClose, onConfirm, title = "Delete
             ...baseContainer.show,
             transition: {
                 ...(baseContainer.show as any)?.transition,
-                delayChildren: 0.05 // Even faster for small modals
+                delayChildren: 0
             }
         }
     };
@@ -42,8 +42,10 @@ export function ConfirmDeleteModal({ isOpen, onClose, onConfirm, title = "Delete
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="absolute inset-0 bg-black/80 backdrop-blur-md pointer-events-auto"
-                    />
+                        className="absolute inset-0 glass-material z-[100] overflow-hidden pointer-events-auto"
+                    >
+                        <div className="absolute inset-0 noise-overlay opacity-[0.015]" />
+                    </motion.div>
 
                     {/* Modal */}
                     <motion.div
@@ -53,24 +55,29 @@ export function ConfirmDeleteModal({ isOpen, onClose, onConfirm, title = "Delete
                         exit={{
                             scale: 0.9,
                             opacity: 0,
-                            transition: { duration: 0.15, ease: "easeIn" }
+                            transition: {
+                                type: 'spring',
+                                damping: 30,
+                                stiffness: 500
+                            }
                         }}
                         className="relative w-full max-w-sm bg-[#1A1A1A] rounded-[32px] overflow-hidden border border-white/10 shadow-2xl pointer-events-auto"
                     >
                         <div className="p-8 flex flex-col items-center text-center">
                             <motion.div
+                                custom={0}
                                 variants={itemVariants}
                                 className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mb-6 text-red-500"
                             >
                                 <AlertTriangle size={32} />
                             </motion.div>
 
-                            <motion.h3 variants={itemVariants} className="text-xl font-bold text-white mb-2">{title}</motion.h3>
-                            <motion.p variants={itemVariants} className="text-neutral-400 text-sm leading-relaxed mb-8">
+                            <motion.h3 custom={1} variants={itemVariants} className="text-xl font-bold text-white mb-2">{title}</motion.h3>
+                            <motion.p custom={2} variants={itemVariants} className="text-neutral-400 text-sm leading-relaxed mb-8">
                                 This action cannot be undone. The item will be permanently removed from your Life OS.
                             </motion.p>
 
-                            <motion.div variants={itemVariants} className="flex flex-col w-full gap-3">
+                            <motion.div custom={3} variants={itemVariants} className="flex flex-col w-full gap-3">
                                 <button
                                     onClick={() => {
                                         vibrate('medium');

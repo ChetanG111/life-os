@@ -192,6 +192,15 @@ export function QuickAddModal({
     const springConfig = useSlimySpring();
     const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
 
+    // Multi-stage Haptics (Suggestion 5)
+    useEffect(() => {
+        if (isOpen) {
+            vibrate('light');
+            const timer = setTimeout(() => vibrate('soft'), 150);
+            return () => clearTimeout(timer);
+        }
+    }, [isOpen]);
+
     const containerVariants: Variants = {
         hidden: {
             y: isDesktop ? '-50%' : '100%',
@@ -206,18 +215,19 @@ export function QuickAddModal({
             opacity: 1,
             transition: {
                 ...springConfig,
-                staggerChildren: 0.05,
-                delayChildren: 0.02,
+                delayChildren: 0,
             }
         },
         exit: {
-            y: isDesktop ? '-50%' : '100%',
+            y: isDesktop ? '-45%' : '100%',
             x: isDesktop ? '-50%' : '0%',
-            scale: isDesktop ? 0.9 : 1,
+            scale: isDesktop ? 0.95 : 1,
             opacity: 0,
             transition: {
-                duration: 0.2,
-                ease: 'easeIn' as any
+                type: 'spring',
+                damping: 30,
+                stiffness: 450,
+                mass: 0.8
             }
         }
     };
@@ -251,8 +261,10 @@ export function QuickAddModal({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
-                    />
+                        className="fixed inset-0 glass-material z-50 overflow-hidden"
+                    >
+                        <div className="absolute inset-0 noise-overlay opacity-[0.015]" />
+                    </motion.div>
 
                     {/* Modal Content */}
                     <motion.div
@@ -278,14 +290,14 @@ export function QuickAddModal({
                         )}
                     >
                         {/* Scrollable Content */}
-                        <div className="flex-1 overflow-y-auto flex flex-col">
+                        <div className="flex-1 overflow-y-auto overscroll-contain touch-pan-y [web-kit-overflow-scrolling:touch] flex flex-col scrollbar-hide">
                             {/* Desktop Header (Image 0) */}
                             <div className="hidden md:flex flex-none pt-8 pb-4 px-8 flex-col items-center">
                                 <div className="w-12 h-1 bg-neutral-800 rounded-full mb-6 opacity-50" />
-                                <motion.h2 variants={slimyItem} className="text-2xl font-bold text-white mb-8">New Task</motion.h2>
+                                <motion.h2 custom={0} variants={slimyItem} className="text-2xl font-bold text-white mb-8">New Task</motion.h2>
 
                                 {/* Desktop Type Selector Grid */}
-                                <motion.div variants={slimyItem} className="w-full grid grid-cols-4 gap-4 mb-8">
+                                <motion.div custom={1} variants={slimyItem} className="w-full grid grid-cols-4 gap-4 mb-8">
                                     {ITEM_TYPES.filter(t => t.id !== 'identity').map((type) => {
                                         const Icon = type.icon;
                                         const isSelected = selectedType === type.id;
@@ -313,6 +325,7 @@ export function QuickAddModal({
 
                             {/* Mobile Header & Drag Handle */}
                             <motion.div
+                                custom={2}
                                 variants={slimyItem}
                                 onPointerDown={(e) => dragControls.start(e)}
                                 className="flex md:hidden flex-none pt-4 pb-2 px-6 flex-col items-center cursor-grab active:cursor-grabbing touch-none"
@@ -328,12 +341,13 @@ export function QuickAddModal({
                             {/* Mobile Type Selector Grid */}
                             <div className="px-6 py-2 block md:hidden">
                                 <div className="grid grid-cols-5 gap-2">
-                                    {ITEM_TYPES.map((type) => {
+                                    {ITEM_TYPES.map((type, i) => {
                                         const Icon = type.icon;
                                         const isSelected = selectedType === type.id;
                                         return (
                                             <motion.button
                                                 key={type.id}
+                                                custom={3 + i}
                                                 variants={slimyItem}
                                                 onClick={() => {
                                                     vibrate('light');
@@ -387,7 +401,7 @@ export function QuickAddModal({
                                 )}
 
                                 {/* Input Layout */}
-                                <motion.div variants={slimyItem} className="flex flex-col md:gap-4">
+                                <motion.div custom={4} variants={slimyItem} className="flex flex-col md:gap-4">
                                     <input
                                         type="text"
                                         value={title}
@@ -406,6 +420,7 @@ export function QuickAddModal({
 
                                 {/* Action Bar */}
                                 <motion.div
+                                    custom={5}
                                     variants={slimyItem}
                                     className="flex items-center justify-between mt-6 md:mt-8"
                                 >

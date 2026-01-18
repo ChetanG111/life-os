@@ -23,9 +23,9 @@ export const UNIVERSAL_STAGGER_CONTAINER = (mode: 'standard' | 'modal' = 'standa
     show: {
         opacity: 1,
         transition: {
-            staggerChildren: STAGGER_CONFIG[mode],
-            delayChildren: STAGGER_CONFIG.initialDelay,
-            when: "beforeChildren"
+            // Removed "beforeChildren" to allow items to flow in AS the container opens
+            delayChildren: 0,
+            duration: 0.01 // Minimal container duration
         }
     }
 });
@@ -33,10 +33,26 @@ export const UNIVERSAL_STAGGER_CONTAINER = (mode: 'standard' | 'modal' = 'standa
 export const createStaggerItemVariants = (springConfig: any): Variants => ({
     hidden: { opacity: 0, y: 30, scale: 0.9 },
     enter: { opacity: 0, y: 30, scale: 0.9 },
-    show: {
+    show: (i: number = 0) => ({
         opacity: 1,
         y: 0,
         scale: 1,
-        transition: springConfig
+        transition: {
+            ...springConfig,
+            // Reduced base interval for faster response (0.02 instead of 0.04)
+            delay: i * 0.02 + (Math.pow(i, 1.2) * 0.005)
+        }
+    }),
+    // Velocity-Aware Exit (Suggestion 4)
+    exit: {
+        opacity: 0,
+        y: 20,
+        scale: 0.95,
+        transition: {
+            type: "spring",
+            damping: 30,
+            stiffness: 400, // Very stiff for a fast "snap-out"
+            mass: 0.8
+        }
     }
 });

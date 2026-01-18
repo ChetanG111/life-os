@@ -8,6 +8,8 @@ import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
 import { useMotion } from '@/context/MotionContext';
 import { useSettings } from '@/context/SettingsContext';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
+import { createStaggerItemVariants } from '@/utils/animations';
+import { useEffect } from 'react';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -21,6 +23,16 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
     const { intensity, setIntensity } = useMotion();
     const { autoFocusQuickAdd, setAutoFocusQuickAdd, confirmDelete, setConfirmDelete } = useSettings();
     const springConfig = useSlimySpring();
+    const slimyItem = createStaggerItemVariants(springConfig);
+
+    // Multi-stage Haptics (Suggestion 5)
+    useEffect(() => {
+        if (isOpen) {
+            vibrate('light');
+            const timer = setTimeout(() => vibrate('soft'), 150);
+            return () => clearTimeout(timer);
+        }
+    }, [isOpen]);
 
     // Handle back button behavior
     useBackToClose(isOpen, onClose);
@@ -32,21 +44,21 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
         show: {
             opacity: 1,
             transition: {
-                staggerChildren: 0.06,
-                delayChildren: 0.1
+                delayChildren: 0,
+            }
+        },
+        exit: {
+            opacity: 0,
+            transition: {
+                staggerChildren: 0.03,
+                staggerDirection: -1
             }
         }
     };
 
-    const slimyItem = {
-        hidden: { y: 30, opacity: 0, scale: 0.9 },
-        show: {
-            y: 0,
-            opacity: 1,
-            scale: 1,
-            transition: springConfig
-        }
-    };
+    // Use the functional variants for non-linear stagger from animations.ts
+    // This allows custom={i} to work correctly
+    // const slimyItem = createStaggerItemVariants(springConfig); -> moved to top
 
     return (
         <AnimatePresence>
@@ -58,8 +70,10 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-                    />
+                        className="fixed inset-0 glass-material z-50 overflow-hidden"
+                    >
+                        <div className="absolute inset-0 noise-overlay opacity-[0.015]" />
+                    </motion.div>
 
                     {/* Modal Content */}
                     <motion.div
@@ -68,8 +82,9 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                         exit={{ y: '100%' }}
                         transition={{
                             type: 'spring',
-                            damping: 25,
-                            stiffness: 200
+                            damping: 30,
+                            stiffness: 450,
+                            mass: 0.8
                         }}
                         drag="y"
                         dragControls={dragControls}
@@ -100,10 +115,10 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                             variants={staggerContainer}
                             initial="hidden"
                             animate="show"
-                            className="flex-1 overflow-y-auto p-6 space-y-8"
+                            className="flex-1 overflow-y-auto overscroll-contain touch-pan-y [web-kit-overflow-scrolling:touch] p-6 space-y-8 scrollbar-hide"
                         >
                             {/* Section: Animation Control */}
-                            <motion.section variants={slimyItem}>
+                            <motion.section custom={1} variants={slimyItem}>
                                 <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-4 px-1">
                                     Experience
                                 </h3>
@@ -136,7 +151,7 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                             </motion.section>
 
                             {/* Section: Navigation */}
-                            <motion.section variants={slimyItem}>
+                            <motion.section custom={2} variants={slimyItem}>
                                 <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-4 px-1">
                                     Navigation
                                 </h3>
@@ -175,7 +190,7 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                             </motion.section>
 
                             {/* Section: Behavior */}
-                            <motion.section variants={slimyItem}>
+                            <motion.section custom={3} variants={slimyItem}>
                                 <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-4 px-1">
                                     Behavior
                                 </h3>
@@ -243,7 +258,7 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                             </motion.section>
 
                             {/* Placeholder Sections */}
-                            <motion.section variants={slimyItem}>
+                            <motion.section custom={4} variants={slimyItem}>
                                 <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-4 px-1">
                                     Preferences
                                 </h3>
@@ -253,7 +268,7 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                                 </div>
                             </motion.section>
 
-                            <motion.section variants={slimyItem}>
+                            <motion.section custom={5} variants={slimyItem}>
                                 <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-4 px-1">
                                     Data
                                 </h3>
@@ -262,7 +277,7 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                                 </div>
                             </motion.section>
 
-                            <motion.div variants={slimyItem} className="pt-8 pb-12 text-center">
+                            <motion.div custom={6} variants={slimyItem} className="pt-8 pb-12 text-center">
                                 <p className="text-xs text-neutral-600 font-medium">Life OS v0.1.0 (Alpha)</p>
                             </motion.div>
                         </motion.div>

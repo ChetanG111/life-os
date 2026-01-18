@@ -115,6 +115,10 @@ export function NavigationShell() {
 
     const isModalOpen = isQuickAddOpen || !!selectedItem || isSettingsOpen || isStatePopupOpen || isMemoryReviewOpen;
 
+    // Apple-level depth variables
+    const shellScale = isModalOpen ? 0.94 : 1;
+    const shellRadius = isModalOpen ? '32px' : '0px';
+
     // Track drag physics for BottomNav
     const x = useMotionValue(0);
     // Invert the x movement for the navbar indicator so it moves towards the target tab
@@ -208,53 +212,62 @@ export function NavigationShell() {
     }, [notes]);
 
     return (
-        <div className="relative h-[100dvh] w-full overflow-hidden bg-background" >
-            <AnimatePresence initial={false} custom={direction} mode="popLayout">
-                <motion.main
-                    key={activeTab}
-                    custom={direction}
-                    variants={variants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    // Drag configuration for swipe support. Disable if ANY modal is open.
-                    drag={isModalOpen || isSettingsOpen ? false : "x"}
-                    dragConstraints={{ left: 0, right: 0 }}
-                    dragElastic={{
-                        left: activeTab === 'weekly' ? 0.4 : 0.1, // Stronger resistance at the very end
-                        right: activeTab === 'tasks' ? 0.4 : 0.1, // Stronger resistance at the very start
-                        top: 0,
-                        bottom: 0
-                    }}
-                    onDragStart={() => {
-                        vibrate('light');
-                        setIsDragging(true);
-                    }}
-                    onDragEnd={handleDragEnd}
-                    className="absolute inset-0 h-full w-full touch-pan-y will-change-transform bg-background overflow-y-auto overflow-x-hidden"
-                >
-                    <TabContent
-                        activeTab={activeTab}
-                        onOpenSettings={() => {
+        <div className="relative h-[100dvh] w-full overflow-hidden bg-black" >
+            {/* Main Application Shell with Depth Effect */}
+            <motion.div
+                animate={{
+                    scale: shellScale,
+                    borderRadius: shellRadius,
+                }}
+                transition={springConfig}
+                className="relative h-full w-full overflow-hidden bg-background origin-center"
+            >
+                <AnimatePresence initial={false} custom={direction} mode="popLayout">
+                    <motion.main
+                        key={activeTab}
+                        custom={direction}
+                        variants={variants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        // Drag configuration for swipe support. Disable if ANY modal is open.
+                        drag={isModalOpen ? false : "x"}
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragElastic={{
+                            left: activeTab === 'weekly' ? 0.4 : 0.1, // Stronger resistance at the very end
+                            right: activeTab === 'tasks' ? 0.4 : 0.1, // Stronger resistance at the very start
+                            top: 0,
+                            bottom: 0
+                        }}
+                        onDragStart={() => {
                             vibrate('light');
-                            setIsSettingsOpen(true);
+                            setIsDragging(true);
                         }}
-                        onOpenDetails={(item) => {
-                            // Ensure all relevant fields are mapped for the modal
-                            const modalItem = {
-                                ...item,
-                                type: item.type || (activeTab === 'tasks' ? 'task' : 'note'),
-                                content: item.content || item.description || ''
-                            };
-                            setSelectedItem(modalItem);
-                        }}
-                        onOpenQuickAdd={(type) => {
-                            if (type) setQuickAddType(type);
-                            setIsQuickAddOpen(true);
-                        }}
-                    />
-                </motion.main>
-            </AnimatePresence>
+                        onDragEnd={handleDragEnd}
+                        className="absolute inset-0 h-full w-full touch-pan-y will-change-transform bg-background overflow-y-auto overflow-x-hidden"
+                    >
+                        <TabContent
+                            activeTab={activeTab}
+                            onOpenSettings={() => {
+                                vibrate('light');
+                                setIsSettingsOpen(true);
+                            }}
+                            onOpenDetails={(item) => {
+                                const modalItem = {
+                                    ...item,
+                                    type: item.type || (activeTab === 'tasks' ? 'task' : 'note'),
+                                    content: item.content || item.description || ''
+                                };
+                                setSelectedItem(modalItem);
+                            }}
+                            onOpenQuickAdd={(type) => {
+                                if (type) setQuickAddType(type);
+                                setIsQuickAddOpen(true);
+                            }}
+                        />
+                    </motion.main>
+                </AnimatePresence>
+            </motion.div>
 
             {/* Global FAB - Hidden on clean screens */}
             {['tasks', 'notes', 'overview'].includes(activeTab) && !isModalOpen && (

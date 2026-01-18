@@ -1,6 +1,6 @@
 'use client';
 
-type VibrationPattern = 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error';
+type VibrationPattern = 'light' | 'medium' | 'heavy' | 'soft' | 'success' | 'warning' | 'error';
 
 export const vibrate = (pattern: VibrationPattern = 'light') => {
     if (typeof navigator === 'undefined' || !navigator.vibrate) return;
@@ -8,6 +8,9 @@ export const vibrate = (pattern: VibrationPattern = 'light') => {
     switch (pattern) {
         case 'light':
             navigator.vibrate(10); // Standard tap
+            break;
+        case 'soft':
+            navigator.vibrate(5); // Ultra-light settle pulse
             break;
         case 'medium':
             navigator.vibrate(35); // More noticeable interaction (was 20)
