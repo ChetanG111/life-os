@@ -6,6 +6,8 @@ import { TaskCard } from '@/components/features/tasks/TaskCard';
 import { ChevronDown } from 'lucide-react';
 import clsx from 'clsx';
 import { useState } from 'react';
+import { useData } from '@/context/DataContext';
+import { useToast } from '@/context/ToastContext';
 
 interface DayItemProps {
     dayName: string;
@@ -17,6 +19,18 @@ interface DayItemProps {
 
 export const DayItem = ({ dayName, dayNumber, tasks, summary, isToday = false }: DayItemProps) => {
     const [isOpen, setIsOpen] = useState(isToday);
+    const { completeTask, removeTask } = useData();
+    const { showToast } = useToast();
+
+    const handleComplete = (id: string) => {
+        completeTask(id);
+        showToast('Task completed! 🎉', 'success');
+    };
+
+    const handleDelete = (id: string) => {
+        removeTask(id);
+        showToast('Task deleted', 'info');
+    };
 
     const completionCount = tasks.filter(t => t.isCompleted).length;
     const totalCount = tasks.length;
@@ -118,15 +132,19 @@ export const DayItem = ({ dayName, dayNumber, tasks, summary, isToday = false }:
                                     key={task.id}
                                     variants={{
                                         hidden: { opacity: 0, y: 30, scale: 0.9 },
-                                        show: { 
-                                            opacity: 1, 
-                                            y: 0, 
+                                        show: {
+                                            opacity: 1,
+                                            y: 0,
                                             scale: 1,
                                             transition: { type: "spring", stiffness: 350, damping: 18 }
                                         }
                                     }}
                                 >
-                                    <TaskCard task={task} onRemove={() => { }} />
+                                    <TaskCard
+                                        task={task}
+                                        onComplete={() => handleComplete(task.id)}
+                                        onDelete={() => handleDelete(task.id)}
+                                    />
                                 </motion.div>
                             ))}
                         </motion.div>
