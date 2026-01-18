@@ -20,6 +20,7 @@ export interface FeedItem {
     tags?: string[];
     priority?: 'high' | 'medium' | 'low';
     dueTime?: string;
+    dueDate?: string;
 }
 
 // Mock Data
