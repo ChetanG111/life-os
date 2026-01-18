@@ -1,14 +1,14 @@
 'use client';
 
-import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform, Variants } from 'framer-motion';
+import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform, Variants, useDragControls } from 'framer-motion';
 import { vibrate } from '@/utils/haptics';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Archive, Trash2, Bookmark, Clock, Layers, List as ListIcon, CheckCircle2 } from 'lucide-react';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
 import { Note } from '@/types';
-import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants } from '@/utils/animations';
+import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants, UNIVERSAL_MODAL_VARIANTS } from '@/utils/animations';
 import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
 import clsx from 'clsx';
 
@@ -25,10 +25,20 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
     const { notes, removeNote } = useData();
     const { showToast } = useToast();
     const springConfig = useSlimySpring();
+    const dragControls = useDragControls();
     const [viewMode, setViewMode] = useState<ViewMode>('stack');
     const [processedIds, setProcessedIds] = useState<Set<string>>(new Set());
 
     useLockBodyScroll(isOpen);
+
+    // Multi-stage Haptics (Suggestion 5)
+    useEffect(() => {
+        if (isOpen) {
+            vibrate('light');
+            const timer = setTimeout(() => vibrate('soft'), 150);
+            return () => clearTimeout(timer);
+        }
+    }, [isOpen]);
 
     // Filter to "expiring" notes - older than 7 days per memory_review_logic
     const expiringNotes = useMemo(() => {
@@ -64,27 +74,7 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
         setViewMode(prev => prev === 'stack' ? 'list' : 'stack');
     };
 
-    const baseContainer = UNIVERSAL_STAGGER_CONTAINER('modal');
-    const modalVariants: Variants = {
-        hidden: { y: '100%', opacity: 0 },
-        show: {
-            y: 0,
-            opacity: 1,
-            transition: {
-                ...springConfig,
-                delayChildren: 0,
-            }
-        },
-        exit: {
-            y: '100%',
-            opacity: 0,
-            transition: {
-                type: 'spring',
-                damping: 30,
-                stiffness: 400
-            }
-        }
-    };
+    const modalVariants = UNIVERSAL_MODAL_VARIANTS(springConfig);
     const slimyItem = createStaggerItemVariants(springConfig);
 
     // Check if review is complete
@@ -116,8 +106,19 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
                 initial="hidden"
                 animate="show"
                 exit="exit"
+                drag="y"
+                dragControls={dragControls}
+                dragListener={false}
+                dragConstraints={{ top: 0, bottom: 0 }}
+                dragElastic={{ top: 0.05, bottom: 0.7 }}
+                onDragEnd={(_, info) => {
+                    if (info.offset.y > 100 || info.velocity.y > 300) {
+                        vibrate('light');
+                        onClose();
+                    }
+                }}
                 className={clsx(
-                    "fixed inset-x-0 bottom-0 bg-[var(--surface)] rounded-t-[32px] z-50 flex flex-col",
+                    "fixed inset-x-0 bottom-0 liquid-glass rounded-t-[32px] z-50 flex flex-col shadow-[0_-8px_32px_rgba(0,0,0,0.4)]",
                     isEmpty ? "h-[60vh] items-center justify-center" : "h-[75vh]"
                 )}
             >
@@ -136,21 +137,24 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
                     </>
                 ) : (
                     <>
-                        {/* Header */}
-                        <div className="flex-none px-6 pt-6 pb-4">
-                            <div className="w-12 h-1.5 bg-neutral-700 rounded-full mx-auto mb-4" />
+                        {/* Header & Drag Handle */}
+                        <div
+                            onPointerDown={(e) => dragControls.start(e)}
+                            className="flex-none px-6 pt-3 pb-4 cursor-grab active:cursor-grabbing touch-none liquid-glass rounded-t-[32px]"
+                        >
+                            <div className="w-12 h-1.5 bg-neutral-700/50 rounded-full mx-auto mb-4" />
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <motion.h2 custom={0} variants={slimyItem} className="text-xl font-bold text-white">Memory Review</motion.h2>
+                                    <motion.h2 custom={0} variants={slimyItem} className="text-xl font-bold text-white leading-tight">Memory Review</motion.h2>
                                     <motion.p custom={1} variants={slimyItem} className="text-sm text-neutral-500">
-                                        {expiringNotes.length} notes to review
+                                        {expiringNotes.length} notes due
                                     </motion.p>
                                 </div>
                                 <motion.div custom={2} variants={slimyItem} className="flex items-center gap-3">
                                     <motion.button
                                         whileTap={{ scale: 0.9 }}
                                         onClick={toggleViewMode}
-                                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors overflow-hidden"
+                                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
                                     >
                                         <AnimatePresence mode="wait" initial={false}>
                                             <motion.div
@@ -164,17 +168,13 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
                                             </motion.div>
                                         </AnimatePresence>
                                     </motion.button>
-                                    <div className="flex items-center gap-2 text-neutral-500">
-                                        <Clock size={16} />
-                                        <span className="text-xs font-medium">7+ days</span>
-                                    </div>
                                 </motion.div>
                             </div>
                         </div>
 
                         {/* Content Area */}
                         <motion.div custom={3} variants={slimyItem} className="flex-1 relative overflow-hidden mb-6">
-                            <div className="h-full w-full">
+                            <div className="h-full w-full overscroll-contain touch-pan-y [web-kit-overflow-scrolling:touch]">
                                 {viewMode === 'stack' ? (
                                     <StackView
                                         key="stack"
@@ -414,9 +414,8 @@ function ListView({
             {notes.map(note => (
                 <motion.div
                     key={note.id}
-                    layout
                     variants={itemVariants}
-                    className="bg-neutral-900 rounded-2xl p-4 border border-white/10"
+                    className="bg-neutral-900/60 backdrop-blur-xl rounded-2xl p-4 border border-white/10"
                 >
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">

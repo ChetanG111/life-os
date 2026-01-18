@@ -37,7 +37,7 @@ export function BottomNav({ activeTab, onTabChange, isVisible, offset }: BottomN
             }}
             className="fixed bottom-8 left-0 right-0 z-50 flex justify-center pointer-events-none"
         >
-            <div className="pointer-events-auto flex items-center gap-2 p-2 bg-[var(--surface)] border border-white/5 rounded-full shadow-2xl ring-1 ring-white/10 overflow-hidden">
+            <div className="pointer-events-auto flex items-center gap-2 p-2 liquid-glass rounded-full shadow-2xl ring-1 ring-white/10 overflow-hidden">
                 {TABS.map((tab) => {
                     const Icon = ICONS[tab];
                     const isActive = activeTab === tab;

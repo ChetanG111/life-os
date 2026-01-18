@@ -7,6 +7,7 @@ import { vibrate } from '@/utils/haptics';
 import { useSettings } from '@/context/SettingsContext';
 import clsx from 'clsx';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
+import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants } from '@/utils/animations';
 
 interface ListFeedProps {
     items: FeedItem[];
@@ -24,29 +25,37 @@ export function ListFeed({ items, onSwipe, onDetails }: ListFeedProps) {
         );
     }
 
+    const springConfig = useSlimySpring();
+    const containerVariants = UNIVERSAL_STAGGER_CONTAINER('standard');
+
     return (
-        <div className="flex flex-col gap-3 px-2 pb-24 overflow-y-auto h-full touch-pan-y">
+        <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="flex flex-col gap-3 px-2 pb-24 overflow-y-auto h-full touch-pan-y"
+        >
             <AnimatePresence mode='popLayout'>
                 {items.map((item, index) => (
-                    <ListItem 
-                        key={item.id} 
-                        item={item} 
+                    <ListItem
+                        key={item.id}
+                        item={item}
                         index={index}
-                        onSwipe={onSwipe} 
-                        onDetails={onDetails} 
+                        onSwipe={onSwipe}
+                        onDetails={onDetails}
                     />
                 ))}
             </AnimatePresence>
-        </div>
+        </motion.div>
     );
 }
 
-function ListItem({ 
-    item, 
+function ListItem({
+    item,
     index,
-    onSwipe, 
-    onDetails 
-}: { 
+    onSwipe,
+    onDetails
+}: {
     item: FeedItem;
     index: number;
     onSwipe: (id: string, action: 'done' | 'dismiss' | 'delete') => void;
@@ -55,17 +64,17 @@ function ListItem({
     const x = useMotionValue(0);
     const { confirmDelete } = useSettings();
     const springConfig = useSlimySpring();
-    
+
     // Swipe Thresholds
     const SWIPE_THRESHOLD = 80;
-    
+
     // Visual indicators
     const bgLeftOpacity = useTransform(x, [0, SWIPE_THRESHOLD], [0, 1]);
     const bgRightOpacity = useTransform(x, [0, -SWIPE_THRESHOLD], [0, 1]);
-    
+
     const handleDragEnd = (event: any, info: PanInfo) => {
         const offset = info.offset.x;
-        
+
         if (offset > SWIPE_THRESHOLD) {
             vibrate('success');
             onSwipe(item.id, 'done');
@@ -83,24 +92,25 @@ function ListItem({
         }
     };
 
+    const itemVariants = createStaggerItemVariants(springConfig);
+
     return (
         <motion.div
             layout
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
+            variants={itemVariants}
+            custom={index}
             exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-            transition={{ ...springConfig, delay: index * 0.05 }}
             className="relative group"
         >
             {/* Background Actions */}
             <div className="absolute inset-0 rounded-2xl overflow-hidden flex z-0">
-                <motion.div 
+                <motion.div
                     style={{ opacity: bgLeftOpacity }}
                     className="flex-1 bg-green-500/20 flex items-center justify-start pl-4"
                 >
                     <CheckCircle2 className="text-green-500" size={24} />
                 </motion.div>
-                <motion.div 
+                <motion.div
                     style={{ opacity: bgRightOpacity }}
                     className="flex-1 bg-red-500/20 flex items-center justify-end pr-4"
                 >
@@ -122,8 +132,8 @@ function ListItem({
                 }}
                 className={clsx(
                     "relative z-10 bg-[var(--surface)] border border-white/5 rounded-2xl p-4 flex items-start gap-4 active:cursor-grabbing cursor-grab touch-pan-y",
-                    item.priority === 'high' ? "shadow-[inset_4px_0_0_0_#EF4444]" : 
-                    item.priority === 'medium' ? "shadow-[inset_4px_0_0_0_#F59E0B]" : ""
+                    item.priority === 'high' ? "shadow-[inset_4px_0_0_0_#EF4444]" :
+                        item.priority === 'medium' ? "shadow-[inset_4px_0_0_0_#F59E0B]" : ""
                 )}
             >
                 {/* Content */}
@@ -142,7 +152,7 @@ function ListItem({
                     <p className="text-sm text-neutral-400 line-clamp-2 leading-relaxed font-medium">
                         {item.content}
                     </p>
-                    
+
                     {/* Tags */}
                     {item.tags && item.tags.length > 0 && (
                         <div className="flex gap-2 mt-3">

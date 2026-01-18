@@ -50,8 +50,20 @@ export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) =>
     const completionPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
 
     return (
-        <div className="w-full min-h-screen bg-background pb-32 flex justify-center">
-            <div className="w-full max-w-7xl px-6 md:px-10 py-12 md:py-20 flex flex-col md:flex-row gap-12">
+        <div className="w-full min-h-screen bg-background pb-32 flex flex-col items-center">
+            <header className="w-full sticky top-0 z-30 flex justify-center items-center py-4 px-6 liquid-glass mb-4">
+                <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={onOpenSettings}
+                    className="group flex flex-col items-center gap-1 focus:outline-none"
+                >
+                    <h1 className="text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200 transition-colors">
+                        Weekly
+                    </h1>
+                </motion.button>
+            </header>
+
+            <div className="w-full max-w-7xl px-6 md:px-10 py-4 flex flex-col md:flex-row gap-12">
 
                 {/* Desktop Sidebar (Image 3) */}
                 <div className="hidden md:flex flex-col w-[320px] shrink-0 space-y-8">

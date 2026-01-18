@@ -61,7 +61,7 @@ export function ConfirmDeleteModal({ isOpen, onClose, onConfirm, title = "Delete
                                 stiffness: 500
                             }
                         }}
-                        className="relative w-full max-w-sm bg-[#1A1A1A] rounded-[32px] overflow-hidden border border-white/10 shadow-2xl pointer-events-auto"
+                        className="relative w-full max-w-sm liquid-glass rounded-[32px] overflow-hidden shadow-2xl pointer-events-auto"
                     >
                         <div className="p-8 flex flex-col items-center text-center">
                             <motion.div

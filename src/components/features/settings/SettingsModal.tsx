@@ -8,7 +8,7 @@ import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
 import { useMotion } from '@/context/MotionContext';
 import { useSettings } from '@/context/SettingsContext';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
-import { createStaggerItemVariants } from '@/utils/animations';
+import { createStaggerItemVariants, UNIVERSAL_MODAL_VARIANTS, UNIVERSAL_STAGGER_CONTAINER } from '@/utils/animations';
 import { useEffect } from 'react';
 
 interface SettingsModalProps {
@@ -39,22 +39,8 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
     // Lock body scroll to prevent pull-to-refresh
     useLockBodyScroll(isOpen);
 
-    const staggerContainer = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: {
-                delayChildren: 0,
-            }
-        },
-        exit: {
-            opacity: 0,
-            transition: {
-                staggerChildren: 0.03,
-                staggerDirection: -1
-            }
-        }
-    };
+    const staggerContainer = UNIVERSAL_STAGGER_CONTAINER('modal');
+    const modalVariants = UNIVERSAL_MODAL_VARIANTS(springConfig);
 
     // Use the functional variants for non-linear stagger from animations.ts
     // This allows custom={i} to work correctly
@@ -77,15 +63,10 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
 
                     {/* Modal Content */}
                     <motion.div
-                        initial={{ y: '100%' }}
-                        animate={{ y: '0%' }}
-                        exit={{ y: '100%' }}
-                        transition={{
-                            type: 'spring',
-                            damping: 30,
-                            stiffness: 450,
-                            mass: 0.8
-                        }}
+                        variants={modalVariants}
+                        initial="hidden"
+                        animate="show"
+                        exit="exit"
                         drag="y"
                         dragControls={dragControls}
                         dragListener={false}
@@ -97,12 +78,12 @@ export function SettingsModal({ isOpen, onClose, showBottomNav, onToggleBottomNa
                                 onClose();
                             }
                         }}
-                        className="fixed inset-x-0 bottom-0 top-12 bg-[var(--background)] rounded-t-[32px] overflow-hidden z-50 flex flex-col border-t border-white/10"
+                        className="fixed inset-x-0 bottom-0 top-12 bg-neutral-900/80 backdrop-blur-3xl rounded-t-[32px] overflow-hidden z-50 flex flex-col border-t border-white/20 shadow-[0_-8px_32px_rgba(0,0,0,0.4)]"
                     >
                         {/* Header & Drag Area */}
                         <div
                             onPointerDown={(e) => dragControls.start(e)}
-                            className="flex flex-col items-center justify-center px-6 pt-3 pb-4 bg-[var(--background)] cursor-grab active:cursor-grabbing touch-none border-b border-white/5"
+                            className="flex-none flex flex-col items-center justify-center px-6 pt-3 pb-4 liquid-glass cursor-grab active:cursor-grabbing touch-none z-10"
                         >
                             {/* Drag Handle Pill */}
                             <div className="w-12 h-1.5 bg-neutral-700 rounded-full mb-4" />

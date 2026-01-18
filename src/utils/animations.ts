@@ -30,6 +30,29 @@ export const UNIVERSAL_STAGGER_CONTAINER = (mode: 'standard' | 'modal' = 'standa
     }
 });
 
+export const UNIVERSAL_MODAL_VARIANTS = (springConfig: any): Variants => ({
+    hidden: { y: '100%', opacity: 0 },
+    show: {
+        y: 0,
+        opacity: 1,
+        transition: {
+            ...springConfig,
+            delayChildren: 0,
+            staggerChildren: 0.05
+        }
+    },
+    exit: {
+        y: '100%',
+        opacity: 0,
+        transition: {
+            type: 'spring',
+            damping: 30,
+            stiffness: 450,
+            mass: 0.8
+        }
+    }
+});
+
 export const createStaggerItemVariants = (springConfig: any): Variants => ({
     hidden: { opacity: 0, y: 30, scale: 0.9 },
     enter: { opacity: 0, y: 30, scale: 0.9 },
@@ -43,7 +66,6 @@ export const createStaggerItemVariants = (springConfig: any): Variants => ({
             delay: i * 0.02 + (Math.pow(i, 1.2) * 0.005)
         }
     }),
-    // Velocity-Aware Exit (Suggestion 4)
     exit: {
         opacity: 0,
         y: 20,
@@ -51,7 +73,7 @@ export const createStaggerItemVariants = (springConfig: any): Variants => ({
         transition: {
             type: "spring",
             damping: 30,
-            stiffness: 400, // Very stiff for a fast "snap-out"
+            stiffness: 400,
             mass: 0.8
         }
     }

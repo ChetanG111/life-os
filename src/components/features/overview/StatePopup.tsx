@@ -63,7 +63,7 @@ export function StatePopup({ isOpen, onClose, onSelect, currentEmoji, timeOfDay 
                         initial="hidden"
                         animate="show"
                         exit="exit"
-                        className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-[var(--surface)] rounded-3xl p-6 z-50 border border-white/10 max-w-sm mx-auto"
+                        className="fixed inset-x-4 top-1/2 -translate-y-1/2 liquid-glass rounded-3xl p-6 z-50 max-w-sm mx-auto shadow-[0_32px_64px_rgba(0,0,0,0.5)]"
                     >
                         {/* Header */}
                         <motion.div custom={0} variants={slimyItem} className="text-center mb-8">

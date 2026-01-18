@@ -1,0 +1,60 @@
+version: "1.0.0"
+design_philosophy: 
+  name: "Liquid Fluidity"
+  principles:
+    - "Organic entry: Items should slide up with 30px offset and 0.9 scale."
+    - "Non-linear stagger: Stagger delays must use weighted power curves for a more human feel."
+    - "Contextual Glass: High-saturation translucency for fixed UI anchors."
+    - "Physical Dismissal: Modals snap back with stiff springs (30 damping, 450 stiffness)."
+
+animation_tokens:
+  entry:
+    y_offset: 30
+    initial_scale: 0.9
+  stagger:
+    base_interval: 0.02
+    power_curve: 1.2
+    multiplier: 0.005
+  modal:
+    mass: 1.0
+    stiffness: 450
+    damping: 30
+
+style_tokens:
+  glass:
+    liquid:
+      background: "rgba(0, 0, 0, 0.6)"
+      blur: "40px"
+      saturation: "180%"
+      border: "rgba(255, 255, 255, 0.15)"
+    surface:
+      background: "rgba(18, 18, 18, 0.95)"
+      blur: "20px"
+
+component_rules:
+  modals:
+    opening_animation: "staggered slide-up"
+    dismissal_gesture: "swipe-down only"
+    background: "liquid-glass"
+  headers:
+    position: "sticky"
+    top: 0
+    background: "liquid-glass"
+  lists:
+    animation: "non-linear stagger"
+    scrolling: "momentum-only"
+
+testing_guide:
+  locations:
+    - tab: "Overview"
+      elements: ["Sticky Liquid-Glass Header", "Staggered List Entrance", "Stack Card Swipes"]
+    - tab: "Tasks/Notes"
+      elements: ["Standardized Sticky Headers", "Non-linear Staggered Grid/List"]
+    - tab: "Chat"
+      elements: ["Liquid-Glass Input Layer", "Message Entrance Springs"]
+    - component: "Modals"
+      elements: ["Universal Entrance/Exit Physics", "Liquid-Glass Sheet Backgrounds", "Drag-to-Dismiss Velocity"]
+  validation_criteria:
+    - "Headers must blur content by 40px and remain fixed at top:0."
+    - "Modal dismissal must feel 'physical' (high stiffness, no trailing bounce)."
+    - "Stagger delays should feel 'accelerating' rather than a constant tick."

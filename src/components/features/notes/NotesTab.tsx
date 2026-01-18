@@ -25,12 +25,12 @@ export const NotesTab = ({
     const itemVariants = createStaggerItemVariants(springConfig);
 
     return (
-        <div className="w-full min-h-screen px-4 py-safe-top bg-background pb-32 flex flex-col">
-            <header className="relative flex justify-center items-center py-4 px-2 mb-2">
+        <div className="w-full min-h-screen bg-background pb-32 flex flex-col items-center">
+            <header className="w-full sticky top-0 z-30 flex justify-center items-center py-4 px-6 liquid-glass mb-4">
                 <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={onOpenSettings}
-                    className="group flex items-center gap-1.5 focus:outline-none"
+                    className="group flex flex-col items-center gap-1 focus:outline-none"
                 >
                     <h1 className="text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200 transition-colors">
                         Notes

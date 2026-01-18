@@ -59,7 +59,7 @@ export function ChatTab({ onOpenSettings }: { onOpenSettings: () => void }) {
         setTimeout(() => {
             const aiMsg: Message = {
                 id: (Date.now() + 1).toString(),
-                text: 'Input received. Processing next steps...', 
+                text: 'Input received. Processing next steps...',
                 isUser: false,
                 timestamp: new Date(),
             };
@@ -69,12 +69,12 @@ export function ChatTab({ onOpenSettings }: { onOpenSettings: () => void }) {
     };
 
     return (
-        <div className="relative w-full h-full bg-background flex flex-col py-safe-top">
-            <header className="flex-none relative flex justify-center items-center py-4 px-2 mb-2 z-10">
-                <motion.button 
-                    whileTap={{ scale: 0.97 }} 
+        <div className="relative w-full h-full bg-background flex flex-col">
+            <header className="w-full sticky top-0 z-30 flex justify-center items-center py-4 px-6 liquid-glass mb-4 flex-none">
+                <motion.button
+                    whileTap={{ scale: 0.97 }}
                     onClick={onOpenSettings}
-                    className="group flex items-center gap-1.5 focus:outline-none"
+                    className="group flex flex-col items-center gap-1 focus:outline-none"
                 >
                     <h1 className="text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200 transition-colors">
                         Chat
@@ -83,7 +83,7 @@ export function ChatTab({ onOpenSettings }: { onOpenSettings: () => void }) {
             </header>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 pb-32 touch-pan-y">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 space-y-4 pb-32 pt-2 touch-pan-y">
                 {messages.map((msg) => (
                     <motion.div
                         key={msg.id}
@@ -94,15 +94,14 @@ export function ChatTab({ onOpenSettings }: { onOpenSettings: () => void }) {
                         className={`flex flex-col ${msg.isUser ? 'items-end' : 'items-start'}`}
                     >
                         <div
-                            className={`max-w-[85%] px-5 py-3 text-[17px] leading-snug rounded-[20px] ${
-                                msg.isUser
-                                    ? 'bg-[#0A84FF] text-white rounded-br-sm'
+                            className={`max-w-[85%] px-5 py-3 text-[17px] leading-snug rounded-[20px] ${msg.isUser
+                                    ? 'bg-[#0A84FF] text-white rounded-br-sm shadow-lg shadow-blue-500/20'
                                     : 'bg-[#262626] text-neutral-100 rounded-bl-sm'
                                 }`}
                         >
                             {msg.text}
                         </div>
-                        <span className="text-[11px] text-neutral-600 mt-1 px-1 font-medium">
+                        <span className="text-[11px] text-neutral-600 mt-1 px-1 font-medium italic">
                             {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                     </motion.div>
@@ -112,9 +111,9 @@ export function ChatTab({ onOpenSettings }: { onOpenSettings: () => void }) {
 
             {/* Floating Input Layer */}
             <div className="fixed bottom-0 left-0 w-full px-4 pb-[max(env(safe-area-inset-bottom),16px)] z-50">
-                <div className="w-full max-w-screen-xl mx-auto bg-[#1C1C1E]/90 backdrop-blur-xl border-t border-white/5 rounded-[26px] p-2 pr-2 flex items-end gap-2 shadow-2xl ring-1 ring-black/5">
+                <div className="w-full max-w-screen-xl mx-auto liquid-glass rounded-[26px] p-2 pr-2 flex items-end gap-2 shadow-2xl">
                     {/* Add Button */}
-                    <button 
+                    <button
                         onClick={() => vibrate('light')}
                         className="flex-none w-9 h-9 mb-0.5 rounded-full bg-neutral-700/50 text-neutral-400 flex items-center justify-center hover:text-white hover:bg-neutral-600 transition-colors"
                     >

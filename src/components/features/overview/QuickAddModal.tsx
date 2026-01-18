@@ -10,7 +10,7 @@ import { FeedItem } from './SwipeFeed';
 import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
 import { useSettings } from '@/context/SettingsContext';
 import { useData } from '@/context/DataContext';
-import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants } from '@/utils/animations';
+import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants, UNIVERSAL_MODAL_VARIANTS } from '@/utils/animations';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
 import { useToast } from '@/context/ToastContext';
 
@@ -201,36 +201,7 @@ export function QuickAddModal({
         }
     }, [isOpen]);
 
-    const containerVariants: Variants = {
-        hidden: {
-            y: isDesktop ? '-50%' : '100%',
-            x: isDesktop ? '-50%' : '0%',
-            scale: isDesktop ? 0.9 : 1,
-            opacity: 0
-        },
-        show: {
-            y: isDesktop ? '-50%' : '0%',
-            x: isDesktop ? '-50%' : '0%',
-            scale: 1,
-            opacity: 1,
-            transition: {
-                ...springConfig,
-                delayChildren: 0,
-            }
-        },
-        exit: {
-            y: isDesktop ? '-45%' : '100%',
-            x: isDesktop ? '-50%' : '0%',
-            scale: isDesktop ? 0.95 : 1,
-            opacity: 0,
-            transition: {
-                type: 'spring',
-                damping: 30,
-                stiffness: 450,
-                mass: 0.8
-            }
-        }
-    };
+    const containerVariants = UNIVERSAL_MODAL_VARIANTS(springConfig);
     const slimyItem = createStaggerItemVariants(springConfig);
 
     return (
@@ -284,7 +255,7 @@ export function QuickAddModal({
                             }
                         }}
                         className={clsx(
-                            "fixed z-50 bg-[var(--surface)] overflow-hidden flex flex-col border-t md:border border-white/10",
+                            "fixed z-50 liquid-glass overflow-hidden flex flex-col shadow-[0_-8px_32px_rgba(0,0,0,0.4)]",
                             "inset-x-0 bottom-0 h-[85vh] rounded-t-[32px] md:rounded-[32px]",
                             "md:inset-auto md:top-1/2 md:left-1/2 md:w-full md:max-w-2xl md:h-auto md:max-h-[85vh] md:shadow-2xl md:shadow-black/50"
                         )}
