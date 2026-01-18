@@ -18,7 +18,8 @@ import { SettingsModal } from '../features/settings/SettingsModal';
 import { QuickAddModal } from '../features/overview/QuickAddModal';
 import { CardDetailModal } from '../features/cards/CardDetailModal';
 import { StatePopup } from '../features/overview/StatePopup';
-import { Plus } from 'lucide-react';
+import { MemoryReviewCards } from '../features/overview/MemoryReviewCards';
+import { Plus, Brain } from 'lucide-react';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
 
 // Placeholder content - To be replaced by actual Feature components
@@ -65,6 +66,7 @@ export function NavigationShell() {
     const [selectedItem, setSelectedItem] = useState<any | null>(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isStatePopupOpen, setIsStatePopupOpen] = useState(false);
+    const [isMemoryReviewOpen, setIsMemoryReviewOpen] = useState(false);
 
     // Determine time of day for state popup
     const timeOfDay = useMemo(() => {
@@ -94,7 +96,7 @@ export function NavigationShell() {
         }
     }, [hasLoggedStateToday, timeOfDay]);
 
-    const isModalOpen = isQuickAddOpen || !!selectedItem || isSettingsOpen || isStatePopupOpen;
+    const isModalOpen = isQuickAddOpen || !!selectedItem || isSettingsOpen || isStatePopupOpen || isMemoryReviewOpen;
 
     // Track drag physics for BottomNav
     const x = useMotionValue(0);
@@ -228,22 +230,43 @@ export function NavigationShell() {
 
             {/* Global FAB - Hidden on clean screens */}
             {['tasks', 'notes', 'overview'].includes(activeTab) && !isModalOpen && (
-                <motion.button
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => {
-                        vibrate('medium');
-                        const defaultType = activeTab === 'notes' ? 'note' : 'task';
-                        setQuickAddType(defaultType);
-                        setIsQuickAddOpen(true);
-                    }}
-                    className="fixed bottom-10 right-6 w-12 h-12 bg-white text-black rounded-2xl shadow-2xl flex items-center justify-center z-40"
-                >
-                    <Plus size={24} strokeWidth={2.5} />
-                </motion.button>
+                <div className="fixed bottom-10 right-6 flex flex-col gap-3 z-40">
+                    {/* Memory Review FAB - Only on Overview */}
+                    {activeTab === 'overview' && (
+                        <motion.button
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => {
+                                vibrate('medium');
+                                setIsMemoryReviewOpen(true);
+                            }}
+                            className="w-12 h-12 bg-neutral-800 text-white rounded-2xl shadow-2xl flex items-center justify-center border border-white/10"
+                        >
+                            <Brain size={20} />
+                        </motion.button>
+                    )}
+
+                    {/* Main Add FAB */}
+                    <motion.button
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                            vibrate('medium');
+                            const defaultType = activeTab === 'notes' ? 'note' : 'task';
+                            setQuickAddType(defaultType);
+                            setIsQuickAddOpen(true);
+                        }}
+                        className="w-12 h-12 bg-white text-black rounded-2xl shadow-2xl flex items-center justify-center"
+                    >
+                        <Plus size={24} strokeWidth={2.5} />
+                    </motion.button>
+                </div>
             )}
 
             {/* Global Modals - Reached from any Tab */}
@@ -293,6 +316,16 @@ export function NavigationShell() {
                     timeOfDay={timeOfDay}
                 />
             )}
+
+            {/* Memory Review Modal */}
+            <AnimatePresence>
+                {isMemoryReviewOpen && (
+                    <MemoryReviewCards
+                        isOpen={isMemoryReviewOpen}
+                        onClose={() => setIsMemoryReviewOpen(false)}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }
