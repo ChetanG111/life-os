@@ -9,6 +9,7 @@ import { Archive, Trash2, Bookmark, Clock, Layers, List as ListIcon, CheckCircle
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
 import { Note } from '@/types';
 import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants } from '@/utils/animations';
+import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
 
 interface MemoryReviewProps {
     isOpen: boolean;
@@ -25,6 +26,8 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
     const springConfig = useSlimySpring();
     const [viewMode, setViewMode] = useState<ViewMode>('stack');
     const [processedIds, setProcessedIds] = useState<Set<string>>(new Set());
+
+    useLockBodyScroll(isOpen);
 
     // Filter to "expiring" notes - older than 7 days per memory_review_logic
     const expiringNotes = useMemo(() => {
@@ -60,6 +63,29 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
         setViewMode(prev => prev === 'stack' ? 'list' : 'stack');
     };
 
+    const baseContainer = UNIVERSAL_STAGGER_CONTAINER('modal');
+    const modalVariants = {
+        hidden: { y: '100%', opacity: 0 },
+        show: {
+            y: 0,
+            opacity: 1,
+            transition: {
+                ...springConfig,
+                staggerChildren: 0.05,
+                delayChildren: 0.02,
+            }
+        },
+        exit: {
+            y: '100%',
+            opacity: 0,
+            transition: {
+                duration: 0.2,
+                ease: 'easeIn' as any
+            }
+        }
+    };
+    const slimyItem = createStaggerItemVariants(springConfig);
+
     // Check if review is complete
     if (expiringNotes.length === 0 && processedIds.size > 0) {
         showToast('Memory review complete! ✨', 'success');
@@ -72,115 +98,124 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
     // No expiring notes at all
     if (expiringNotes.length === 0) {
         return (
-            <>
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={onClose}
-                    className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
-                />
-                <motion.div
-                    initial={{ y: '100%' }}
-                    animate={{ y: 0 }}
-                    exit={{ y: '100%' }}
-                    transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                    className="fixed inset-x-0 bottom-0 h-[60vh] bg-[var(--surface)] rounded-t-[32px] z-50 flex flex-col items-center justify-center"
-                >
-                    <div className="w-12 h-1.5 bg-neutral-700 rounded-full absolute top-6" />
-                    <CheckCircle2 size={48} className="text-neutral-600 mb-4" />
-                    <p className="text-neutral-500 text-sm font-medium">No notes to review</p>
-                    <button
-                        onClick={onClose}
-                        className="mt-6 px-6 py-3 bg-white/10 rounded-full text-white text-sm font-medium"
-                    >
-                        Close
-                    </button>
-                </motion.div>
-            </>
+            <AnimatePresence>
+                {isOpen && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={onClose}
+                            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
+                        />
+                        <motion.div
+                            variants={modalVariants}
+                            initial="hidden"
+                            animate="show"
+                            exit="exit"
+                            className="fixed inset-x-0 bottom-0 h-[60vh] bg-[var(--surface)] rounded-t-[32px] z-50 flex flex-col items-center justify-center"
+                        >
+                            <div className="w-12 h-1.5 bg-neutral-700 rounded-full absolute top-6" />
+                            <motion.div variants={slimyItem}><CheckCircle2 size={48} className="text-neutral-600 mb-4" /></motion.div>
+                            <motion.p variants={slimyItem} className="text-neutral-500 text-sm font-medium">No notes to review</motion.p>
+                            <motion.button
+                                variants={slimyItem}
+                                onClick={onClose}
+                                className="mt-6 px-6 py-3 bg-white/10 rounded-full text-white text-sm font-medium"
+                            >
+                                Close
+                            </motion.button>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         );
     }
 
     return (
-        <>
-            {/* Backdrop */}
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={onClose}
-                className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
-            />
+        <AnimatePresence>
+            {isOpen && (
+                <>
+                    {/* Backdrop */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={onClose}
+                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
+                    />
 
-            {/* Modal */}
-            <motion.div
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
-                transition={{ type: 'tween', duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-                className="fixed inset-x-0 bottom-0 h-[75vh] bg-[var(--surface)] rounded-t-[32px] z-50 flex flex-col"
-            >
-                {/* Header */}
-                <div className="flex-none px-6 pt-6 pb-4">
-                    <div className="w-12 h-1.5 bg-neutral-700 rounded-full mx-auto mb-4" />
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="text-xl font-bold text-white">Memory Review</h2>
-                            <p className="text-sm text-neutral-500">
-                                {expiringNotes.length} notes to review
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <motion.button
-                                whileTap={{ scale: 0.9 }}
-                                onClick={toggleViewMode}
-                                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors overflow-hidden"
-                            >
-                                <AnimatePresence mode="wait" initial={false}>
-                                    <motion.div
-                                        key={viewMode}
-                                        initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
-                                        animate={{ rotate: 0, opacity: 1, scale: 1 }}
-                                        exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
-                                        transition={{ duration: 0.2 }}
+                    {/* Modal */}
+                    <motion.div
+                        variants={modalVariants}
+                        initial="hidden"
+                        animate="show"
+                        exit="exit"
+                        className="fixed inset-x-0 bottom-0 h-[75vh] bg-[var(--surface)] rounded-t-[32px] z-50 flex flex-col"
+                    >
+                        {/* Header */}
+                        <div className="flex-none px-6 pt-6 pb-4">
+                            <div className="w-12 h-1.5 bg-neutral-700 rounded-full mx-auto mb-4" />
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <motion.h2 variants={slimyItem} className="text-xl font-bold text-white">Memory Review</motion.h2>
+                                    <motion.p variants={slimyItem} className="text-sm text-neutral-500">
+                                        {expiringNotes.length} notes to review
+                                    </motion.p>
+                                </div>
+                                <motion.div variants={slimyItem} className="flex items-center gap-3">
+                                    <motion.button
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={toggleViewMode}
+                                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors overflow-hidden"
                                     >
-                                        {viewMode === 'stack' ? <ListIcon size={18} /> : <Layers size={18} />}
-                                    </motion.div>
-                                </AnimatePresence>
-                            </motion.button>
-                            <div className="flex items-center gap-2 text-neutral-500">
-                                <Clock size={16} />
-                                <span className="text-xs font-medium">7+ days</span>
+                                        <AnimatePresence mode="wait" initial={false}>
+                                            <motion.div
+                                                key={viewMode}
+                                                initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
+                                                animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                                                exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
+                                                transition={{ duration: 0.2 }}
+                                            >
+                                                {viewMode === 'stack' ? <ListIcon size={18} /> : <Layers size={18} />}
+                                            </motion.div>
+                                        </AnimatePresence>
+                                    </motion.button>
+                                    <div className="flex items-center gap-2 text-neutral-500">
+                                        <Clock size={16} />
+                                        <span className="text-xs font-medium">7+ days</span>
+                                    </div>
+                                </motion.div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                {/* Content Area */}
-                <div className="flex-1 relative overflow-hidden mb-6">
-                    <AnimatePresence mode="wait">
-                        {viewMode === 'stack' ? (
-                            <StackView
-                                key="stack"
-                                notes={expiringNotes}
-                                onSave={handleSavePermanently}
-                                onArchive={handleArchive}
-                                onDelete={handleDelete}
-                                springConfig={springConfig}
-                            />
-                        ) : (
-                            <ListView
-                                key="list"
-                                notes={expiringNotes}
-                                onSave={handleSavePermanently}
-                                onArchive={handleArchive}
-                                onDelete={handleDelete}
-                            />
-                        )}
-                    </AnimatePresence>
-                </div>
-            </motion.div>
-        </>
+                        {/* Content Area */}
+                        <motion.div variants={slimyItem} className="flex-1 relative overflow-hidden mb-6">
+                            <AnimatePresence mode="wait">
+                                {viewMode === 'stack' ? (
+                                    <StackView
+                                        key="stack"
+                                        notes={expiringNotes}
+                                        onSave={handleSavePermanently}
+                                        onArchive={handleArchive}
+                                        onDelete={handleDelete}
+                                        springConfig={springConfig}
+                                    />
+                                ) : (
+                                    <ListView
+                                        key="list"
+                                        notes={expiringNotes}
+                                        onSave={handleSavePermanently}
+                                        onArchive={handleArchive}
+                                        onDelete={handleDelete}
+                                    />
+                                )}
+                            </AnimatePresence>
+                        </motion.div>
+                    </motion.div>
+                </>
+            )}
+        </AnimatePresence>
     );
 }
 
@@ -199,14 +234,10 @@ function StackView({
     springConfig: any;
 }) {
     const topNote = notes[0];
-    const containerVariants = UNIVERSAL_STAGGER_CONTAINER('modal');
 
     return (
-        <motion.div
+        <div
             className="relative h-full w-full max-w-sm mx-auto flex flex-col justify-start items-center p-4 pt-2"
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
         >
             {/* Card Stack Container */}
             <div className="relative w-full aspect-[4/5] max-h-[380px]">
@@ -237,7 +268,7 @@ function StackView({
                 <span>↓ Delete</span>
                 <span>Save →</span>
             </div>
-        </motion.div>
+        </div>
     );
 }
 
@@ -301,10 +332,8 @@ function StackCard({
                 transition: { duration: 0.2 }
             }}
             transition={{
-                type: 'spring',
-                damping: 20,
-                stiffness: 300,
-                delay: 0.15 + (stackIndex * 0.05) // Stagger cards after modal opens
+                ...springConfig,
+                delay: stackIndex * 0.05 // Tiny relative delay within the stack
             }}
             style={{
                 x: isTop ? x : 0,

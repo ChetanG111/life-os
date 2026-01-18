@@ -4,8 +4,6 @@ import { useState } from 'react';
 import clsx from 'clsx';
 import { Check, Trash2, Clock } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
-import { useSettings } from '@/context/SettingsContext';
-import { ConfirmDeleteModal } from '../cards/ConfirmDeleteModal';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
 
 interface TaskCardProps {
@@ -17,8 +15,6 @@ interface TaskCardProps {
 
 export const TaskCard = ({ task, onComplete, onDelete, onTap }: TaskCardProps) => {
     const [action, setAction] = useState<'idle' | 'completing' | 'deleting'>('idle');
-    const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
-    const { confirmDelete } = useSettings();
     const springConfig = useSlimySpring();
     const controls = useAnimation();
     const x = useMotionValue(0);
@@ -33,13 +29,7 @@ export const TaskCard = ({ task, onComplete, onDelete, onTap }: TaskCardProps) =
         if (info.offset.y > yThreshold && Math.abs(info.offset.x) < threshold) {
             vibrate('warning');
             controls.start({ x: 0, y: 0, transition: fastSpring });
-
-            if (confirmDelete) {
-                setIsConfirmingDelete(true);
-            } else {
-                setAction('deleting');
-                controls.start('deleting').then(() => onDelete());
-            }
+            onDelete();
         }
         // Right-swipe to complete
         else if (info.offset.x > threshold) {
@@ -52,13 +42,7 @@ export const TaskCard = ({ task, onComplete, onDelete, onTap }: TaskCardProps) =
         else if (info.offset.x < -threshold) {
             vibrate('medium');
             controls.start({ x: 0, y: 0, transition: fastSpring });
-
-            if (confirmDelete) {
-                setIsConfirmingDelete(true);
-            } else {
-                setAction('deleting');
-                controls.start('deleting').then(() => onDelete());
-            }
+            onDelete();
         } else {
             controls.start({ x: 0, y: 0, transition: fastSpring });
         }
@@ -189,16 +173,6 @@ export const TaskCard = ({ task, onComplete, onDelete, onTap }: TaskCardProps) =
                     </div>
                 )}
             </motion.div>
-
-            <ConfirmDeleteModal
-                isOpen={isConfirmingDelete}
-                onClose={() => setIsConfirmingDelete(false)}
-                onConfirm={() => {
-                    setAction('deleting');
-                    controls.start('deleting').then(() => onDelete());
-                }}
-                title="Delete Task?"
-            />
         </motion.div>
     );
 };

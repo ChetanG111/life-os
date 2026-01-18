@@ -3,16 +3,17 @@ import { useEffect } from 'react';
 export function useLockBodyScroll(isLocked: boolean) {
     useEffect(() => {
         if (isLocked) {
-            const originalStyle = window.getComputedStyle(document.body).overflow;
-            // Prevent scrolling on mount
+            const originalOverflow = window.getComputedStyle(document.body).overflow;
+            const originalOverscroll = window.getComputedStyle(document.body).overscrollBehaviorY;
+
+            // Prevent scrolling and pull-to-refresh
             document.body.style.overflow = 'hidden';
-            // Prevent touch move to disable pull-to-refresh more aggressively on iOS
-            // Note: This might interfere with internal scrolling if not handled carefully, 
-            // but for a full screen modal it's usually desired on the body.
-            
+            document.body.style.overscrollBehaviorY = 'none';
+
             return () => {
-                // Re-enable scrolling when component unmounts
-                document.body.style.overflow = originalStyle;
+                // Re-enable settings
+                document.body.style.overflow = originalOverflow;
+                document.body.style.overscrollBehaviorY = originalOverscroll;
             };
         }
     }, [isLocked]);

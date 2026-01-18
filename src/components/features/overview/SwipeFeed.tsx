@@ -43,6 +43,8 @@ interface SwipeFeedProps {
 export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
     const springConfig = useSlimySpring();
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+    const { confirmDelete } = useSettings();
 
     const next = () => {
         vibrate('light');
@@ -54,7 +56,16 @@ export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
         setCurrentIndex(prev => (prev - 1 + items.length) % items.length);
     };
 
+    const handleDeleteRequested = (id: string) => {
+        if (confirmDelete) {
+            setItemToDelete(id);
+        } else {
+            onSwipe(id, 'delete');
+        }
+    };
+
     if (items.length === 0) {
+        // ... (empty state)
         return (
             <motion.div
                 initial="hidden"
@@ -92,7 +103,6 @@ export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
         );
     }
 
-    // Stagger container variants for card entrance
     const stackVariants = {
         hidden: { opacity: 0 },
         show: {
@@ -180,7 +190,13 @@ export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
                                     item={item}
                                     isTop={isTop}
                                     staggerIndex={index}
-                                    onSwipe={(action) => onSwipe(item.id, action)}
+                                    onSwipe={(action) => {
+                                        if (action === 'delete') {
+                                            handleDeleteRequested(item.id);
+                                        } else {
+                                            onSwipe(item.id, action);
+                                        }
+                                    }}
                                     onDetails={() => onDetails(item)}
                                 />
                             );
@@ -188,6 +204,18 @@ export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
                     </AnimatePresence>
                 </motion.div>
             </div>
+
+            <ConfirmDeleteModal
+                isOpen={!!itemToDelete}
+                onClose={() => setItemToDelete(null)}
+                onConfirm={() => {
+                    if (itemToDelete) {
+                        onSwipe(itemToDelete, 'delete');
+                        setItemToDelete(null);
+                    }
+                }}
+                title="Delete from Feed?"
+            />
         </div>
     );
 }
@@ -234,8 +262,6 @@ function SwipeableCard({
 }) {
     const x = useMotionValue(0);
     const y = useMotionValue(0);
-    const { confirmDelete } = useSettings();
-    const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
     const rotate = useTransform(x, [-200, 200], [-8, 8]);
     const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]);
 
@@ -304,11 +330,7 @@ function SwipeableCard({
         } else {
             if (offsetY > threshold) {
                 vibrate('medium');
-                if (confirmDelete) {
-                    setIsConfirmingDelete(true);
-                } else {
-                    onSwipe('delete');
-                }
+                onSwipe('delete');
             } else if (offsetY < -threshold) {
                 vibrate('medium');
                 onDetails();
@@ -380,15 +402,6 @@ function SwipeableCard({
                     </div>
                 </div>
             </Card>
-
-            <ConfirmDeleteModal
-                isOpen={isConfirmingDelete}
-                onClose={() => setIsConfirmingDelete(false)}
-                onConfirm={() => {
-                    onSwipe('delete');
-                }}
-                title="Delete from Feed?"
-            />
         </motion.div>
     );
 }

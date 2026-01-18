@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, AnimatePresence, useDragControls } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls, Variants } from 'framer-motion';
 import { Mic, Image as ImageIcon, Link, ArrowUp, CheckCircle2, Sparkles, Hash, Calendar, X, User } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useBackToClose } from '@/hooks/use-back-to-close';
@@ -190,7 +190,37 @@ export function QuickAddModal({
     };
 
     const springConfig = useSlimySpring();
-    const staggerContainer = UNIVERSAL_STAGGER_CONTAINER('modal');
+    const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
+
+    const containerVariants: Variants = {
+        hidden: {
+            y: isDesktop ? '-50%' : '100%',
+            x: isDesktop ? '-50%' : '0%',
+            scale: isDesktop ? 0.9 : 1,
+            opacity: 0
+        },
+        show: {
+            y: isDesktop ? '-50%' : '0%',
+            x: isDesktop ? '-50%' : '0%',
+            scale: 1,
+            opacity: 1,
+            transition: {
+                ...springConfig,
+                staggerChildren: 0.05,
+                delayChildren: 0.02,
+            }
+        },
+        exit: {
+            y: isDesktop ? '-50%' : '100%',
+            x: isDesktop ? '-50%' : '0%',
+            scale: isDesktop ? 0.9 : 1,
+            opacity: 0,
+            transition: {
+                duration: 0.2,
+                ease: 'easeIn' as any
+            }
+        }
+    };
     const slimyItem = createStaggerItemVariants(springConfig);
 
     return (
@@ -226,17 +256,11 @@ export function QuickAddModal({
 
                     {/* Modal Content */}
                     <motion.div
-                        initial={typeof window !== 'undefined' && window.innerWidth >= 768
-                            ? { opacity: 0, scale: 0.9, x: '-50%', y: '-50%' }
-                            : { y: '100%' }}
-                        animate={typeof window !== 'undefined' && window.innerWidth >= 768
-                            ? { opacity: 1, scale: 1, x: '-50%', y: '-50%' }
-                            : { y: '0%' }}
-                        exit={typeof window !== 'undefined' && window.innerWidth >= 768
-                            ? { opacity: 0, scale: 0.9, x: '-50%', y: '-50%' }
-                            : { y: '100%' }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        drag={typeof window !== 'undefined' && window.innerWidth >= 768 ? false : "y"}
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="show"
+                        exit="exit"
+                        drag={isDesktop ? false : "y"}
                         dragControls={dragControls}
                         dragListener={false}
                         dragConstraints={{ top: 0, bottom: 0 }}
@@ -253,58 +277,54 @@ export function QuickAddModal({
                             "md:inset-auto md:top-1/2 md:left-1/2 md:w-full md:max-w-2xl md:h-auto md:max-h-[85vh] md:shadow-2xl md:shadow-black/50"
                         )}
                     >
-                        {/* Desktop Header (Image 0) */}
-                        <div className="hidden md:flex flex-none pt-8 pb-4 px-8 flex-col items-center">
-                            <div className="w-12 h-1 bg-neutral-800 rounded-full mb-6 opacity-50" />
-                            <h2 className="text-2xl font-bold text-white mb-8">New Task</h2>
+                        {/* Scrollable Content */}
+                        <div className="flex-1 overflow-y-auto flex flex-col">
+                            {/* Desktop Header (Image 0) */}
+                            <div className="hidden md:flex flex-none pt-8 pb-4 px-8 flex-col items-center">
+                                <div className="w-12 h-1 bg-neutral-800 rounded-full mb-6 opacity-50" />
+                                <motion.h2 variants={slimyItem} className="text-2xl font-bold text-white mb-8">New Task</motion.h2>
 
-                            {/* Desktop Type Selector Grid */}
-                            <div className="w-full grid grid-cols-4 gap-4 mb-8">
-                                {ITEM_TYPES.filter(t => t.id !== 'identity').map((type) => {
-                                    const Icon = type.icon;
-                                    const isSelected = selectedType === type.id;
-                                    return (
-                                        <button
-                                            key={type.id}
-                                            onClick={() => {
-                                                vibrate('light');
-                                                setSelectedType(type.id);
-                                            }}
-                                            className={clsx(
-                                                "flex flex-col items-center justify-center gap-2 py-6 rounded-2xl transition-all border",
-                                                isSelected
-                                                    ? "bg-white text-black border-white"
-                                                    : "bg-white/5 text-neutral-500 border-transparent hover:bg-white/10 hover:text-neutral-300"
-                                            )}
-                                        >
-                                            <Icon size={24} strokeWidth={isSelected ? 2.5 : 2} />
-                                            <span className="text-xs font-bold uppercase tracking-widest">{type.label}</span>
-                                        </button>
-                                    );
-                                })}
+                                {/* Desktop Type Selector Grid */}
+                                <motion.div variants={slimyItem} className="w-full grid grid-cols-4 gap-4 mb-8">
+                                    {ITEM_TYPES.filter(t => t.id !== 'identity').map((type) => {
+                                        const Icon = type.icon;
+                                        const isSelected = selectedType === type.id;
+                                        return (
+                                            <button
+                                                key={type.id}
+                                                onClick={() => {
+                                                    vibrate('light');
+                                                    setSelectedType(type.id);
+                                                }}
+                                                className={clsx(
+                                                    "flex flex-col items-center justify-center gap-2 py-6 rounded-2xl transition-all border",
+                                                    isSelected
+                                                        ? "bg-white text-black border-white"
+                                                        : "bg-white/5 text-neutral-500 border-transparent hover:bg-white/10 hover:text-neutral-300"
+                                                )}
+                                            >
+                                                <Icon size={24} strokeWidth={isSelected ? 2.5 : 2} />
+                                                <span className="text-xs font-bold uppercase tracking-widest">{type.label}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </motion.div>
                             </div>
-                        </div>
 
-                        {/* Mobile Header & Drag Handle */}
-                        <div
-                            onPointerDown={(e) => dragControls.start(e)}
-                            className="flex md:hidden flex-none pt-4 pb-2 px-6 flex-col items-center cursor-grab active:cursor-grabbing touch-none"
-                        >
-                            <div className="w-12 h-1.5 bg-neutral-700 rounded-full mb-4" />
-                            <div className="w-full flex items-center justify-center">
-                                <h2 className="text-xl font-bold text-white capitalize">
-                                    New {selectedType}
-                                </h2>
-                            </div>
-                        </div>
+                            {/* Mobile Header & Drag Handle */}
+                            <motion.div
+                                variants={slimyItem}
+                                onPointerDown={(e) => dragControls.start(e)}
+                                className="flex md:hidden flex-none pt-4 pb-2 px-6 flex-col items-center cursor-grab active:cursor-grabbing touch-none"
+                            >
+                                <div className="w-12 h-1.5 bg-neutral-700 rounded-full mb-4 md:hidden" />
+                                <div className="w-full flex items-center justify-center">
+                                    <h2 className="text-xl font-bold text-white capitalize">
+                                        New {selectedType}
+                                    </h2>
+                                </div>
+                            </motion.div>
 
-                        {/* Scrollable Content with Stagger */}
-                        <motion.div
-                            variants={staggerContainer}
-                            initial="hidden"
-                            animate="show"
-                            className="flex-1 overflow-y-auto"
-                        >
                             {/* Mobile Type Selector Grid */}
                             <div className="px-6 py-2 block md:hidden">
                                 <div className="grid grid-cols-5 gap-2">
@@ -366,7 +386,7 @@ export function QuickAddModal({
                                     </motion.div>
                                 )}
 
-                                {/* Desktop Input Layout (Image 0) */}
+                                {/* Input Layout */}
                                 <motion.div variants={slimyItem} className="flex flex-col md:gap-4">
                                     <input
                                         type="text"
@@ -384,7 +404,7 @@ export function QuickAddModal({
                                     />
                                 </motion.div>
 
-                                {/* Action Bar (Image 0 Desktop vs Mobile) */}
+                                {/* Action Bar */}
                                 <motion.div
                                     variants={slimyItem}
                                     className="flex items-center justify-between mt-6 md:mt-8"
@@ -429,7 +449,6 @@ export function QuickAddModal({
 
                                     {/* Right Group */}
                                     <div className="flex items-center gap-3">
-                                        {/* Priority (Indicator Dot for Desktop Image 0) */}
                                         <button
                                             onClick={cyclePriority}
                                             className={clsx(
@@ -447,7 +466,6 @@ export function QuickAddModal({
                                             )} />
                                         </button>
 
-                                        {/* Submit (Image 0 uses an Arrow/Submit button) */}
                                         <button
                                             onClick={handleSubmit}
                                             disabled={(!text.trim() && images.length === 0) || status !== 'idle'}
@@ -463,10 +481,10 @@ export function QuickAddModal({
                                     </div>
                                 </motion.div>
                             </div>
-                        </motion.div>
 
-                        {/* Bottom Spacer - only mobile */}
-                        <div className="flex-none h-24 pb-safe-bottom md:hidden" />
+                            {/* Bottom Spacer - only mobile */}
+                            <div className="flex-none h-24 pb-safe-bottom md:hidden" />
+                        </div>
                     </motion.div>
                 </>
             )}

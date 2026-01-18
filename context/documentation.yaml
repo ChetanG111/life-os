@@ -454,90 +454,85 @@ animation_system:
       - "QuickAddModal.tsx - Type selector and content stagger"
 
   # ─────────────────────────────────────
+  # Advanced Animation Coordination
+  # ─────────────────────────────────────
+  advanced_coordination:
+    description: |
+      To achieve a "Zero-Lag" premium feel, parent transitions (like a modal rising) 
+      are coordinated with child stagger animations. Instead of waiting for the 
+      parent to finish, children begin their stagger as soon as the parent enters.
+    
+    rules:
+      1. Coordination: The parent container must manage the stagger settings 
+         (staggerChildren, delayChildren) within its primary entrance transition.
+      2. No Manual Delays: Avoid using fixed `delay` values on children. Let the 
+         stagger system handle timing to maintain hardware acceleration and logic.
+      3. Unified Variants: Use the same variant names (`hidden`, `show`, `exit`) 
+         across parent and children to ensure a shared animation lifecycle.
+      4. Slimy Physics: Always inject `useSlimySpring()` into the parent transition 
+         to ensure the entire sheet and its contents feel like one physical unit.
+
+  # ─────────────────────────────────────
   # Modal Animations
   # ─────────────────────────────────────
   modal_animations:
     description: "Standard animation pattern for bottom sheet modals"
     
     pattern: |
-      All modals use the same animation pattern:
-      - Slide up from bottom with spring animation
-      - Drag-to-dismiss (swipe down to close)
-      - Backdrop blur with fade
+      All modals use the same high-performance pattern:
+      - Coordinate rising sheet with internal staggers (Zero-Lag)
+      - Use `useSlimySpring` for positional shifts (Non-linear, bouncy)
+      - Drag-to-dismiss with haptic feedback
+      - Backdrop blur with synchronized fade
     
-    standard_modal_config:
-      initial: "{ y: '100%' }"
-      animate: "{ y: '0%' }"
-      exit: "{ y: '100%' }"
-      transition: "{ type: 'spring', damping: 25, stiffness: 200 }"
-      drag: "'y'"
-      dragConstraints: "{ top: 0, bottom: 0 }"
-      dragElastic: "{ top: 0.05, bottom: 0.7 }"
-      onDragEnd: |
-        (_, info) => {
-          if (info.offset.y > 100 || info.velocity.y > 300) {
-            vibrate('light');
-            onClose();
+    advanced_modal_variants: |
+      // The standard variant structure for a premium Life OS modal
+      const modalVariants = {
+        hidden: { y: '100%', opacity: 0 },
+        show: {
+          y: 0,
+          opacity: 1,
+          transition: {
+            ...springConfig,      // Bouncy spring
+            staggerChildren: 0.05, // Rapid internal stagger
+            delayChildren: 0.02,   // Start stagger 20ms after opening
           }
+        },
+        exit: {
+          y: '100%',
+          opacity: 0,
+          transition: { duration: 0.2, ease: 'easeIn' }
         }
+      };
     
     implementing_a_new_modal: |
-      // Template for creating a new bottom sheet modal
+      // Template for creating a new premium Life OS modal
       
       import { motion, AnimatePresence, useDragControls } from 'framer-motion';
       import { useBackToClose } from '@/hooks/use-back-to-close';
       import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
-      import { vibrate } from '@/utils/haptics';
+      import { useSlimySpring } from '@/hooks/use-slimy-spring';
+      import { createStaggerItemVariants } from '@/utils/animations';
       
       function NewModal({ isOpen, onClose }) {
-        const dragControls = useDragControls();
-        
-        // Handle Android back button
-        useBackToClose(isOpen, onClose);
-        // Lock body scroll (prevent pull-to-refresh)
-        useLockBodyScroll(isOpen);
+        const springConfig = useSlimySpring();
+        const itemVariants = createStaggerItemVariants(springConfig);
         
         return (
           <AnimatePresence>
             {isOpen && (
               <>
-                {/* Backdrop */}
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={onClose}
-                  className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-                />
-                
-                {/* Modal Content */}
-                <motion.div
-                  initial={{ y: '100%' }}
-                  animate={{ y: '0%' }}
-                  exit={{ y: '100%' }}
-                  transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                  variants={modalVariants}
+                  initial="hidden"
+                  animate="show"
+                  exit="exit"
                   drag="y"
-                  dragControls={dragControls}
-                  dragListener={false}  // Use dragControls for specific handle
-                  dragConstraints={{ top: 0, bottom: 0 }}
-                  dragElastic={{ top: 0.05, bottom: 0.7 }}
-                  onDragEnd={(_, info) => {
-                    if (info.offset.y > 100 || info.velocity.y > 300) {
-                      vibrate('light');
-                      onClose();
-                    }
-                  }}
-                  className="fixed inset-x-0 bottom-0 bg-[var(--surface)] rounded-t-[32px] z-50"
+                  className="fixed inset-x-0 bottom-0 bg-[var(--surface)]"
                 >
-                  {/* Drag Handle */}
-                  <div
-                    onPointerDown={(e) => dragControls.start(e)}
-                    className="flex justify-center pt-4 pb-2 cursor-grab touch-none"
-                  >
-                    <div className="w-12 h-1.5 bg-neutral-700 rounded-full" />
-                  </div>
-                  
-                  {/* Your content here */}
+                   <motion.h2 variants={itemVariants}>Header First</motion.h2>
+                   <motion.div variants={itemVariants}>Content Second</motion.div>
                 </motion.div>
               </>
             )}

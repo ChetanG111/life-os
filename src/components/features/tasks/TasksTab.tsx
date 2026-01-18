@@ -12,6 +12,9 @@ import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants } from '@/utils/
 
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
+import { useSettings } from '@/context/SettingsContext';
+import { useState } from 'react';
+import { ConfirmDeleteModal } from '../cards/ConfirmDeleteModal';
 
 export const TasksTab = ({
     onOpenSettings,
@@ -24,16 +27,30 @@ export const TasksTab = ({
 }) => {
     const { tasks, removeTask, completeTask } = useData();
     const { showToast } = useToast();
+    const { confirmDelete } = useSettings();
     const springConfig = useSlimySpring();
+    const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
 
     const handleComplete = (id: string) => {
         completeTask(id);
         showToast('Task completed! 🎉', 'success');
     };
 
-    const handleDelete = (id: string) => {
-        removeTask(id);
-        showToast('Task deleted', 'info');
+    const handleDeleteRequested = (id: string) => {
+        if (confirmDelete) {
+            setTaskToDelete(id);
+        } else {
+            removeTask(id);
+            showToast('Task deleted', 'info');
+        }
+    };
+
+    const handleConfirmDelete = () => {
+        if (taskToDelete) {
+            removeTask(taskToDelete);
+            showToast('Task deleted', 'info');
+            setTaskToDelete(null);
+        }
     };
 
     // Filter out completed tasks and sort by priority (High -> Medium -> Low)
@@ -82,7 +99,7 @@ export const TasksTab = ({
                             <TaskCard
                                 task={task}
                                 onComplete={() => handleComplete(task.id)}
-                                onDelete={() => handleDelete(task.id)}
+                                onDelete={() => handleDeleteRequested(task.id)}
                                 onTap={() => onOpenDetails({
                                     id: `task-${task.id}`,
                                     originalId: task.id,
@@ -120,11 +137,18 @@ export const TasksTab = ({
                             variants={itemVariants}
                             className="text-sm font-medium uppercase tracking-[0.2em]"
                         >
-                            All caught up
+                            No tasks yet
                         </motion.p>
                     </motion.div>
                 )}
             </motion.div>
+
+            <ConfirmDeleteModal
+                isOpen={!!taskToDelete}
+                onClose={() => setTaskToDelete(null)}
+                onConfirm={handleConfirmDelete}
+                title="Delete Task?"
+            />
         </div>
     );
 };

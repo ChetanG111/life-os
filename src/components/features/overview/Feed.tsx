@@ -109,40 +109,41 @@ export function Feed({ onOpenSettings, onOpenDetails, onOpenQuickAdd }: FeedProp
         <div className="relative h-full w-full py-safe-top px-4 overflow-hidden flex flex-col">
             {/* Header */}
             <header className="relative w-full max-w-7xl mx-auto flex justify-center items-center py-4 px-2 mb-2 flex-none">
-                {/* Desktop: Settings on Right (Image 2) */}
-                <div className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 items-center gap-3">
+                {/* Header Actions */}
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                    {/* Settings: Desktop Only */}
                     <motion.button
                         whileTap={{ scale: 0.9 }}
                         onClick={onOpenSettings}
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                        className="hidden md:flex w-10 h-10 items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
                     >
                         <SettingsIcon size={20} />
                     </motion.button>
 
-                    {/* View Toggle */}
+                    {/* View Toggle: Visible Everywhere, Sleeker on Mobile */}
                     <motion.button
                         whileTap={{ scale: 0.9 }}
                         onClick={toggleView}
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 md:bg-white/5 text-white/40 md:text-neutral-400 hover:text-white transition-colors"
                     >
                         <AnimatePresence mode='wait' initial={false}>
                             {viewMode === 'stack' ? (
                                 <motion.div
                                     key="list"
-                                    initial={{ opacity: 0, rotate: -90 }}
-                                    animate={{ opacity: 1, rotate: 0 }}
-                                    exit={{ opacity: 0, rotate: 90 }}
+                                    initial={{ opacity: 0, rotate: -90, scale: 0.8 }}
+                                    animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                                    exit={{ opacity: 0, rotate: 90, scale: 0.8 }}
                                 >
-                                    <ListIcon size={20} />
+                                    <ListIcon size={18} />
                                 </motion.div>
                             ) : (
                                 <motion.div
                                     key="stack"
-                                    initial={{ opacity: 0, rotate: 90 }}
-                                    animate={{ opacity: 1, rotate: 0 }}
-                                    exit={{ opacity: 0, rotate: -90 }}
+                                    initial={{ opacity: 0, rotate: 90, scale: 0.8 }}
+                                    animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                                    exit={{ opacity: 0, rotate: -90, scale: 0.8 }}
                                 >
-                                    <Layers size={20} />
+                                    <Layers size={18} />
                                 </motion.div>
                             )}
                         </AnimatePresence>
