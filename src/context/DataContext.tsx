@@ -49,36 +49,45 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const [stateHistory, setStateHistory] = useState<StateEntry[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
 
+    // ⚠️ TESTING MODE: Set to true to enable localStorage persistence
+    const PERSIST_DATA = false;
+
     // Initial Load
     useEffect(() => {
         const loadData = () => {
             try {
-                const savedTasks = localStorage.getItem('life-os-tasks');
-                const savedNotes = localStorage.getItem('life-os-notes');
-                const savedSettings = localStorage.getItem('life-os-settings');
+                if (PERSIST_DATA) {
+                    const savedTasks = localStorage.getItem('life-os-tasks');
+                    const savedNotes = localStorage.getItem('life-os-notes');
+                    const savedSettings = localStorage.getItem('life-os-settings');
 
-                if (savedTasks) {
-                    const parsed = JSON.parse(savedTasks);
-                    if (Array.isArray(parsed)) setTasks(parsed);
+                    if (savedTasks) {
+                        const parsed = JSON.parse(savedTasks);
+                        if (Array.isArray(parsed)) setTasks(parsed);
+                    } else {
+                        setTasks(mockTasks);
+                    }
+
+                    if (savedNotes) {
+                        const parsed = JSON.parse(savedNotes);
+                        if (Array.isArray(parsed)) setNotes(parsed);
+                    } else {
+                        setNotes(mockNotes);
+                    }
+
+                    if (savedSettings) {
+                        setSettings(JSON.parse(savedSettings));
+                    }
+
+                    const savedStateHistory = localStorage.getItem('life-os-state-history');
+                    if (savedStateHistory) {
+                        const parsed = JSON.parse(savedStateHistory);
+                        if (Array.isArray(parsed)) setStateHistory(parsed);
+                    }
                 } else {
+                    // Testing mode: always use mock data
                     setTasks(mockTasks);
-                }
-
-                if (savedNotes) {
-                    const parsed = JSON.parse(savedNotes);
-                    if (Array.isArray(parsed)) setNotes(parsed);
-                } else {
                     setNotes(mockNotes);
-                }
-
-                if (savedSettings) {
-                    setSettings(JSON.parse(savedSettings));
-                }
-
-                const savedStateHistory = localStorage.getItem('life-os-state-history');
-                if (savedStateHistory) {
-                    const parsed = JSON.parse(savedStateHistory);
-                    if (Array.isArray(parsed)) setStateHistory(parsed);
                 }
             } catch (error) {
                 console.error('Failed to load data from localStorage:', error);
@@ -92,27 +101,27 @@ export function DataProvider({ children }: { children: ReactNode }) {
         loadData();
     }, []);
 
-    // Persistence with check
+    // Persistence with check (disabled in testing mode)
     useEffect(() => {
-        if (isLoaded) {
+        if (isLoaded && PERSIST_DATA) {
             localStorage.setItem('life-os-tasks', JSON.stringify(tasks));
         }
     }, [tasks, isLoaded]);
 
     useEffect(() => {
-        if (isLoaded) {
+        if (isLoaded && PERSIST_DATA) {
             localStorage.setItem('life-os-notes', JSON.stringify(notes));
         }
     }, [notes, isLoaded]);
 
     useEffect(() => {
-        if (isLoaded) {
+        if (isLoaded && PERSIST_DATA) {
             localStorage.setItem('life-os-settings', JSON.stringify(settings));
         }
     }, [settings, isLoaded]);
 
     useEffect(() => {
-        if (isLoaded) {
+        if (isLoaded && PERSIST_DATA) {
             localStorage.setItem('life-os-state-history', JSON.stringify(stateHistory));
         }
     }, [stateHistory, isLoaded]);

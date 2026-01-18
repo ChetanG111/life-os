@@ -37,7 +37,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         else if (type === 'warning') vibrate('warning');
         else vibrate('light');
 
-        setToasts(prev => [...prev, newToast]);
+        // Replace all existing toasts with the new one (old ones animate out first via AnimatePresence)
+        setToasts([newToast]);
 
         // Auto dismiss
         if (duration > 0) {
@@ -102,10 +103,19 @@ function ToastContainer({ toasts, onDismiss }: { toasts: Toast[], onDismiss: (id
                         animate={{ opacity: 1, x: 0, scale: 1 }}
                         exit={{ opacity: 0, x: 100, scale: 0.9 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                        drag="x"
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragElastic={0.5}
+                        onDragEnd={(_, info) => {
+                            // Dismiss if swiped far enough in either direction
+                            if (Math.abs(info.offset.x) > 80) {
+                                onDismiss(toast.id);
+                            }
+                        }}
                         className={`
                             bg-[var(--surface)] backdrop-blur-xl rounded-2xl p-4 
                             border ${getBorderColor(toast.type)} 
-                            shadow-2xl pointer-events-auto
+                            shadow-2xl pointer-events-auto cursor-grab active:cursor-grabbing
                             flex items-start gap-3
                         `}
                     >
