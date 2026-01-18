@@ -7,7 +7,7 @@
 # reusable systems in Life OS. Read this before modifying any code.
 #
 # Last Updated: 2026-01-18
-# Version: 0.1.0 (Alpha)
+# Version: 0.2.0 (Alpha)
 
 ---
 # ════════════════════════════════════════
@@ -76,7 +76,7 @@ project_structure:
               tasks: ["TasksTab.tsx", "TaskCard.tsx"]
               notes: ["NotesTab.tsx", "NoteCard.tsx"]
               weekly: ["WeeklyTab.tsx", "DayItem.tsx"]
-              overview: ["Feed.tsx", "SwipeFeed.tsx", "QuickAddModal.tsx"]
+              overview: ["Feed.tsx", "SwipeFeed.tsx", "ListFeed.tsx", "QuickAddModal.tsx", "StatePopup.tsx", "MemoryReviewCards.tsx"]
               chat: ["ChatTab.tsx"]
               settings: ["SettingsModal.tsx"]
               cards: ["CardDetailModal.tsx", "ConfirmDeleteModal.tsx"]
@@ -88,9 +88,10 @@ project_structure:
       context:
         description: "React Context providers for global state"
         files:
-          - "DataContext.tsx      # Tasks, Notes, Settings state + persistence"
+          - "DataContext.tsx      # Tasks, Notes, Settings, State history + persistence"
           - "SettingsContext.tsx  # Settings abstraction layer"
           - "MotionContext.tsx    # Dynamic spring configuration"
+          - "ToastContext.tsx     # Toast notifications system"
       
       hooks:
         description: "Custom React hooks"
@@ -1355,6 +1356,7 @@ quick_reference:
     data: "import { useData } from '@/context/DataContext';"
     settings: "import { useSettings } from '@/context/SettingsContext';"
     motion: "import { useMotion } from '@/context/MotionContext';"
+    toast: "import { useToast } from '@/context/ToastContext';"
     spring: "import { useSlimySpring } from '@/hooks/use-slimy-spring';"
     stagger: "import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants } from '@/utils/animations';"
     haptics: "import { vibrate } from '@/utils/haptics';"
@@ -1372,6 +1374,192 @@ quick_reference:
   modal_essentials: |
     useBackToClose(isOpen, onClose);
     useLockBodyScroll(isOpen);
+
+
+
+---
+# ════════════════════════════════════════
+# TOAST NOTIFICATION SYSTEM
+# ════════════════════════════════════════
+toast_system:
+  file: "src/context/ToastContext.tsx"
+  description: |
+    Global toast notification system for feedback and error handling.
+    Follows logic.yaml error_handling rules: never_fail_silently, always_show_toast, log_to_console.
+
+  exports:
+    ToastProvider:
+      type: "React Component"
+      usage: "Wrapped in layout.tsx (inside MotionProvider)"
+    
+    useToast:
+      type: "React Hook"
+      returns:
+        toasts: "Toast[] - Current active toasts"
+        showToast: "(message: string, type?: ToastType, duration?: number) => void"
+        dismissToast: "(id: string) => void"
+      
+      usage: |
+        import { useToast } from '@/context/ToastContext';
+        
+        function MyComponent() {
+          const { showToast } = useToast();
+          
+          // Show different toast types
+          showToast('Task completed! 🎉', 'success');
+          showToast('Something went wrong', 'error');
+          showToast('Check your input', 'warning');
+          showToast('Note saved', 'info');
+        }
+  
+  toast_types:
+    success:
+      color: "green-400"
+      haptic: "success"
+      icon: "CheckCircle"
+    error:
+      color: "red-400"
+      haptic: "error"
+      icon: "AlertCircle"
+    warning:
+      color: "amber-400"
+      haptic: "warning"
+      icon: "AlertTriangle"
+    info:
+      color: "blue-400"
+      haptic: "light"
+      icon: "Info"
+  
+  behavior:
+    position: "top-right (fixed)"
+    auto_dismiss: "3 seconds default"
+    console_logging: "All toasts are logged to console"
+    haptic_feedback: "Type-appropriate vibration on show"
+
+
+---
+# ════════════════════════════════════════
+# STATE POPUP (MOOD CHECK-IN)
+# ════════════════════════════════════════
+state_popup:
+  file: "src/components/features/overview/StatePopup.tsx"
+  description: |
+    Morning/evening emoji-based mood check-in popup. Auto-triggers based on
+    time of day if user hasn't logged state today. Per logic.yaml state_popup spec.
+  
+  trigger_windows:
+    morning: "5am - 12pm"
+    evening: "6pm - 11pm"
+    outside: "Popup not shown"
+  
+  emoji_options:
+    - emoji: "🔥"
+      label: "Fired Up"
+    - emoji: "😊"
+      label: "Good"
+    - emoji: "😐"
+      label: "Neutral"
+    - emoji: "😔"
+      label: "Low"
+    - emoji: "😴"
+      label: "Tired"
+  
+  data_storage:
+    context: "DataContext.tsx"
+    state_key: "stateHistory"
+    localStorage_key: "life-os-state-history"
+    entry_format: |
+      {
+        emoji: string,
+        timestamp: string (ISO),
+        timeOfDay: 'morning' | 'evening'
+      }
+  
+  auto_trigger_logic: |
+    1. On app load, check current hour
+    2. Determine if in morning/evening window
+    3. Check stateHistory for entry today with same timeOfDay
+    4. If not found, show popup after 1.5s delay
+  
+  usage: |
+    // In NavigationShell.tsx (already implemented)
+    <StatePopup
+      isOpen={isStatePopupOpen}
+      onClose={() => setIsStatePopupOpen(false)}
+      onSelect={(emoji) => saveState(emoji, timeOfDay)}
+      currentEmoji={currentState?.emoji}
+      timeOfDay={timeOfDay}
+    />
+
+
+---
+# ════════════════════════════════════════
+# MEMORY REVIEW CARDS
+# ════════════════════════════════════════
+memory_review:
+  file: "src/components/features/overview/MemoryReviewCards.tsx"
+  description: |
+    Card-based review system for expiring notes (7+ days old).
+    User can save permanently, archive, or delete. Accessed via Brain icon FAB on Overview tab.
+  
+  filter_logic: |
+    Notes older than 7 days are considered "expiring" and shown in review.
+  
+  actions:
+    swipe_right: "Save permanently"
+    swipe_left: "Archive"
+    swipe_down: "Delete"
+    button_keep: "Save permanently"
+    button_archive: "Archive"
+    button_delete: "Delete"
+  
+  access:
+    location: "Overview tab FAB area"
+    icon: "Brain (Lucide)"
+    trigger: "Tap Brain icon to open review modal"
+  
+  ui_features:
+    - "Card stack with swipe gestures"
+    - "Progress indicator (X of Y notes)"
+    - "Date and tags displayed on cards"
+    - "Toast notifications for each action"
+    - "Auto-close when all notes reviewed"
+  
+  usage: |
+    // In NavigationShell.tsx (already implemented)
+    <MemoryReviewCards
+      isOpen={isMemoryReviewOpen}
+      onClose={() => setIsMemoryReviewOpen(false)}
+    />
+
+
+---
+# ════════════════════════════════════════
+# TASK COMPLETION LOGIC
+# ════════════════════════════════════════
+task_completion:
+  description: |
+    Tasks now have proper complete vs delete separation per logic.yaml card_swipe spec.
+  
+  actions:
+    swipe_right: |
+      Calls completeTask(id) - marks task as isCompleted: true
+      Task remains in storage but filtered from active views
+      Shows success toast
+    
+    swipe_left: |
+      Calls removeTask(id) - permanently deletes task
+      Shows info toast (or confirmation modal if setting enabled)
+  
+  where_implemented:
+    - "TaskCard.tsx - Separate onComplete/onDelete props"
+    - "TasksTab.tsx - Uses completeTask() for swipe-right"
+    - "Feed.tsx - Uses completeTask() for swipe-right"
+  
+  filtering:
+    tasks_tab: "Shows only tasks where isCompleted === false"
+    overview_feed: "Shows only tasks where isCompleted === false"
+    weekly_tab: "Shows all tasks (uses completion for progress ring)"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════

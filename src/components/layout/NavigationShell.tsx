@@ -1,18 +1,35 @@
 'use client';
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, Suspense } from 'react';
 import { motion, AnimatePresence, Variants, useMotionValue, useTransform } from 'framer-motion';
 import { TabId, TABS } from '@/types';
 import { BottomNav } from './BottomNav';
 import { vibrate } from '@/utils/haptics';
+import dynamic from 'next/dynamic';
 
-import { Feed } from '@/components/features/overview/Feed';
+// Lazy load tab components per performance_rules.lazy_load_tabs
+const Feed = dynamic(() => import('@/components/features/overview/Feed').then(mod => ({ default: mod.Feed })), {
+    loading: () => <TabLoadingState />,
+});
+const TasksTab = dynamic(() => import('@/components/features/tasks/TasksTab').then(mod => ({ default: mod.TasksTab })), {
+    loading: () => <TabLoadingState />,
+});
+const NotesTab = dynamic(() => import('@/components/features/notes/NotesTab').then(mod => ({ default: mod.NotesTab })), {
+    loading: () => <TabLoadingState />,
+});
+const WeeklyTab = dynamic(() => import('@/components/features/weekly/WeeklyTab').then(mod => ({ default: mod.WeeklyTab })), {
+    loading: () => <TabLoadingState />,
+});
+const ChatTab = dynamic(() => import('@/components/features/chat/ChatTab').then(mod => ({ default: mod.ChatTab })), {
+    loading: () => <TabLoadingState />,
+});
 
-import { TasksTab } from '@/components/features/tasks/TasksTab';
-import { NotesTab } from '@/components/features/notes/NotesTab';
-
-import { WeeklyTab } from '@/components/features/weekly/WeeklyTab';
-import { ChatTab } from '@/components/features/chat/ChatTab';
+// Loading state for lazy-loaded tabs
+const TabLoadingState = () => (
+    <div className="flex items-center justify-center h-full">
+        <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+    </div>
+);
 
 import { SettingsModal } from '../features/settings/SettingsModal';
 import { QuickAddModal } from '../features/overview/QuickAddModal';
