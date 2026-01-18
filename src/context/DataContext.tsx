@@ -11,16 +11,26 @@ interface AppSettings {
     confirmDelete: boolean;
 }
 
+// State tracking for morning/evening check-ins
+export interface StateEntry {
+    emoji: string;
+    timestamp: string; // ISO string
+    timeOfDay: 'morning' | 'evening';
+}
+
 interface DataContextType {
     tasks: Task[];
     notes: Note[];
     settings: AppSettings;
+    stateHistory: StateEntry[];
+    currentState: StateEntry | null;
     addTask: (task: Omit<Task, 'id' | 'isCompleted'>) => void;
     completeTask: (id: string) => void;
     removeTask: (id: string) => void;
     addNote: (note: Omit<Note, 'id' | 'date'>) => void;
     removeNote: (id: string) => void;
     updateSettings: (updates: Partial<AppSettings>) => void;
+    saveState: (emoji: string, timeOfDay: 'morning' | 'evening') => void;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -36,6 +46,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [notes, setNotes] = useState<Note[]>([]);
     const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+    const [stateHistory, setStateHistory] = useState<StateEntry[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
 
     // Initial Load
@@ -62,6 +73,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
                 if (savedSettings) {
                     setSettings(JSON.parse(savedSettings));
+                }
+
+                const savedStateHistory = localStorage.getItem('life-os-state-history');
+                if (savedStateHistory) {
+                    const parsed = JSON.parse(savedStateHistory);
+                    if (Array.isArray(parsed)) setStateHistory(parsed);
                 }
             } catch (error) {
                 console.error('Failed to load data from localStorage:', error);
@@ -94,6 +111,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
     }, [settings, isLoaded]);
 
+    useEffect(() => {
+        if (isLoaded) {
+            localStorage.setItem('life-os-state-history', JSON.stringify(stateHistory));
+        }
+    }, [stateHistory, isLoaded]);
+
+    // Get the most recent state entry
+    const currentState = stateHistory.length > 0 ? stateHistory[stateHistory.length - 1] : null;
+
     const addTask = (taskData: Omit<Task, 'id' | 'isCompleted'>) => {
         const newTask: Task = {
             ...taskData,
@@ -104,7 +130,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     };
 
     const completeTask = (id: string) => {
-        setTasks(prev => prev.map(t => 
+        setTasks(prev => prev.map(t =>
             t.id === id ? { ...t, isCompleted: true } : t
         ));
     };
@@ -130,18 +156,30 @@ export function DataProvider({ children }: { children: ReactNode }) {
         setSettings(prev => ({ ...prev, ...updates }));
     };
 
+    const saveState = (emoji: string, timeOfDay: 'morning' | 'evening') => {
+        const entry: StateEntry = {
+            emoji,
+            timestamp: new Date().toISOString(),
+            timeOfDay
+        };
+        setStateHistory(prev => [...prev, entry]);
+    };
+
     // Avoid hydration mismatch/flicker by only rendering children when loaded
     return (
         <DataContext.Provider value={{
             tasks,
             notes,
             settings,
+            stateHistory,
+            currentState,
             addTask,
             completeTask,
             removeTask,
             addNote,
             removeNote,
-            updateSettings
+            updateSettings,
+            saveState
         }}>
             {isLoaded ? children : <div className="fixed inset-0 bg-black" />}
         </DataContext.Provider>

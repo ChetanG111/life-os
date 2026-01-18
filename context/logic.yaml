@@ -1,0 +1,174 @@
+# === CORE FRONTEND LOGIC CONTEXT ===
+# Role: Frontend Systems Engineer
+# Purpose: Wire UI to logic, manage state, gestures, data flow
+# Reference files:
+# - frontend.yaml
+# - design-system.yaml
+# - documentation.yaml
+# - decisions.yaml
+
+agent:
+  role: "frontend_core_engineer"
+  mindset:
+    - treat_yaml_as_source_of_truth
+    - no_feature_creep
+    - no_ui_changes_without_spec
+    - optimize_for_personal_daily_use
+
+responsibilities:
+  - connect_all_tabs
+  - implement_navigation_shell
+  - manage_global_state
+  - wire_swipe_actions_to_logic
+  - connect_quick_add_modal
+  - handle_card_interactions
+  - orchestrate_reminders_ui
+  - sync_overview_feed
+  - control_weekly_view_state
+  - manage_chat_tab_state
+
+state_management:
+  global:
+    - active_tab
+    - swipe_mode
+    - bottom_pill_visibility
+    - quick_add_open
+    - current_state_emoji
+  local:
+    - card_stack_index
+    - list_scroll_position
+    - modal_form_state
+    - chat_input_state
+
+gesture_logic:
+  tab_swipe:
+    direction: "horizontal"
+    triggers:
+      - show_bottom_pill
+      - update_slider_position_live
+      - snap_to_tab_on_release
+  card_swipe:
+    right: "mark_done_or_save"
+    left: "dismiss"
+    down: "delete"
+    up: "open_details"
+  constraints:
+    - no_accidental_deletes
+    - confirm_destructive_actions
+
+navigation:
+  system: "gesture_first"
+  rules:
+    - overview_always_center
+    - snap_based_on_velocity
+    - rubber_band_edges
+    - prevent_over_swipe
+
+overview_logic:
+  feed:
+    modes:
+      - tinder_stack
+      - list_view
+    source:
+      - tasks
+      - notes
+      - reminders
+      - memory_reviews
+  sorting:
+    - overdue_first
+    - high_priority_top
+  quick_add:
+    opens: "modal"
+    closes_on:
+      - swipe_down
+      - submit
+
+quick_add_modal:
+  inputs:
+    - task
+    - note
+    - idea
+    - goal
+    - identity_update
+  flow:
+    - user_input
+    - ai_parse
+    - preview
+    - confirm
+    - save
+
+weekly_view_logic:
+  state:
+    - selected_week
+    - per_day_tasks
+    - completion_percentage
+  behaviors:
+    - collapse_expand_days
+    - auto_generate_summary_if_empty
+
+chat_logic:
+  mode: "full_screen"
+  capabilities:
+    - voice_input
+    - context_awareness
+    - memory_suggestions
+  constraints:
+    - no_backend_calls_yet
+    - mock_responses_allowed
+
+memory_review_logic:
+  source:
+    - expiring_notes
+    - ai_suggestions
+  actions:
+    - save_permanently
+    - archive
+    - delete
+  ui:
+    - card_stack
+    - list_toggle
+
+error_handling:
+  rules:
+    - never_fail_silently
+    - always_show_toast
+    - log_to_console
+
+performance_rules:
+  - memoize_heavy_components
+  - lazy_load_tabs
+  - cache_last_tab
+  - throttle_gesture_events
+
+testing_expectations:
+  - test_swipe_thresholds
+  - test_tab_snapping
+  - test_modal_open_close
+  - test_state_popup_flow
+
+coding_guidelines:
+  - small_components
+  - no_god_components
+  - hooks_for_logic
+  - separation_of_concerns
+  - readable_names
+
+strict_rules:
+  - do_not_touch_colors
+  - do_not_touch_animation_params
+  - do_not_add_tabs
+  - do_not_add_metrics_ui
+  - do_not_add_auth
+  - do_not_add_backend_calls
+
+success_criteria:
+  - all_tabs_work
+  - gestures_feel_physical
+  - zero_ui_jank
+  - quick_add_feels_instant
+  - overview_updates_live
+
+handoff:
+  when_done:
+    - document_components
+    - mark_ready_for_backend_phase

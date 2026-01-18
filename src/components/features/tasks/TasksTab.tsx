@@ -21,17 +21,23 @@ export const TasksTab = ({
     onOpenDetails: (item: any) => void,
     onOpenQuickAdd: (type?: 'task' | 'note') => void
 }) => {
-    const { tasks, removeTask } = useData();
+    const { tasks, removeTask, completeTask } = useData();
     const springConfig = useSlimySpring();
 
-    const handleRemove = (id: string) => {
+    const handleComplete = (id: string) => {
+        completeTask(id);
+    };
+
+    const handleDelete = (id: string) => {
         removeTask(id);
     };
 
-    // Sort by priority (High -> Medium -> Low)
+    // Filter out completed tasks and sort by priority (High -> Medium -> Low)
     const sortedTasks = useMemo(() => {
         const priorityScore = { high: 0, medium: 1, low: 2 };
-        return [...tasks].sort((a, b) => priorityScore[a.priority] - priorityScore[b.priority]);
+        return [...tasks]
+            .filter(t => !t.isCompleted)
+            .sort((a, b) => priorityScore[a.priority] - priorityScore[b.priority]);
     }, [tasks]);
 
     const containerVariants = UNIVERSAL_STAGGER_CONTAINER('standard');
@@ -71,7 +77,8 @@ export const TasksTab = ({
                         >
                             <TaskCard
                                 task={task}
-                                onRemove={() => handleRemove(task.id)}
+                                onComplete={() => handleComplete(task.id)}
+                                onDelete={() => handleDelete(task.id)}
                                 onTap={() => onOpenDetails({
                                     id: `task-${task.id}`,
                                     originalId: task.id,
@@ -88,7 +95,7 @@ export const TasksTab = ({
                 </AnimatePresence>
 
                 {/* Empty state handles - Integrated into stagger */}
-                {tasks.length === 0 && (
+                {sortedTasks.length === 0 && (
                     <motion.div
                         variants={{
                             hidden: { opacity: 0 },

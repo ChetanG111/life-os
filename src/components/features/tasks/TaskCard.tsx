@@ -10,11 +10,12 @@ import { useSlimySpring } from '@/hooks/use-slimy-spring';
 
 interface TaskCardProps {
     task: Task;
-    onRemove: () => void;
+    onComplete: () => void;
+    onDelete: () => void;
     onTap?: () => void;
 }
 
-export const TaskCard = ({ task, onRemove, onTap }: TaskCardProps) => {
+export const TaskCard = ({ task, onComplete, onDelete, onTap }: TaskCardProps) => {
     const [action, setAction] = useState<'idle' | 'completing' | 'deleting'>('idle');
     const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
     const { confirmDelete } = useSettings();
@@ -30,7 +31,7 @@ export const TaskCard = ({ task, onRemove, onTap }: TaskCardProps) => {
             vibrate('success');
             controls.start({ x: 0, transition: fastSpring });
             setAction('completing');
-            controls.start('completing').then(() => onRemove());
+            controls.start('completing').then(() => onComplete());
         } else if (info.offset.x < -threshold) {
             vibrate('medium');
             controls.start({ x: 0, transition: fastSpring });
@@ -39,7 +40,7 @@ export const TaskCard = ({ task, onRemove, onTap }: TaskCardProps) => {
                 setIsConfirmingDelete(true);
             } else {
                 setAction('deleting');
-                controls.start('deleting').then(() => onRemove());
+                controls.start('deleting').then(() => onDelete());
             }
         } else {
             controls.start({ x: 0, transition: fastSpring });
@@ -155,7 +156,7 @@ export const TaskCard = ({ task, onRemove, onTap }: TaskCardProps) => {
                 onClose={() => setIsConfirmingDelete(false)}
                 onConfirm={() => {
                     setAction('deleting');
-                    controls.start('deleting').then(() => onRemove());
+                    controls.start('deleting').then(() => onDelete());
                 }}
                 title="Delete Task?"
             />

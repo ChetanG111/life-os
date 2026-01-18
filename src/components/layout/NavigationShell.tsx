@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence, Variants, useMotionValue, useTransform } from 'framer-motion';
 import { TabId, TABS } from '@/types';
 import { BottomNav } from './BottomNav';
@@ -17,6 +17,7 @@ import { ChatTab } from '@/components/features/chat/ChatTab';
 import { SettingsModal } from '../features/settings/SettingsModal';
 import { QuickAddModal } from '../features/overview/QuickAddModal';
 import { CardDetailModal } from '../features/cards/CardDetailModal';
+import { StatePopup } from '../features/overview/StatePopup';
 import { Plus } from 'lucide-react';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
 
@@ -52,7 +53,7 @@ const TabContent = ({
 import { useData } from '@/context/DataContext';
 
 export function NavigationShell() {
-    const { settings, updateSettings, removeTask, removeNote, addTask, addNote } = useData();
+    const { settings, updateSettings, removeTask, removeNote, addTask, addNote, stateHistory, saveState, currentState } = useData();
     const springConfig = useSlimySpring();
     const showBottomNav = settings.showBottomNav;
     const [activeTab, setActiveTab] = useState<TabId>('overview');
@@ -63,8 +64,37 @@ export function NavigationShell() {
     const [quickAddType, setQuickAddType] = useState<'task' | 'note'>('task');
     const [selectedItem, setSelectedItem] = useState<any | null>(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isStatePopupOpen, setIsStatePopupOpen] = useState(false);
 
-    const isModalOpen = isQuickAddOpen || !!selectedItem || isSettingsOpen;
+    // Determine time of day for state popup
+    const timeOfDay = useMemo(() => {
+        const hour = new Date().getHours();
+        // Morning: 5am - 12pm, Evening: 6pm - 11pm
+        if (hour >= 5 && hour < 12) return 'morning';
+        if (hour >= 18 && hour < 23) return 'evening';
+        return null; // Outside check-in windows
+    }, []);
+
+    // Check if user already logged state today for this time of day
+    const hasLoggedStateToday = useMemo(() => {
+        if (!timeOfDay) return true; // Don't show if outside windows
+        const today = new Date().toDateString();
+        return stateHistory.some(entry => {
+            const entryDate = new Date(entry.timestamp).toDateString();
+            return entryDate === today && entry.timeOfDay === timeOfDay;
+        });
+    }, [stateHistory, timeOfDay]);
+
+    // Auto-trigger state popup on first load if not logged
+    useEffect(() => {
+        if (!hasLoggedStateToday && timeOfDay) {
+            // Small delay to let the UI settle
+            const timer = setTimeout(() => setIsStatePopupOpen(true), 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [hasLoggedStateToday, timeOfDay]);
+
+    const isModalOpen = isQuickAddOpen || !!selectedItem || isSettingsOpen || isStatePopupOpen;
 
     // Track drag physics for BottomNav
     const x = useMotionValue(0);
@@ -252,6 +282,17 @@ export function NavigationShell() {
                 showBottomNav={showBottomNav}
                 onToggleBottomNav={(show) => updateSettings({ showBottomNav: show })}
             />
+
+            {/* State Popup - Morning/Evening check-in */}
+            {timeOfDay && (
+                <StatePopup
+                    isOpen={isStatePopupOpen}
+                    onClose={() => setIsStatePopupOpen(false)}
+                    onSelect={(emoji) => saveState(emoji, timeOfDay)}
+                    currentEmoji={currentState?.emoji}
+                    timeOfDay={timeOfDay}
+                />
+            )}
         </div>
     );
 }
