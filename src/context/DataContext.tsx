@@ -16,6 +16,7 @@ interface DataContextType {
     notes: Note[];
     settings: AppSettings;
     addTask: (task: Omit<Task, 'id' | 'isCompleted'>) => void;
+    completeTask: (id: string) => void;
     removeTask: (id: string) => void;
     addNote: (note: Omit<Note, 'id' | 'date'>) => void;
     removeNote: (id: string) => void;
@@ -102,6 +103,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
         setTasks(prev => [newTask, ...prev]);
     };
 
+    const completeTask = (id: string) => {
+        setTasks(prev => prev.map(t => 
+            t.id === id ? { ...t, isCompleted: true } : t
+        ));
+    };
+
     const removeTask = (id: string) => {
         setTasks(prev => prev.filter(t => t.id !== id));
     };
@@ -130,6 +137,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
             notes,
             settings,
             addTask,
+            completeTask,
             removeTask,
             addNote,
             removeNote,
