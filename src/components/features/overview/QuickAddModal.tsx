@@ -12,6 +12,7 @@ import { useSettings } from '@/context/SettingsContext';
 import { useData } from '@/context/DataContext';
 import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants } from '@/utils/animations';
 import { useSlimySpring } from '@/hooks/use-slimy-spring';
+import { useToast } from '@/context/ToastContext';
 
 type InputState = 'idle' | 'listening' | 'processing' | 'success';
 type ItemType = 'task' | 'note' | 'idea' | 'goal';
@@ -39,18 +40,19 @@ export function QuickAddModal({
     const [status, setStatus] = useState<InputState>('idle');
     const [selectedType, setSelectedType] = useState<ItemType>(initialType || 'task');
     const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
-    
+
     // New Fields
     const [dueDate, setDueDate] = useState<string>('');
     const [images, setImages] = useState<string[]>([]);
-    
+
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const dateInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    
+
     const dragControls = useDragControls();
     const { autoFocusQuickAdd } = useSettings();
     const { addTask, addNote } = useData();
+    const { showToast } = useToast();
 
     useBackToClose(isOpen, onClose);
     useLockBodyScroll(isOpen);
@@ -132,6 +134,10 @@ export function QuickAddModal({
             setStatus('success');
             vibrate('success');
 
+            // Show toast notification
+            const typeLabel = selectedType.charAt(0).toUpperCase() + selectedType.slice(1);
+            showToast(`${typeLabel} added successfully`, 'success');
+
             // Close faster
             setTimeout(() => {
                 onClose();
@@ -168,11 +174,11 @@ export function QuickAddModal({
     const formatDisplayDate = (dateStr: string) => {
         if (!dateStr) return '';
         const date = new Date(dateStr);
-        return date.toLocaleString('en-US', { 
-            month: 'short', 
-            day: 'numeric', 
-            hour: 'numeric', 
-            minute: '2-digit' 
+        return date.toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
         });
     };
 
@@ -185,18 +191,18 @@ export function QuickAddModal({
             {isOpen && (
                 <>
                     {/* Hidden Inputs */}
-                    <input 
-                        type="datetime-local" 
-                        ref={dateInputRef} 
-                        className="hidden" 
+                    <input
+                        type="datetime-local"
+                        ref={dateInputRef}
+                        className="hidden"
                         onChange={(e) => {
                             setDueDate(e.target.value);
                             vibrate('success');
                         }}
                     />
-                    <input 
-                        type="file" 
-                        ref={fileInputRef} 
+                    <input
+                        type="file"
+                        ref={fileInputRef}
                         accept="image/*"
                         className="hidden"
                         onChange={handleImageSelect}
@@ -321,7 +327,7 @@ export function QuickAddModal({
                                             <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 pl-3 pr-2 py-1.5 rounded-full text-blue-400">
                                                 <Calendar size={14} />
                                                 <span className="text-xs font-bold uppercase tracking-wider">{formatDisplayDate(dueDate)}</span>
-                                                <button 
+                                                <button
                                                     onClick={() => setDueDate('')}
                                                     className="w-5 h-5 flex items-center justify-center bg-blue-500/20 rounded-full hover:bg-blue-500/40"
                                                 >
@@ -329,12 +335,12 @@ export function QuickAddModal({
                                                 </button>
                                             </div>
                                         )}
-                                        
+
                                         {/* Image Thumbnails */}
                                         {(selectedType === 'note' || selectedType === 'idea') && images.map((img, i) => (
                                             <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden border border-white/10 group">
                                                 <img src={img} alt="Attachment" className="w-full h-full object-cover" />
-                                                <button 
+                                                <button
                                                     onClick={() => removeImage(i)}
                                                     className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                                                 >

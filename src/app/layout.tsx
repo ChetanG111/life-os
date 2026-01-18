@@ -4,6 +4,7 @@ import "./globals.css";
 import { MotionProvider } from "@/context/MotionContext";
 import { SettingsProvider } from "@/context/SettingsContext";
 import { DataProvider } from "@/context/DataContext";
+import { ToastProvider } from "@/context/ToastContext";
 
 const fredoka = Fredoka({
   variable: "--font-sans",
@@ -43,7 +44,9 @@ export default function RootLayout({
         <DataProvider>
           <SettingsProvider>
             <MotionProvider>
-              {children}
+              <ToastProvider>
+                {children}
+              </ToastProvider>
             </MotionProvider>
           </SettingsProvider>
         </DataProvider>

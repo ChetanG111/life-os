@@ -11,6 +11,7 @@ import { vibrate } from '@/utils/haptics';
 import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants } from '@/utils/animations';
 
 import { useData } from '@/context/DataContext';
+import { useToast } from '@/context/ToastContext';
 
 export const TasksTab = ({
     onOpenSettings,
@@ -22,14 +23,17 @@ export const TasksTab = ({
     onOpenQuickAdd: (type?: 'task' | 'note') => void
 }) => {
     const { tasks, removeTask, completeTask } = useData();
+    const { showToast } = useToast();
     const springConfig = useSlimySpring();
 
     const handleComplete = (id: string) => {
         completeTask(id);
+        showToast('Task completed! 🎉', 'success');
     };
 
     const handleDelete = (id: string) => {
         removeTask(id);
+        showToast('Task deleted', 'info');
     };
 
     // Filter out completed tasks and sort by priority (High -> Medium -> Low)

@@ -6,6 +6,7 @@ import { ListFeed } from './ListFeed';
 import { motion, AnimatePresence } from 'framer-motion';
 import { vibrate } from '@/utils/haptics';
 import { useData } from '@/context/DataContext';
+import { useToast } from '@/context/ToastContext';
 import { Layers, List as ListIcon } from 'lucide-react';
 
 interface FeedProps {
@@ -18,13 +19,14 @@ type ViewMode = 'stack' | 'list';
 
 export function Feed({ onOpenSettings, onOpenDetails, onOpenQuickAdd }: FeedProps) {
     const { tasks, notes, removeTask, removeNote, completeTask } = useData();
+    const { showToast } = useToast();
     const [viewMode, setViewMode] = useState<ViewMode>('stack');
 
     // 1. Map Data to FeedItems
     // 2. Filter out completed tasks
     const rawItems: FeedItem[] = useMemo(() => {
         const activeTasks = tasks.filter(t => !t.isCompleted);
-        
+
         return [
             ...activeTasks.map(t => ({
                 id: `task-${t.id}`,
@@ -79,14 +81,22 @@ export function Feed({ onOpenSettings, onOpenDetails, onOpenQuickAdd }: FeedProp
         if (!item) return;
 
         if (action === 'delete') {
-            if (item.type === 'task') removeTask(item.originalId!);
-            else removeNote(item.originalId!);
+            if (item.type === 'task') {
+                removeTask(item.originalId!);
+                showToast('Task deleted', 'info');
+            } else {
+                removeNote(item.originalId!);
+                showToast('Note deleted', 'info');
+            }
         } else if (action === 'done') {
-            if (item.type === 'task') completeTask(item.originalId!);
-            // Notes don't have 'done' state, maybe archive? For now just ignore or delete if intention is clear.
-            // In ListFeed, 'done' is swipe right. For notes, let's assume it means 'archive' or 'delete'.
-            // But spec says 'mark_done_or_save'. Let's just removeNote for now if it happens for note.
-            else removeNote(item.originalId!);
+            if (item.type === 'task') {
+                completeTask(item.originalId!);
+                showToast('Task completed! 🎉', 'success');
+            } else {
+                // Notes: save/archive action
+                removeNote(item.originalId!);
+                showToast('Note saved', 'success');
+            }
         }
     };
 
@@ -100,7 +110,7 @@ export function Feed({ onOpenSettings, onOpenDetails, onOpenQuickAdd }: FeedProp
             {/* Header */}
             <header className="relative flex justify-between items-center py-4 px-2 mb-2 flex-none">
                 <div className="w-10" /> {/* Spacer for centering */}
-                
+
                 <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={onOpenSettings}
@@ -145,7 +155,7 @@ export function Feed({ onOpenSettings, onOpenDetails, onOpenQuickAdd }: FeedProp
             <div className="flex-1 relative overflow-hidden">
                 <AnimatePresence mode='wait'>
                     {viewMode === 'stack' ? (
-                        <motion.div 
+                        <motion.div
                             key="stack"
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -156,7 +166,7 @@ export function Feed({ onOpenSettings, onOpenDetails, onOpenQuickAdd }: FeedProp
                             <SwipeFeed items={sortedItems} onSwipe={handleSwipe} onDetails={(item) => onOpenDetails(item)} />
                         </motion.div>
                     ) : (
-                        <motion.div 
+                        <motion.div
                             key="list"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
