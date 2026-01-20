@@ -4,7 +4,7 @@ import { AlertTriangle } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
 import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { MODAL_CONTAINER_VARIANT, STAGGER_CHILDREN, OVERSHOOT_VARIANT } from '@/utils/animations';
+import { MODAL_CONTAINER_VARIANT, FAST_STAGGER, OVERSHOOT_VARIANT } from '@/utils/animations';
 
 interface ConfirmDeleteModalProps {
     isOpen: boolean;
@@ -16,13 +16,12 @@ interface ConfirmDeleteModalProps {
 export function ConfirmDeleteModal({ isOpen, onClose, onConfirm, title = "Delete Item?" }: ConfirmDeleteModalProps) {
     useLockBodyScroll(isOpen);
 
-    // Custom variants for faster exit
-    const modalVariants: Variants = {
+    // Override container exit for speed
+    const containerVariants: Variants = {
         ...MODAL_CONTAINER_VARIANT,
         exit: {
-            opacity: 0,
-            scale: 0.95,
-            transition: { duration: 0.15, ease: "easeOut" }
+            y: "100%",
+            transition: { duration: 0.15, ease: "easeIn" } // Fast slide out
         }
     };
 
@@ -30,13 +29,13 @@ export function ConfirmDeleteModal({ isOpen, onClose, onConfirm, title = "Delete
         <AnimatePresence>
             {isOpen && (
                 <>
-                    {/* Backdrop - dims the whole screen */}
+                    {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0, transition: { duration: 0.15 } }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/60 z-[100] backdrop-blur-sm"
+                        className="fixed inset-0 bg-black/60 z-[100] backdrop-blur-sm hardware-accelerated"
                     >
                         <div className="absolute inset-0 noise-overlay opacity-[0.015]" />
                     </motion.div>
@@ -44,14 +43,14 @@ export function ConfirmDeleteModal({ isOpen, onClose, onConfirm, title = "Delete
                     {/* Modal Container */}
                     <div className="fixed inset-0 z-[101] flex items-center justify-center px-6 pointer-events-none">
                         <motion.div
-                            variants={modalVariants}
+                            variants={containerVariants}
                             initial="hidden"
                             animate="show"
                             exit="exit"
-                            className="relative w-full max-w-sm bg-background rounded-[32px] overflow-hidden shadow-2xl border border-white/10 pointer-events-auto"
+                            className="relative w-full max-w-sm bg-background rounded-[32px] overflow-hidden shadow-2xl border border-white/10 pointer-events-auto hardware-accelerated"
                         >
                             <motion.div 
-                                variants={STAGGER_CHILDREN}
+                                variants={FAST_STAGGER}
                                 initial="hidden"
                                 animate="show"
                                 className="p-8 flex flex-col items-center text-center"

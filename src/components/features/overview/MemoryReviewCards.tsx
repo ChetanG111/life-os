@@ -1,16 +1,16 @@
 'use client';
 
-import { vibrate } from '@/utils/haptics';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
 import { useMemo, useState, useEffect } from 'react';
 import { Archive, Trash2, Bookmark, Layers, List as ListIcon, CheckCircle2 } from 'lucide-react';
 import { Note } from '@/types';
-import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
 import clsx from 'clsx';
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from 'framer-motion';
-import { SLIMY_CONFIG, MODAL_CONTAINER_VARIANT } from '@/utils/animations';
+import { SLIMY_CONFIG } from '@/utils/animations';
 import { MotionCard } from '@/components/ui/Card';
+import { ModalShell } from '@/components/ui/ModalShell';
+import { vibrate } from '@/utils/haptics';
 
 interface MemoryReviewProps {
     isOpen: boolean;
@@ -24,8 +24,6 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
     const { showToast } = useToast();
     const [viewMode, setViewMode] = useState<ViewMode>('stack');
     const [processedIds, setProcessedIds] = useState<Set<string>>(new Set());
-
-    useLockBodyScroll(isOpen);
 
     // Filter to "expiring" notes
     const expiringNotes = useMemo(() => {
@@ -61,112 +59,83 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
         setViewMode(prev => prev === 'stack' ? 'list' : 'stack');
     };
 
-    // Close when empty
-    useEffect(() => {
-        if (expiringNotes.length === 0 && processedIds.size > 0 && notes.length > 0) {
-            showToast('Memory review complete! ✨', 'success');
-        }
-    }, [expiringNotes.length, processedIds.size, showToast, notes.length]);
-
     const isEmpty = expiringNotes.length === 0;
 
+    // We can't auto-close inside the render of ModalShell easily without prop drilling close logic
+    // But we can check empty state and show "All Caught Up"
+    useEffect(() => {
+        if (isEmpty && processedIds.size > 0 && isOpen) {
+             showToast('Memory review complete! ✨', 'success');
+        }
+    }, [isEmpty, processedIds.size, isOpen, showToast]);
+
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <>
-                    {/* Backdrop */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={onClose}
-                        className="fixed inset-0 bg-black/60 z-50 overflow-hidden"
+        <ModalShell 
+            isOpen={isOpen} 
+            onClose={onClose}
+            heightClass={isEmpty ? "h-[60vh]" : "h-[75vh]"}
+        >
+            {isEmpty ? (
+                <div className="flex flex-col items-center justify-center h-full pb-12">
+                    <motion.div 
+                        initial={{ scale: 0.9, opacity: 0 }} 
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={SLIMY_CONFIG}
+                        className="flex flex-col items-center"
                     >
-                        <div className="absolute inset-0 noise-overlay opacity-[0.015]" />
+                        <CheckCircle2 size={48} className="text-neutral-600 mb-4" />
+                        <p className="text-neutral-500 text-sm font-medium">No notes to review</p>
+                        <button
+                            onClick={onClose}
+                            className="mt-6 px-6 py-3 bg-white/10 rounded-full text-white text-sm font-medium active:scale-95 transition-transform"
+                        >
+                            Close
+                        </button>
                     </motion.div>
-
-                    {/* Modal */}
-                    <motion.div
-                        variants={MODAL_CONTAINER_VARIANT}
-                        initial="hidden"
-                        animate="show"
-                        exit="exit"
-                        drag="y"
-                        dragConstraints={{ top: 0, bottom: 0 }}
-                        dragElastic={{ top: 0.05, bottom: 0.7 }}
-                        onDragEnd={(_, info) => {
-                            if (info.offset.y > 100) onClose();
-                        }}
-                        className={clsx(
-                            "fixed inset-x-0 bottom-0 bg-background rounded-t-[32px] z-50 flex flex-col shadow-[0_-8px_32px_rgba(0,0,0,0.4)] border-t border-white/5",
-                            isEmpty ? "h-[60vh] items-center justify-center" : "h-[75vh]"
-                        )}
-                    >
-                        {isEmpty ? (
-                            <motion.div 
-                                initial={{ scale: 0.9, opacity: 0 }} 
-                                animate={{ scale: 1, opacity: 1 }}
-                                transition={SLIMY_CONFIG}
-                                className="flex flex-col items-center"
+                </div>
+            ) : (
+                <div className="flex flex-col h-full pt-12"> {/* pt-12 clears drag handle */}
+                    {/* Header */}
+                    <div className="flex-none px-6 pb-6 border-b border-white/5">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="text-xl font-bold text-white leading-tight">Memory Review</h2>
+                                <p className="text-sm text-neutral-500">
+                                    {expiringNotes.length} notes due
+                                </p>
+                            </div>
+                            <button
+                                onClick={toggleViewMode}
+                                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
                             >
-                                <CheckCircle2 size={48} className="text-neutral-600 mb-4" />
-                                <p className="text-neutral-500 text-sm font-medium">No notes to review</p>
-                                <button
-                                    onClick={onClose}
-                                    className="mt-6 px-6 py-3 bg-white/10 rounded-full text-white text-sm font-medium active:scale-95 transition-transform"
-                                >
-                                    Close
-                                </button>
-                            </motion.div>
-                        ) : (
-                            <>
-                                {/* Header */}
-                                <div className="flex-none px-6 pt-3 pb-4 bg-background rounded-t-[32px] border-b border-white/5">
-                                    <div className="w-12 h-1.5 bg-neutral-700/50 rounded-full mx-auto mb-4" />
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <h2 className="text-xl font-bold text-white leading-tight">Memory Review</h2>
-                                            <p className="text-sm text-neutral-500">
-                                                {expiringNotes.length} notes due
-                                            </p>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <button
-                                                onClick={toggleViewMode}
-                                                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
-                                            >
-                                                {viewMode === 'stack' ? <ListIcon size={18} /> : <Layers size={18} />}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                                {viewMode === 'stack' ? <ListIcon size={18} /> : <Layers size={18} />}
+                            </button>
+                        </div>
+                    </div>
 
-                                {/* Content Area */}
-                                <div className="flex-1 relative overflow-hidden mb-6 pt-6">
-                                    <div className="h-full w-full overscroll-contain touch-pan-y">
-                                        {viewMode === 'stack' ? (
-                                            <StackView
-                                                notes={expiringNotes}
-                                                onSave={handleSavePermanently}
-                                                onArchive={handleArchive}
-                                                onDelete={handleDelete}
-                                            />
-                                        ) : (
-                                            <ListView
-                                                notes={expiringNotes}
-                                                onSave={handleSavePermanently}
-                                                onArchive={handleArchive}
-                                                onDelete={handleDelete}
-                                            />
-                                        )}
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                    </motion.div>
-                </>
+                    {/* Content Area */}
+                    <div className="flex-1 relative overflow-hidden pt-6">
+                        <div className="h-full w-full overscroll-contain touch-pan-y">
+                            {viewMode === 'stack' ? (
+                                <StackView
+                                    notes={expiringNotes}
+                                    onSave={handleSavePermanently}
+                                    onArchive={handleArchive}
+                                    onDelete={handleDelete}
+                                />
+                            ) : (
+                                <ListView
+                                    notes={expiringNotes}
+                                    onSave={handleSavePermanently}
+                                    onArchive={handleArchive}
+                                    onDelete={handleDelete}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
             )}
-        </AnimatePresence>
+        </ModalShell>
     );
 }
 
@@ -182,7 +151,6 @@ function StackView({
     onArchive: (id: string) => void;
     onDelete: (id: string) => void;
 }) {
-    // Show top 3 notes
     const displayNotes = notes.slice(0, 3).reverse();
 
     return (
@@ -306,17 +274,6 @@ function StackCard({
                             ))}
                         </div>
                     )}
-                </div>
-                
-                {/* Visual Indicator (Optional, keep for now as it's subtle) */}
-                <div className="relative z-10 mt-auto p-6 pb-8">
-                    <div className="h-[2px] w-full bg-white/5 rounded-full overflow-hidden">
-                        <motion.div
-                            className="h-full bg-white/10"
-                            initial={{ width: "30%" }}
-                            animate={{ width: "60%" }}
-                        />
-                    </div>
                 </div>
             </div>
         </MotionCard>

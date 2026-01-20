@@ -107,6 +107,11 @@ export function NavigationShell() {
 
     const isModalOpen = isQuickAddOpen || !!selectedItem || isSettingsOpen || isStatePopupOpen || isMemoryReviewOpen;
 
+    // Background Scaling Logic
+    const shellScale = isModalOpen ? 0.92 : 1;
+    const shellRadius = isModalOpen ? 32 : 0;
+    const shellOpacity = isModalOpen ? 0.6 : 1;
+
     const handleTabChange = (newTab: TabId) => {
         if (isLocked.current) return;
         
@@ -171,9 +176,17 @@ export function NavigationShell() {
     };
 
     return (
-        <div className="relative h-[100dvh] w-full overflow-hidden bg-background">
-            {/* Main Application Shell */}
-            <div className="relative h-full w-full overflow-hidden bg-background">
+        <div className="relative h-[100dvh] w-full overflow-hidden bg-black">
+            {/* Main Application Shell - Now scaling properly */}
+            <motion.div 
+                animate={{ 
+                    scale: shellScale, 
+                    borderRadius: shellRadius,
+                    opacity: shellOpacity 
+                }}
+                transition={IOS_SPRING}
+                className="relative h-full w-full overflow-hidden bg-background origin-top hardware-accelerated"
+            >
                 <AnimatePresence initial={false} custom={direction} mode="popLayout">
                     <motion.main
                         key={activeTab}
@@ -213,7 +226,7 @@ export function NavigationShell() {
                         />
                     </motion.main>
                 </AnimatePresence>
-            </div>
+            </motion.div>
 
             {/* Global FAB */}
             <AnimatePresence>

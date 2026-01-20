@@ -4,6 +4,7 @@ import { Note } from '@/types';
 import clsx from 'clsx';
 import { Mic, Image as ImageIcon, AlignLeft } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
+import { motion } from 'framer-motion';
 
 interface NoteCardProps {
     note: Note;
@@ -12,12 +13,14 @@ interface NoteCardProps {
 
 export const NoteCard = ({ note, onTap }: NoteCardProps) => {
     return (
-        <div
+        <motion.div
+            layout
+            whileTap={{ scale: 0.98 }}
             onClick={() => {
                 vibrate('light');
                 if (onTap) onTap();
             }}
-            className="w-full bg-[#1A1A1A] rounded-2xl p-4 mb-3 border border-white/5 overflow-hidden break-inside-avoid active:scale-[0.98]  cursor-pointer"
+            className="w-full bg-[#1A1A1A] rounded-2xl p-4 mb-3 shadow-xl overflow-hidden break-inside-avoid cursor-pointer"
         >
             {/* Header / Title */}
             {note.title && (
@@ -38,7 +41,7 @@ export const NoteCard = ({ note, onTap }: NoteCardProps) => {
                 </div>
             )}
 
-            {/* Content Preview (Legacy Image or Text) */}
+            {/* Content Preview */}
             {!note.images?.length && note.type === 'image' && note.content.startsWith('http') ? (
                 <div className="w-full h-32 rounded-lg overflow-hidden mb-3 bg-neutral-800">
                     <img src={note.content} alt={note.title || 'Note image'} className="w-full h-full object-cover" />
@@ -54,7 +57,6 @@ export const NoteCard = ({ note, onTap }: NoteCardProps) => {
 
             {/* Footer */}
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
-                {/* Type Icon */}
                 <div className="flex items-center text-neutral-500">
                     {note.type === 'voice' && <Mic className="w-3.5 h-3.5" />}
                     {note.type === 'image' && <ImageIcon className="w-3.5 h-3.5" />}
@@ -72,6 +74,6 @@ export const NoteCard = ({ note, onTap }: NoteCardProps) => {
                     </div>
                 )}
             </div>
-        </div>
+        </motion.div>
     );
 };

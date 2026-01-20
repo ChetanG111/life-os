@@ -52,9 +52,9 @@ export const TaskCard = ({ task, onComplete, onDelete, onTap }: TaskCardProps) =
     return (
         <motion.div
             layout // Enable layout projection for smooth list reordering
-            variants={LEFT_STAGGER_VARIANT} // Use new variant
-            // initial/animate/exit handled by parent STAGGER_CHILDREN + variant
-            className="relative w-full overflow-hidden mb-3" // Moved mb-3 here for layout projection
+            variants={LEFT_STAGGER_VARIANT} 
+            // Removed manual initial/animate/exit to allow variants to work
+            className="relative w-full overflow-hidden mb-3"
         >
             <div className="relative w-full h-[72px]">
                 {/* Background Actions */}

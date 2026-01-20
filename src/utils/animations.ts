@@ -39,6 +39,22 @@ export const STAGGER_CHILDREN: Variants = {
     }
 };
 
+// Fast Stagger: For alerts/dialogs where interaction speed is key.
+export const FAST_STAGGER: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.03, // Very fast cascade
+            delayChildren: 0       // Immediate start
+        }
+    },
+    exit: {
+        opacity: 0,
+        transition: { duration: 0.1 }
+    }
+};
+
 // Overshoot Entry: Shoots past target and settles.
 export const OVERSHOOT_VARIANT: Variants = {
     hidden: { y: 25, opacity: 0, scale: 0.96 },
