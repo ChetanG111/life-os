@@ -3,11 +3,12 @@
 import { useMemo, useState } from 'react';
 import { TaskCard } from './TaskCard';
 import { CheckCircle2 } from 'lucide-react';
-
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
 import { useSettings } from '@/context/SettingsContext';
 import { ConfirmDeleteModal } from '../cards/ConfirmDeleteModal';
+import { motion, AnimatePresence } from 'framer-motion';
+import { STAGGER_CHILDREN, SLIMY_CONFIG } from '@/utils/animations';
 
 export const TasksTab = ({
     onOpenSettings,
@@ -56,20 +57,28 @@ export const TasksTab = ({
     return (
         <div className="w-full min-h-screen bg-background pb-32 flex flex-col items-center">
             <header className="w-full sticky top-0 z-30 flex justify-center items-center py-4 px-6 bg-background border-b border-white/5 mb-4">
-                <button
+                <motion.button
+                    whileTap={{ scale: 0.95 }}
                     onClick={onOpenSettings}
-                    className="group flex flex-col items-center gap-1 focus:outline-none active:scale-95 "
+                    className="group flex flex-col items-center gap-1 focus:outline-none"
                 >
-                    <h1 className="text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200 ">
+                    <h1 className="text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200 transition-colors">
                         Tasks
                     </h1>
-                </button>
+                </motion.button>
             </header>
 
-            <div className="w-full max-w-2xl flex-1 flex flex-col space-y-4 px-4">
-                {sortedTasks.map((task) => (
-                    <div key={task.id}>
+            <motion.div 
+                layout
+                variants={STAGGER_CHILDREN}
+                initial="hidden"
+                animate="show"
+                className="w-full max-w-2xl flex-1 flex flex-col px-4"
+            >
+                <AnimatePresence mode="popLayout">
+                    {sortedTasks.map((task) => (
                         <TaskCard
+                            key={task.id}
                             task={task}
                             onComplete={() => handleComplete(task.id)}
                             onDelete={() => handleDeleteRequested(task.id)}
@@ -84,21 +93,26 @@ export const TasksTab = ({
                                 priority: task.priority
                             })}
                         />
-                    </div>
-                ))}
+                    ))}
+                </AnimatePresence>
 
                 {/* Empty state handles */}
                 {sortedTasks.length === 0 && (
-                    <div className="flex-1 flex flex-col items-center justify-center text-neutral-600 pb-24">
-                        <div>
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={SLIMY_CONFIG}
+                        className="flex-1 flex flex-col items-center justify-center text-neutral-600 pb-24"
+                    >
+                        <motion.div animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 0.5, delay: 0.2 }}>
                             <CheckCircle2 size={48} className="mb-6 opacity-20" />
-                        </div>
+                        </motion.div>
                         <p className="text-sm font-medium uppercase tracking-[0.2em]">
                             No tasks yet
                         </p>
-                    </div>
+                    </motion.div>
                 )}
-            </div>
+            </motion.div>
 
             <ConfirmDeleteModal
                 isOpen={!!taskToDelete}

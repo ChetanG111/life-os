@@ -3,6 +3,8 @@
 import { TabId, TABS } from '@/types';
 import { CheckCircle2, FileText, Layers, MessageSquare, Calendar } from 'lucide-react';
 import clsx from 'clsx';
+import { motion } from 'framer-motion';
+import { IOS_SPRING } from '@/utils/animations';
 
 const ICONS = {
     tasks: CheckCircle2,
@@ -19,7 +21,13 @@ interface BottomNavProps {
 
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
     return (
-        <div className="fixed bottom-8 left-0 right-0 z-50 flex justify-center pointer-events-none">
+        <motion.div 
+            initial={{ y: 100 }}
+            animate={{ y: 0 }}
+            exit={{ y: 100 }}
+            transition={IOS_SPRING}
+            className="fixed bottom-8 left-0 right-0 z-50 flex justify-center pointer-events-none"
+        >
             <div className="pointer-events-auto flex items-center gap-2 p-2 liquid-glass rounded-full shadow-2xl ring-1 ring-white/10 overflow-hidden">
                 {TABS.map((tab) => {
                     const Icon = ICONS[tab];
@@ -35,12 +43,16 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
                                 onTabChange(tab);
                             }}
                             className={clsx(
-                                "relative flex items-center justify-center w-12 h-12 rounded-full  focus:outline-none",
+                                "relative flex items-center justify-center w-12 h-12 rounded-full transition-none focus:outline-none",
                                 isActive ? "text-black" : "text-neutral-500 hover:text-white"
                             )}
                         >
                             {isActive && (
-                                <div className="absolute inset-0 bg-white rounded-full" />
+                                <motion.div
+                                    layoutId="nav-pill"
+                                    className="absolute inset-0 bg-white rounded-full"
+                                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                />
                             )}
                             <span className="relative z-10">
                                 <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
@@ -49,6 +61,6 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
                     );
                 })}
             </div>
-        </div>
+        </motion.div>
     );
 }

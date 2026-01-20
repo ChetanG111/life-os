@@ -8,6 +8,9 @@ import { Archive, Trash2, Bookmark, Layers, List as ListIcon, CheckCircle2 } fro
 import { Note } from '@/types';
 import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
 import clsx from 'clsx';
+import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from 'framer-motion';
+import { SLIMY_CONFIG, MODAL_CONTAINER_VARIANT } from '@/utils/animations';
+import { MotionCard } from '@/components/ui/Card';
 
 interface MemoryReviewProps {
     isOpen: boolean;
@@ -16,8 +19,6 @@ interface MemoryReviewProps {
 
 type ViewMode = 'stack' | 'list';
 
-// Memory review shows notes that are "expiring" (older than 7 days)
-// User can: save_permanently, archive, or delete
 export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
     const { notes, removeNote } = useData();
     const { showToast } = useToast();
@@ -26,14 +27,7 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
 
     useLockBodyScroll(isOpen);
 
-    // Multi-stage Haptics (Suggestion 5)
-    useEffect(() => {
-        if (isOpen) {
-            vibrate('light');
-        }
-    }, [isOpen]);
-
-    // Filter to "expiring" notes - older than 7 days per memory_review_logic
+    // Filter to "expiring" notes
     const expiringNotes = useMemo(() => {
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -67,99 +61,116 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
         setViewMode(prev => prev === 'stack' ? 'list' : 'stack');
     };
 
-    // Check if review is complete (all processed)
+    // Close when empty
     useEffect(() => {
         if (expiringNotes.length === 0 && processedIds.size > 0 && notes.length > 0) {
-            // Only show toast if user actually processed items
             showToast('Memory review complete! ✨', 'success');
         }
     }, [expiringNotes.length, processedIds.size, showToast, notes.length]);
 
-    // No expiring notes at all
     const isEmpty = expiringNotes.length === 0;
 
-    if (!isOpen) return null;
-
     return (
-        <>
-            {/* Backdrop */}
-            <div
-                onClick={onClose}
-                className="fixed inset-0 bg-black/60 z-50 overflow-hidden"
-            >
-                <div className="absolute inset-0 noise-overlay opacity-[0.015]" />
-            </div>
+        <AnimatePresence>
+            {isOpen && (
+                <>
+                    {/* Backdrop */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={onClose}
+                        className="fixed inset-0 bg-black/60 z-50 overflow-hidden"
+                    >
+                        <div className="absolute inset-0 noise-overlay opacity-[0.015]" />
+                    </motion.div>
 
-            {/* Modal */}
-            <div
-                className={clsx(
-                    "fixed inset-x-0 bottom-0 bg-background rounded-t-[32px] z-50 flex flex-col shadow-[0_-8px_32px_rgba(0,0,0,0.4)] border-t border-white/5",
-                    isEmpty ? "h-[60vh] items-center justify-center" : "h-[75vh]"
-                )}
-            >
-                {isEmpty ? (
-                    <>
-                        <div className="w-12 h-1.5 bg-neutral-700 rounded-full absolute top-6" />
-                        <div><CheckCircle2 size={48} className="text-neutral-600 mb-4 mx-auto" /></div>
-                        <p className="text-neutral-500 text-sm font-medium">No notes to review</p>
-                        <button
-                            onClick={onClose}
-                            className="mt-6 px-6 py-3 bg-white/10 rounded-full text-white text-sm font-medium"
-                        >
-                            Close
-                        </button>
-                    </>
-                ) : (
-                    <>
-                        {/* Header */}
-                        <div className="flex-none px-6 pt-3 pb-4 bg-background rounded-t-[32px] border-b border-white/5">
-                            <div className="w-12 h-1.5 bg-neutral-700/50 rounded-full mx-auto mb-4" />
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h2 className="text-xl font-bold text-white leading-tight">Memory Review</h2>
-                                    <p className="text-sm text-neutral-500">
-                                        {expiringNotes.length} notes due
-                                    </p>
+                    {/* Modal */}
+                    <motion.div
+                        variants={MODAL_CONTAINER_VARIANT}
+                        initial="hidden"
+                        animate="show"
+                        exit="exit"
+                        drag="y"
+                        dragConstraints={{ top: 0, bottom: 0 }}
+                        dragElastic={{ top: 0.05, bottom: 0.7 }}
+                        onDragEnd={(_, info) => {
+                            if (info.offset.y > 100) onClose();
+                        }}
+                        className={clsx(
+                            "fixed inset-x-0 bottom-0 bg-background rounded-t-[32px] z-50 flex flex-col shadow-[0_-8px_32px_rgba(0,0,0,0.4)] border-t border-white/5",
+                            isEmpty ? "h-[60vh] items-center justify-center" : "h-[75vh]"
+                        )}
+                    >
+                        {isEmpty ? (
+                            <motion.div 
+                                initial={{ scale: 0.9, opacity: 0 }} 
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={SLIMY_CONFIG}
+                                className="flex flex-col items-center"
+                            >
+                                <CheckCircle2 size={48} className="text-neutral-600 mb-4" />
+                                <p className="text-neutral-500 text-sm font-medium">No notes to review</p>
+                                <button
+                                    onClick={onClose}
+                                    className="mt-6 px-6 py-3 bg-white/10 rounded-full text-white text-sm font-medium active:scale-95 transition-transform"
+                                >
+                                    Close
+                                </button>
+                            </motion.div>
+                        ) : (
+                            <>
+                                {/* Header */}
+                                <div className="flex-none px-6 pt-3 pb-4 bg-background rounded-t-[32px] border-b border-white/5">
+                                    <div className="w-12 h-1.5 bg-neutral-700/50 rounded-full mx-auto mb-4" />
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h2 className="text-xl font-bold text-white leading-tight">Memory Review</h2>
+                                            <p className="text-sm text-neutral-500">
+                                                {expiringNotes.length} notes due
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                onClick={toggleViewMode}
+                                                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                                            >
+                                                {viewMode === 'stack' ? <ListIcon size={18} /> : <Layers size={18} />}
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        onClick={toggleViewMode}
-                                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 "
-                                    >
-                                        {viewMode === 'stack' ? <ListIcon size={18} /> : <Layers size={18} />}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
 
-                        {/* Content Area */}
-                        <div className="flex-1 relative overflow-hidden mb-6">
-                            <div className="h-full w-full overscroll-contain touch-pan-y">
-                                {viewMode === 'stack' ? (
-                                    <StackView
-                                        notes={expiringNotes}
-                                        onSave={handleSavePermanently}
-                                        onArchive={handleArchive}
-                                        onDelete={handleDelete}
-                                    />
-                                ) : (
-                                    <ListView
-                                        notes={expiringNotes}
-                                        onSave={handleSavePermanently}
-                                        onArchive={handleArchive}
-                                        onDelete={handleDelete}
-                                    />
-                                )}
-                            </div>
-                        </div>
-                    </>
-                )}
-            </div>
-        </>
+                                {/* Content Area */}
+                                <div className="flex-1 relative overflow-hidden mb-6 pt-6">
+                                    <div className="h-full w-full overscroll-contain touch-pan-y">
+                                        {viewMode === 'stack' ? (
+                                            <StackView
+                                                notes={expiringNotes}
+                                                onSave={handleSavePermanently}
+                                                onArchive={handleArchive}
+                                                onDelete={handleDelete}
+                                            />
+                                        ) : (
+                                            <ListView
+                                                notes={expiringNotes}
+                                                onSave={handleSavePermanently}
+                                                onArchive={handleArchive}
+                                                onDelete={handleDelete}
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </motion.div>
+                </>
+            )}
+        </AnimatePresence>
     );
 }
 
-// Stack View - Top card only with buttons
+// Stack View with Physics
 function StackView({
     notes,
     onSave,
@@ -171,40 +182,30 @@ function StackView({
     onArchive: (id: string) => void;
     onDelete: (id: string) => void;
 }) {
-    const topNote = notes[0];
-
-    if (!topNote) return null;
+    // Show top 3 notes
+    const displayNotes = notes.slice(0, 3).reverse();
 
     return (
-        <div className="relative h-full w-full max-w-sm mx-auto flex flex-col justify-start items-center p-4 pt-2">
-            {/* Card Container */}
+        <div className="relative h-full w-full max-w-sm mx-auto flex flex-col justify-start items-center p-4">
             <div className="relative w-full aspect-[4/5] max-h-[380px]">
-                <StackCard note={topNote} />
-            </div>
+                <AnimatePresence>
+                    {displayNotes.map((note, index) => {
+                        const isTop = note.id === notes[0].id;
+                        const stackIndex = displayNotes.length - 1 - index;
 
-            {/* Action Buttons */}
-            <div className="mt-6 flex justify-center gap-4 w-full px-4">
-                <button
-                    onClick={() => onArchive(topNote.id)}
-                    className="flex-1 py-3 bg-white/5 rounded-2xl flex flex-col items-center justify-center gap-1 active:scale-95 "
-                >
-                    <Archive size={20} className="text-neutral-400" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Archive</span>
-                </button>
-                <button
-                    onClick={() => onDelete(topNote.id)}
-                    className="flex-1 py-3 bg-red-500/10 rounded-2xl flex flex-col items-center justify-center gap-1 active:scale-95 "
-                >
-                    <Trash2 size={20} className="text-red-500" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-red-500">Delete</span>
-                </button>
-                <button
-                    onClick={() => onSave(topNote.id)}
-                    className="flex-1 py-3 bg-green-500/10 rounded-2xl flex flex-col items-center justify-center gap-1 active:scale-95 "
-                >
-                    <Bookmark size={20} className="text-green-500" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-green-500">Save</span>
-                </button>
+                        return (
+                            <StackCard 
+                                key={note.id} 
+                                note={note}
+                                isTop={isTop}
+                                stackIndex={stackIndex}
+                                onSave={() => onSave(note.id)}
+                                onArchive={() => onArchive(note.id)}
+                                onDelete={() => onDelete(note.id)}
+                            />
+                        );
+                    })}
+                </AnimatePresence>
             </div>
         </div>
     );
@@ -212,14 +213,69 @@ function StackView({
 
 // Individual Stack Card
 function StackCard({
-    note
+    note,
+    isTop,
+    stackIndex,
+    onSave,
+    onArchive,
+    onDelete
 }: {
     note: Note;
+    isTop: boolean;
+    stackIndex: number;
+    onSave: () => void;
+    onArchive: () => void;
+    onDelete: () => void;
 }) {
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+    const rotate = useTransform(x, [-200, 200], [-12, 12]);
+
+    const handleDragEnd = (event: any, info: PanInfo) => {
+        const threshold = 120;
+        const { x: offsetX, y: offsetY } = info.offset;
+
+        if (Math.abs(offsetX) > Math.abs(offsetY)) {
+            if (offsetX > threshold) {
+                vibrate('success');
+                onSave();
+            } else if (offsetX < -threshold) {
+                vibrate('medium');
+                onArchive();
+            }
+        } else {
+            if (offsetY > threshold) {
+                vibrate('warning');
+                onDelete();
+            }
+        }
+    };
+
     return (
-        <div className="absolute inset-0">
-            <div className="h-full bg-surface rounded-3xl p-6 border border-white/5 shadow-2xl flex flex-col relative overflow-hidden bg-[#121212]">
-                {/* Content */}
+        <MotionCard
+            style={{
+                x: isTop ? x : 0,
+                y: isTop ? y : (stackIndex * 15),
+                scale: isTop ? 1 : 1 - (stackIndex * 0.05),
+                rotate: isTop ? rotate : 0,
+                zIndex: 10 - stackIndex
+            }}
+            drag={isTop ? true : false}
+            dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+            dragElastic={0.7}
+            onDragEnd={handleDragEnd}
+            initial={{ scale: 0.9, opacity: 0, y: 30 }}
+            animate={{ scale: isTop ? 1 : 1 - (stackIndex * 0.05), opacity: 1, y: isTop ? 0 : (stackIndex * 15) }}
+            exit={{ 
+                x: x.get() > 50 ? 500 : (x.get() < -50 ? -500 : 0),
+                y: y.get() > 50 ? 500 : 0,
+                opacity: 0,
+                transition: { duration: 0.2 }
+            }}
+            transition={SLIMY_CONFIG}
+            className="absolute inset-0 h-full w-full cursor-grab active:cursor-grabbing"
+        >
+            <div className="h-full bg-[var(--surface)] rounded-3xl p-6 border border-white/5 shadow-2xl flex flex-col relative overflow-hidden">
                 <div className="relative z-10 flex-1">
                     <div className="flex items-center justify-between mb-3">
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">
@@ -251,8 +307,19 @@ function StackCard({
                         </div>
                     )}
                 </div>
+                
+                {/* Visual Indicator (Optional, keep for now as it's subtle) */}
+                <div className="relative z-10 mt-auto p-6 pb-8">
+                    <div className="h-[2px] w-full bg-white/5 rounded-full overflow-hidden">
+                        <motion.div
+                            className="h-full bg-white/10"
+                            initial={{ width: "30%" }}
+                            animate={{ width: "60%" }}
+                        />
+                    </div>
+                </div>
             </div>
-        </div>
+        </MotionCard>
     );
 }
 
@@ -273,7 +340,7 @@ function ListView({
             {notes.map((note) => (
                 <div
                     key={note.id}
-                    className="bg-surface rounded-2xl p-4 border border-white/5"
+                    className="bg-[var(--surface)] rounded-2xl p-4 border border-white/5"
                 >
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
@@ -287,19 +354,19 @@ function ListView({
                         <div className="flex items-center gap-1 flex-shrink-0">
                             <button
                                 onClick={() => onSave(note.id)}
-                                className="p-2 rounded-xl text-green-400 hover:bg-green-500/10 "
+                                className="p-2 rounded-xl text-green-400 hover:bg-green-500/10 transition-colors"
                             >
                                 <Bookmark size={16} />
                             </button>
                             <button
                                 onClick={() => onArchive(note.id)}
-                                className="p-2 rounded-xl text-neutral-400 hover:bg-white/5 "
+                                className="p-2 rounded-xl text-neutral-400 hover:bg-white/5 transition-colors"
                             >
                                 <Archive size={16} />
                             </button>
                             <button
                                 onClick={() => onDelete(note.id)}
-                                className="p-2 rounded-xl text-red-400 hover:bg-red-500/10 "
+                                className="p-2 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors"
                             >
                                 <Trash2 size={16} />
                             </button>

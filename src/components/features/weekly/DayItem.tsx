@@ -7,6 +7,8 @@ import clsx from 'clsx';
 import { useState } from 'react';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
+import { motion, AnimatePresence } from 'framer-motion';
+import { IOS_SPRING, STAGGER_CHILDREN, OVERSHOOT_VARIANT } from '@/utils/animations';
 
 interface DayItemProps {
     dayName: string;
@@ -36,11 +38,12 @@ export const DayItem = ({ dayName, dayNumber, tasks, summary, isToday = false }:
     const progress = totalCount === 0 ? 0 : (completionCount / totalCount) * 100;
 
     return (
-        <div className="mb-2">
-            <button
+        <motion.div layout className="mb-2 overflow-hidden rounded-2xl">
+            <motion.button
+                layout
                 onClick={() => setIsOpen(!isOpen)}
                 className={clsx(
-                    "w-full flex items-center justify-between p-4 rounded-2xl  ",
+                    "w-full flex items-center justify-between p-4 transition-all duration-200",
                     isOpen ? "bg-[var(--surface)]" : "bg-transparent hover:bg-white/5"
                 )}
             >
@@ -68,7 +71,6 @@ export const DayItem = ({ dayName, dayNumber, tasks, summary, isToday = false }:
                 </div>
 
                 <div className="flex items-center gap-3">
-                    {/* Progress Mini-Ring or Dot */}
                     {tasks.length > 0 && (
                         <div className="flex items-center justify-center w-6 h-6">
                             <svg className="w-full h-full transform -rotate-90">
@@ -96,28 +98,41 @@ export const DayItem = ({ dayName, dayNumber, tasks, summary, isToday = false }:
                     <ChevronDown
                         size={16}
                         className={clsx(
-                            "text-neutral-500  ",
+                            "text-neutral-500 transition-transform duration-300",
                             isOpen && "rotate-180"
                         )}
                     />
                 </div>
-            </button>
+            </motion.button>
 
-            {isOpen && tasks.length > 0 && (
-                <div className="overflow-hidden">
-                    <div className="pt-2 px-2 pb-4 space-y-2">
-                        {tasks.map(task => (
-                            <div key={task.id}>
-                                <TaskCard
-                                    task={task}
-                                    onComplete={() => handleComplete(task.id)}
-                                    onDelete={() => handleDelete(task.id)}
-                                />
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-        </div>
+            <AnimatePresence>
+                {isOpen && tasks.length > 0 && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={IOS_SPRING}
+                        className="overflow-hidden"
+                    >
+                        <motion.div 
+                            variants={STAGGER_CHILDREN}
+                            initial="hidden"
+                            animate="show"
+                            className="pt-2 px-2 pb-4 space-y-2"
+                        >
+                            {tasks.map(task => (
+                                <motion.div key={task.id} variants={OVERSHOOT_VARIANT}>
+                                    <TaskCard
+                                        task={task}
+                                        onComplete={() => handleComplete(task.id)}
+                                        onDelete={() => handleDelete(task.id)}
+                                    />
+                                </motion.div>
+                            ))}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
     );
 };

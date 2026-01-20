@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Card } from '@/components/ui/Card';
+import { MotionCard } from '@/components/ui/Card';
 import { CheckCircle2, Trash2, Info, ChevronLeft, ChevronRight } from 'lucide-react';
 import clsx from 'clsx';
 import { vibrate } from '@/utils/haptics';
 import { ConfirmDeleteModal } from '../cards/ConfirmDeleteModal';
 import { useSettings } from '@/context/SettingsContext';
+import { motion, useMotionValue, useTransform, AnimatePresence, PanInfo } from 'framer-motion';
+import { SLIMY_CONFIG } from '@/utils/animations';
 
 export interface FeedItem {
     id: string;
@@ -63,14 +65,19 @@ export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
 
     if (items.length === 0) {
         return (
-            <div className="flex h-full flex-col items-center justify-center text-neutral-600 pb-24">
-                <div>
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                transition={SLIMY_CONFIG}
+                className="flex h-full flex-col items-center justify-center text-neutral-600 pb-24"
+            >
+                <motion.div animate={{ rotate: [0, 10, -10, 0] }} transition={{ delay: 0.5, duration: 0.5 }}>
                     <CheckCircle2 size={48} className="mb-6 opacity-20" />
-                </div>
+                </motion.div>
                 <p className="text-sm font-medium uppercase tracking-[0.2em]">
                     All caught up
                 </p>
-            </div>
+            </motion.div>
         );
     }
 
@@ -78,46 +85,32 @@ export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
         <div className="h-full w-full flex flex-col justify-start items-center">
             {/* Desktop Carousel Layout */}
             <div className="hidden md:flex flex-col items-center justify-center w-full max-w-5xl h-full py-10">
+                {/* ... (Desktop layout can remain static for now, focusing on Mobile Deck) ... */}
                 <div className="relative w-full flex items-center justify-center gap-12 mb-16">
-                    {/* Left Card Placeholder */}
                     <div className="w-[180px] h-[260px] opacity-20 scale-90 blur-[1px] transform -rotate-6">
                         <DesktopCard item={items[(currentIndex - 1 + items.length) % items.length]} />
                     </div>
-
-                    {/* Active Card */}
                     <div className="w-[380px] h-[520px] z-10">
                         <div className="h-full w-full">
                             <DesktopCard item={items[currentIndex]} onSwipe={onSwipe} onDetails={onDetails} />
                         </div>
                     </div>
-
-                    {/* Right Card Placeholder */}
                     <div className="w-[180px] h-[260px] opacity-20 scale-90 blur-[1px] transform rotate-6">
                         <DesktopCard item={items[(currentIndex + 1) % items.length]} />
                     </div>
                 </div>
-
-                {/* Desktop Controls */}
+                
                 <div className="flex flex-col items-center gap-8">
                     <div className="flex items-center gap-10">
                         <button onClick={prev} className="flex flex-col items-center gap-2 group">
                             <ChevronLeft size={20} className="text-neutral-500 group-hover:text-white " />
                             <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500 group-hover:text-white ">Prev</span>
                         </button>
-
-                        {/* Dots */}
                         <div className="flex items-center gap-3">
                             {items.slice(0, 5).map((_, i) => (
-                                <div
-                                    key={i}
-                                    className={clsx(
-                                        "  rounded-full",
-                                        i === currentIndex % 5 ? "w-8 h-1.5 bg-red-500" : "w-1.5 h-1.5 bg-neutral-800"
-                                    )}
-                                />
+                                <div key={i} className={clsx("rounded-full", i === currentIndex % 5 ? "w-8 h-1.5 bg-red-500" : "w-1.5 h-1.5 bg-neutral-800")} />
                             ))}
                         </div>
-
                         <button onClick={next} className="flex flex-col items-center gap-2 group">
                             <ChevronRight size={20} className="text-neutral-500 group-hover:text-white " />
                             <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500 group-hover:text-white ">Next</span>
@@ -126,21 +119,27 @@ export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
                 </div>
             </div>
 
-            {/* Mobile Horizontal Scroll Layout */}
-            <div className="md:hidden w-full h-full pt-8 pb-4">
-                <div className="w-full h-full flex overflow-x-auto snap-x snap-mandatory px-8 gap-4 pb-8 scrollbar-hide items-center">
-                    {items.map((item) => (
-                        <div key={item.id} className="w-full min-w-[300px] h-full max-h-[440px] snap-center flex-shrink-0">
-                            <FeedCard
-                                item={item}
-                                onDone={() => onSwipe(item.id, 'done')}
-                                onDelete={() => handleDeleteRequested(item.id)}
-                                onDetails={() => onDetails(item)}
-                            />
-                        </div>
-                    ))}
-                    {/* Spacer for end of list scrolling */}
-                    <div className="w-4 flex-shrink-0" />
+            {/* Mobile Deck Stack Layout */}
+            <div className="md:hidden relative w-full h-full max-w-sm mx-auto pt-8 pb-4 flex flex-col justify-start items-center">
+                <div className="relative w-full aspect-[4/5] max-h-[440px] px-6">
+                    <AnimatePresence>
+                        {items.slice(0, 2).reverse().map((item, index) => {
+                            const isTop = item.id === items[0].id;
+                            // Reverse index: Top is 1 (length-1), Back is 0
+                            const stackIndex = items.slice(0, 2).length - 1 - index;
+                            
+                            return (
+                                <DeckCard
+                                    key={item.id}
+                                    item={item}
+                                    isTop={isTop}
+                                    stackIndex={stackIndex}
+                                    onSwipe={(action) => action === 'delete' ? handleDeleteRequested(item.id) : onSwipe(item.id, action)}
+                                    onDetails={() => onDetails(item)}
+                                />
+                            );
+                        })}
+                    </AnimatePresence>
                 </div>
             </div>
 
@@ -159,49 +158,82 @@ export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
     );
 }
 
-function DesktopCard({ item, onSwipe, onDetails }: { item: FeedItem, onSwipe?: any, onDetails?: any }) {
-    return (
-        <Card className="h-full flex flex-col justify-between bg-neutral-900 border-white/5 overflow-hidden relative shadow-2xl rounded-[32px] p-10">
-            <div className="relative z-10">
-                <div className="flex items-center justify-between mb-8">
-                    <span className="text-xs font-black uppercase tracking-[0.3em] text-neutral-500">
-                        {item.type}
-                    </span>
-                    <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
-                </div>
-                <h3 className="text-4xl font-black text-white mb-6 uppercase tracking-tight leading-none">{item.title}</h3>
-                <p className="text-xl text-neutral-400 leading-relaxed font-medium">{item.content}</p>
-            </div>
-
-            <div className="relative z-10 mt-auto">
-                <div className="h-1 w-full bg-neutral-800 rounded-full overflow-hidden">
-                    <div
-                        className="h-full bg-neutral-700"
-                        style={{ width: "60%" }}
-                    />
-                </div>
-            </div>
-        </Card>
-    );
-}
-
-function FeedCard({
+function DeckCard({
     item,
-    onDone,
-    onDelete,
+    isTop,
+    stackIndex,
+    onSwipe,
     onDetails
 }: {
     item: FeedItem,
-    onDone: () => void,
-    onDelete: () => void,
+    isTop: boolean,
+    stackIndex: number,
+    onSwipe: (action: 'done' | 'dismiss' | 'delete') => void,
     onDetails: () => void
 }) {
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+    const rotate = useTransform(x, [-200, 200], [-12, 12]);
+    
+    const handleDragEnd = (event: any, info: PanInfo) => {
+        const threshold = 120;
+        const { x: offsetX, y: offsetY } = info.offset;
+        
+        if (Math.abs(offsetX) > Math.abs(offsetY)) {
+            // Horizontal
+            if (offsetX > threshold) {
+                vibrate('success');
+                onSwipe('done');
+            } else if (offsetX < -threshold) {
+                vibrate('light');
+                onSwipe('dismiss');
+            }
+        } else {
+            // Vertical
+            if (offsetY > threshold) {
+                // Pull Down = Delete
+                vibrate('medium');
+                onSwipe('delete');
+            } else if (offsetY < -threshold) {
+                // Pull Up = Details
+                vibrate('light');
+                onDetails();
+            }
+        }
+    };
+
     return (
-        <div className="h-full w-full">
-            <Card className="h-full flex flex-col justify-between bg-[var(--surface)] border-white/5 overflow-hidden relative shadow-2xl rounded-[32px]">
+        <MotionCard
+            style={{
+                x: isTop ? x : 0,
+                y: isTop ? y : (stackIndex * 15), // Offset back cards
+                scale: isTop ? 1 : 1 - (stackIndex * 0.05), // Scale down back cards
+                rotate: isTop ? rotate : 0,
+                zIndex: 10 - stackIndex,
+            }}
+            drag={isTop ? true : false}
+            dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+            dragElastic={0.7} // Rubber band feel
+            onDragEnd={handleDragEnd}
+            whileTap={{ cursor: "grabbing" }}
+            initial={{ scale: 0.9, y: 30, opacity: 0 }}
+            animate={{ scale: isTop ? 1 : 1 - (stackIndex * 0.05), y: isTop ? 0 : (stackIndex * 15), opacity: 1 }}
+            exit={{ 
+                x: x.get() > 50 ? 500 : (x.get() < -50 ? -500 : 0),
+                y: y.get() > 50 ? 500 : 0,
+                opacity: 0,
+                transition: { duration: 0.2 }
+            }}
+            transition={SLIMY_CONFIG}
+            className="absolute inset-0 h-full w-full cursor-grab active:cursor-grabbing"
+        >
+            {/* Inner Content */}
+            <div className="h-full flex flex-col justify-between bg-[var(--surface)] relative overflow-hidden">
                 <div 
-                    onClick={onDetails}
-                    className="relative z-10 p-6 pt-8 flex-1 cursor-pointer active:bg-white/5 "
+                    onClick={() => {
+                        if (Math.abs(x.get()) < 5) onDetails();
+                    }}
+                    className="relative z-10 p-6 pt-8 flex-1 cursor-pointer active:bg-white/5 transition-colors"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">
@@ -212,28 +244,41 @@ function FeedCard({
                     <h3 className="text-xl font-bold text-white mb-2 leading-tight uppercase tracking-wide">{item.title}</h3>
                     <p className="text-sm text-neutral-400 leading-relaxed font-medium line-clamp-6">{item.content}</p>
                 </div>
-
-                <div className="relative z-10 mt-auto p-4 flex gap-3 bg-black/20">
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                        className="flex-1 py-3 bg-red-500/10 rounded-xl flex items-center justify-center text-red-500 active:scale-95 "
-                    >
-                        <Trash2 size={20} />
-                    </button>
-                    <button 
-                         onClick={(e) => { e.stopPropagation(); onDetails(); }}
-                        className="flex-1 py-3 bg-white/5 rounded-xl flex items-center justify-center text-neutral-400 active:scale-95 "
-                    >
-                        <Info size={20} />
-                    </button>
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); onDone(); }}
-                        className="flex-1 py-3 bg-green-500/10 rounded-xl flex items-center justify-center text-green-500 active:scale-95 "
-                    >
-                        <CheckCircle2 size={20} />
-                    </button>
+                
+                {/* Visual Indicator (Optional) */}
+                <div className="relative z-10 mt-auto p-6 pb-8">
+                    <div className="h-[2px] w-full bg-white/5 rounded-full overflow-hidden">
+                        <motion.div
+                            className="h-full bg-white/10"
+                            initial={{ width: "30%" }}
+                            animate={{ width: "60%" }}
+                        />
+                    </div>
                 </div>
-            </Card>
+            </div>
+        </MotionCard>
+    );
+}
+
+function DesktopCard({ item, onSwipe, onDetails }: { item: FeedItem, onSwipe?: any, onDetails?: any }) {
+    // ... (Keep existing desktop card)
+    return (
+        <div className="h-full flex flex-col justify-between bg-neutral-900 overflow-hidden relative shadow-2xl rounded-[32px] p-10">
+            <div className="relative z-10">
+                <div className="flex items-center justify-between mb-8">
+                    <span className="text-xs font-black uppercase tracking-[0.3em] text-neutral-500">
+                        {item.type}
+                    </span>
+                    <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                </div>
+                <h3 className="text-4xl font-black text-white mb-6 uppercase tracking-tight leading-none">{item.title}</h3>
+                <p className="text-xl text-neutral-400 leading-relaxed font-medium">{item.content}</p>
+            </div>
+            <div className="relative z-10 mt-auto">
+                <div className="h-1 w-full bg-neutral-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-neutral-700" style={{ width: "60%" }} />
+                </div>
+            </div>
         </div>
     );
 }

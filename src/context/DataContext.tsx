@@ -34,9 +34,9 @@ interface DataContextType {
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
-    autoFocusQuickAdd: true,
+    autoFocusQuickAdd: false,
     motionIntensity: 50,
-    showBottomNav: true,
+    showBottomNav: false,
     confirmDelete: true,
 };
 
