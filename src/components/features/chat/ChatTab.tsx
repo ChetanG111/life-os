@@ -2,9 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Send, Plus, Mic } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { vibrate } from '@/utils/haptics';
-import { useSlimySpring } from '@/hooks/use-slimy-spring';
 
 // Mock Messages
 type Message = {
@@ -33,7 +31,6 @@ export function ChatTab({ onOpenSettings }: { onOpenSettings: () => void }) {
     const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
     const [inputValue, setInputValue] = useState('');
     const endOfMessagesRef = useRef<HTMLDivElement>(null);
-    const springConfig = useSlimySpring();
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -71,26 +68,21 @@ export function ChatTab({ onOpenSettings }: { onOpenSettings: () => void }) {
     return (
         <div className="relative w-full h-full bg-background flex flex-col">
             <header className="w-full sticky top-0 z-30 flex justify-center items-center py-4 px-6 bg-background border-b border-white/5 mb-4 flex-none">
-                <motion.button
-                    whileTap={{ scale: 0.97 }}
+                <button
                     onClick={onOpenSettings}
-                    className="group flex flex-col items-center gap-1 focus:outline-none"
+                    className="group flex flex-col items-center gap-1 focus:outline-none active:scale-95 "
                 >
-                    <h1 className="text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200 transition-colors">
+                    <h1 className="text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200 ">
                         Chat
                     </h1>
-                </motion.button>
+                </button>
             </header>
 
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 space-y-4 pb-32 pt-2 touch-pan-y">
                 {messages.map((msg) => (
-                    <motion.div
+                    <div
                         key={msg.id}
-                        layout
-                        initial={{ opacity: 0, scale: 0.9, y: 30 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        transition={springConfig}
                         className={`flex flex-col ${msg.isUser ? 'items-end' : 'items-start'}`}
                     >
                         <div
@@ -104,7 +96,7 @@ export function ChatTab({ onOpenSettings }: { onOpenSettings: () => void }) {
                         <span className="text-[11px] text-neutral-600 mt-1 px-1 font-medium italic">
                             {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
-                    </motion.div>
+                    </div>
                 ))}
                 <div ref={endOfMessagesRef} />
             </div>
@@ -115,7 +107,7 @@ export function ChatTab({ onOpenSettings }: { onOpenSettings: () => void }) {
                     {/* Add Button */}
                     <button
                         onClick={() => vibrate('light')}
-                        className="flex-none w-9 h-9 mb-0.5 rounded-full bg-neutral-700/50 text-neutral-400 flex items-center justify-center hover:text-white hover:bg-neutral-600 transition-colors"
+                        className="flex-none w-9 h-9 mb-0.5 rounded-full bg-neutral-700/50 text-neutral-400 flex items-center justify-center hover:text-white hover:bg-neutral-600 "
                     >
                         <Plus size={20} strokeWidth={2.5} />
                     </button>
@@ -140,31 +132,23 @@ export function ChatTab({ onOpenSettings }: { onOpenSettings: () => void }) {
 
                     {/* Action Button (Mic / Send) */}
                     <div className="flex-none mb-0.5">
-                        <AnimatePresence mode="wait">
-                            {inputValue.trim() ? (
-                                <motion.button
-                                    key="send"
-                                    initial={{ scale: 0.5, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    exit={{ scale: 0.5, opacity: 0 }}
-                                    onClick={handleSend}
-                                    className="w-9 h-9 rounded-full bg-[#0A84FF] text-white flex items-center justify-center transition-transform active:scale-90 shadow-lg shadow-blue-500/20"
-                                >
-                                    <Send size={18} fill="currentColor" className="-ml-0.5" />
-                                </motion.button>
-                            ) : (
-                                <motion.button
-                                    key="mic"
-                                    initial={{ scale: 0.5, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    exit={{ scale: 0.5, opacity: 0 }}
-                                    onClick={() => vibrate('light')}
-                                    className="w-9 h-9 rounded-full text-neutral-400 hover:text-white flex items-center justify-center"
-                                >
-                                    <Mic size={22} />
-                                </motion.button>
-                            )}
-                        </AnimatePresence>
+                        {inputValue.trim() ? (
+                            <button
+                                key="send"
+                                onClick={handleSend}
+                                className="w-9 h-9 rounded-full bg-[#0A84FF] text-white flex items-center justify-center  active:scale-90 shadow-lg shadow-blue-500/20"
+                            >
+                                <Send size={18} fill="currentColor" className="-ml-0.5" />
+                            </button>
+                        ) : (
+                            <button
+                                key="mic"
+                                onClick={() => vibrate('light')}
+                                className="w-9 h-9 rounded-full text-neutral-400 hover:text-white flex items-center justify-center"
+                            >
+                                <Mic size={22} />
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

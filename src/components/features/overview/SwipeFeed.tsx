@@ -1,14 +1,12 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'framer-motion';
+import { useState } from 'react';
 import { Card } from '@/components/ui/Card';
-import { CheckCircle2, Archive, Trash2, X, Info, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CheckCircle2, Trash2, Info, ChevronLeft, ChevronRight } from 'lucide-react';
 import clsx from 'clsx';
 import { vibrate } from '@/utils/haptics';
 import { ConfirmDeleteModal } from '../cards/ConfirmDeleteModal';
 import { useSettings } from '@/context/SettingsContext';
-import { useSlimySpring } from '@/hooks/use-slimy-spring';
 
 export interface FeedItem {
     id: string;
@@ -41,7 +39,6 @@ interface SwipeFeedProps {
 }
 
 export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
-    const springConfig = useSlimySpring();
     const [currentIndex, setCurrentIndex] = useState(0);
     const [itemToDelete, setItemToDelete] = useState<string | null>(null);
     const { confirmDelete } = useSettings();
@@ -65,58 +62,21 @@ export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
     };
 
     if (items.length === 0) {
-        // ... (empty state)
         return (
-            <motion.div
-                initial="hidden"
-                animate="show"
-                variants={{
-                    hidden: { opacity: 0 },
-                    show: {
-                        opacity: 1,
-                        transition: {
-                            staggerChildren: 0.1,
-                            delayChildren: 0.2
-                        }
-                    }
-                }}
-                className="flex h-full flex-col items-center justify-center text-neutral-600 pb-24"
-            >
-                <motion.div
-                    variants={{
-                        hidden: { opacity: 0, scale: 0.8, y: 10 },
-                        show: { opacity: 1, scale: 1, y: 0, transition: springConfig }
-                    }}
-                >
+            <div className="flex h-full flex-col items-center justify-center text-neutral-600 pb-24">
+                <div>
                     <CheckCircle2 size={48} className="mb-6 opacity-20" />
-                </motion.div>
-                <motion.p
-                    variants={{
-                        hidden: { opacity: 0, y: 10 },
-                        show: { opacity: 1, y: 0, transition: springConfig }
-                    }}
-                    className="text-sm font-medium uppercase tracking-[0.2em]"
-                >
+                </div>
+                <p className="text-sm font-medium uppercase tracking-[0.2em]">
                     All caught up
-                </motion.p>
-            </motion.div>
+                </p>
+            </div>
         );
     }
 
-    const stackVariants = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.15,
-                delayChildren: 0.1
-            }
-        }
-    };
-
     return (
         <div className="h-full w-full flex flex-col justify-start items-center">
-            {/* Desktop Carousel Layout (Image 2) */}
+            {/* Desktop Carousel Layout */}
             <div className="hidden md:flex flex-col items-center justify-center w-full max-w-5xl h-full py-10">
                 <div className="relative w-full flex items-center justify-center gap-12 mb-16">
                     {/* Left Card Placeholder */}
@@ -126,16 +86,9 @@ export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
 
                     {/* Active Card */}
                     <div className="w-[380px] h-[520px] z-10">
-                        <motion.div
-                            key={items[currentIndex].id}
-                            initial={{ x: 100, opacity: 0, scale: 0.9 }}
-                            animate={{ x: 0, opacity: 1, scale: 1 }}
-                            exit={{ x: -100, opacity: 0, scale: 0.9 }}
-                            transition={springConfig}
-                            className="h-full w-full"
-                        >
+                        <div className="h-full w-full">
                             <DesktopCard item={items[currentIndex]} onSwipe={onSwipe} onDetails={onDetails} />
-                        </motion.div>
+                        </div>
                     </div>
 
                     {/* Right Card Placeholder */}
@@ -144,12 +97,12 @@ export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
                     </div>
                 </div>
 
-                {/* Desktop Controls (Image 2) */}
+                {/* Desktop Controls */}
                 <div className="flex flex-col items-center gap-8">
                     <div className="flex items-center gap-10">
                         <button onClick={prev} className="flex flex-col items-center gap-2 group">
-                            <ChevronLeft size={20} className="text-neutral-500 group-hover:text-white transition-colors" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500 group-hover:text-white transition-colors">Prev</span>
+                            <ChevronLeft size={20} className="text-neutral-500 group-hover:text-white " />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500 group-hover:text-white ">Prev</span>
                         </button>
 
                         {/* Dots */}
@@ -158,7 +111,7 @@ export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
                                 <div
                                     key={i}
                                     className={clsx(
-                                        "transition-all duration-300 rounded-full",
+                                        "  rounded-full",
                                         i === currentIndex % 5 ? "w-8 h-1.5 bg-red-500" : "w-1.5 h-1.5 bg-neutral-800"
                                     )}
                                 />
@@ -166,43 +119,29 @@ export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
                         </div>
 
                         <button onClick={next} className="flex flex-col items-center gap-2 group">
-                            <ChevronRight size={20} className="text-neutral-500 group-hover:text-white transition-colors" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500 group-hover:text-white transition-colors">Next</span>
+                            <ChevronRight size={20} className="text-neutral-500 group-hover:text-white " />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500 group-hover:text-white ">Next</span>
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* Mobile Vertical Stack Layout */}
-            <div className="md:hidden relative h-full w-full max-w-sm mx-auto flex flex-col justify-start items-center p-2 pt-8">
-                <motion.div
-                    className="relative w-full aspect-[4/5] max-h-[440px]"
-                    variants={stackVariants}
-                    initial="hidden"
-                    animate="show"
-                >
-                    <AnimatePresence>
-                        {items.slice(0, 2).reverse().map((item, index) => {
-                            const isTop = item.id === items[0].id;
-                            return (
-                                <SwipeableCard
-                                    key={item.id}
-                                    item={item}
-                                    isTop={isTop}
-                                    staggerIndex={index}
-                                    onSwipe={(action) => {
-                                        if (action === 'delete') {
-                                            handleDeleteRequested(item.id);
-                                        } else {
-                                            onSwipe(item.id, action);
-                                        }
-                                    }}
-                                    onDetails={() => onDetails(item)}
-                                />
-                            );
-                        })}
-                    </AnimatePresence>
-                </motion.div>
+            {/* Mobile Horizontal Scroll Layout */}
+            <div className="md:hidden w-full h-full pt-8 pb-4">
+                <div className="w-full h-full flex overflow-x-auto snap-x snap-mandatory px-8 gap-4 pb-8 scrollbar-hide items-center">
+                    {items.map((item) => (
+                        <div key={item.id} className="w-full min-w-[300px] h-full max-h-[440px] snap-center flex-shrink-0">
+                            <FeedCard
+                                item={item}
+                                onDone={() => onSwipe(item.id, 'done')}
+                                onDelete={() => handleDeleteRequested(item.id)}
+                                onDetails={() => onDetails(item)}
+                            />
+                        </div>
+                    ))}
+                    {/* Spacer for end of list scrolling */}
+                    <div className="w-4 flex-shrink-0" />
+                </div>
             </div>
 
             <ConfirmDeleteModal
@@ -236,10 +175,9 @@ function DesktopCard({ item, onSwipe, onDetails }: { item: FeedItem, onSwipe?: a
 
             <div className="relative z-10 mt-auto">
                 <div className="h-1 w-full bg-neutral-800 rounded-full overflow-hidden">
-                    <motion.div
+                    <div
                         className="h-full bg-neutral-700"
-                        initial={{ width: "30%" }}
-                        animate={{ width: "60%" }}
+                        style={{ width: "60%" }}
                     />
                 </div>
             </div>
@@ -247,141 +185,24 @@ function DesktopCard({ item, onSwipe, onDetails }: { item: FeedItem, onSwipe?: a
     );
 }
 
-function SwipeableCard({
+function FeedCard({
     item,
-    isTop,
-    staggerIndex,
-    onSwipe,
+    onDone,
+    onDelete,
     onDetails
 }: {
     item: FeedItem,
-    isTop: boolean,
-    staggerIndex: number,
-    onSwipe: (action: 'done' | 'dismiss' | 'delete') => void,
+    onDone: () => void,
+    onDelete: () => void,
     onDetails: () => void
 }) {
-    const x = useMotionValue(0);
-    const y = useMotionValue(0);
-    const rotate = useTransform(x, [-200, 200], [-8, 8]);
-    const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]);
-
-    // Spring configuration from MotionContext (Dynamic based on settings)
-    const springConfig = useSlimySpring();
-
-    // Item variants for stagger animation - bouncy with overshoot
-    const itemVariants = {
-        hidden: {
-            opacity: 0,
-            y: 80,
-            scale: 0.85,
-            rotateX: 15
-        },
-        show: {
-            opacity: 1,
-            y: isTop ? 0 : 20,
-            scale: isTop ? 1 : 0.95,
-            rotateX: 0,
-            transition: springConfig
-        }
-    };
-
-    // Background color indicators (Physical feel)
-    const bgRightOpacity = useTransform(x, [40, 150], [0, 1]);
-    const scaleRight = useTransform(x, [40, 150], [0.9, 1.1]);
-
-    const bgLeftOpacity = useTransform(x, [-150, -40], [1, 0]);
-    const scaleLeft = useTransform(x, [-150, -40], [1.1, 0.9]);
-
-    const bgDownOpacity = useTransform(y, [40, 150], [0, 1]);
-    const scaleDown = useTransform(y, [40, 150], [0.9, 1.1]);
-
-    const bgUpOpacity = useTransform(y, [-150, -40], [1, 0]);
-    const scaleUp = useTransform(y, [-150, -40], [1.1, 0.9]);
-
-    const lastTap = useRef<number>(0);
-    const handleTap = () => {
-        // Only trigger if we haven't dragged the card
-        if (Math.abs(x.get()) > 5 || Math.abs(y.get()) > 5) return;
-
-        const now = Date.now();
-        const DOUBLE_TAP_DELAY = 300;
-        vibrate('light');
-        if (now - lastTap.current < DOUBLE_TAP_DELAY) {
-            vibrate('medium');
-            onDetails();
-        }
-        lastTap.current = now;
-    };
-
-    const handleDragEnd = (event: any, info: PanInfo) => {
-        const threshold = 140;
-        const { x: offsetX, y: offsetY } = info.offset;
-        const absX = Math.abs(offsetX);
-        const absY = Math.abs(offsetY);
-
-        if (absX > absY) {
-            if (offsetX > threshold) {
-                vibrate('success');
-                onSwipe('done');
-            } else if (offsetX < -threshold) {
-                vibrate('light');
-                onSwipe('dismiss');
-            }
-        } else {
-            if (offsetY > threshold) {
-                vibrate('medium');
-                onSwipe('delete');
-            } else if (offsetY < -threshold) {
-                vibrate('medium');
-                onDetails();
-            }
-        }
-    };
-
     return (
-        <motion.div
-            variants={itemVariants}
-            style={{
-                x: isTop ? x : 0,
-                y: isTop ? y : (isTop ? 0 : 24),
-                rotate: isTop ? rotate : 0,
-                zIndex: isTop ? 10 : 0
-            }}
-            drag={isTop ? true : false}
-            dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-            dragElastic={0.8}
-            onDragStart={() => vibrate('light')}
-            onDragEnd={handleDragEnd}
-            onTap={handleTap}
-            exit={{
-                x: x.get() > 50 ? 500 : (x.get() < -50 ? -500 : 0),
-                y: y.get() > 50 ? 500 : (y.get() < -50 ? -500 : 0),
-                opacity: 0,
-                transition: { duration: 0.3 }
-            }}
-            transition={springConfig}
-            className="absolute inset-0 cursor-grab active:cursor-grabbing"
-        >
+        <div className="h-full w-full">
             <Card className="h-full flex flex-col justify-between bg-[var(--surface)] border-white/5 overflow-hidden relative shadow-2xl rounded-[32px]">
-
-                {/* Swipe Indicators - Minimal and Physical */}
-                <motion.div style={{ opacity: bgRightOpacity }} className="absolute inset-0 z-20 flex items-center justify-center bg-[#10B981]/5 pointer-events-none">
-                    <motion.div style={{ scale: scaleRight }}><CheckCircle2 size={48} className="text-[#10B981]/20" /></motion.div>
-                </motion.div>
-
-                <motion.div style={{ opacity: bgLeftOpacity }} className="absolute inset-0 z-20 flex items-center justify-center bg-white/5 pointer-events-none">
-                    <motion.div style={{ scale: scaleLeft }}><X size={48} className="text-white/10" /></motion.div>
-                </motion.div>
-
-                <motion.div style={{ opacity: bgDownOpacity }} className="absolute inset-0 z-20 flex items-center justify-center bg-[#EF4444]/5 pointer-events-none">
-                    <motion.div style={{ scale: scaleDown }}><Trash2 size={48} className="text-[#EF4444]/20" /></motion.div>
-                </motion.div>
-
-                <motion.div style={{ opacity: bgUpOpacity }} className="absolute inset-0 z-20 flex items-center justify-center bg-white/5 pointer-events-none">
-                    <motion.div style={{ scale: scaleUp }}><Info size={48} className="text-white/10" /></motion.div>
-                </motion.div>
-
-                <div className="relative z-10 p-6 pt-8">
+                <div 
+                    onClick={onDetails}
+                    className="relative z-10 p-6 pt-8 flex-1 cursor-pointer active:bg-white/5 "
+                >
                     <div className="flex items-center justify-between mb-4">
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">
                             {item.type}
@@ -389,19 +210,30 @@ function SwipeableCard({
                         <div className="h-1.5 w-1.5 rounded-full bg-[#EF4444]" />
                     </div>
                     <h3 className="text-xl font-bold text-white mb-2 leading-tight uppercase tracking-wide">{item.title}</h3>
-                    <p className="text-sm text-neutral-400 leading-relaxed font-medium">{item.content}</p>
+                    <p className="text-sm text-neutral-400 leading-relaxed font-medium line-clamp-6">{item.content}</p>
                 </div>
 
-                <div className="relative z-10 mt-auto p-6 pb-8">
-                    <div className="h-[2px] w-full bg-white/5 rounded-full overflow-hidden">
-                        <motion.div
-                            className="h-full bg-white/10"
-                            initial={{ width: "30%" }}
-                            animate={{ width: "60%" }}
-                        />
-                    </div>
+                <div className="relative z-10 mt-auto p-4 flex gap-3 bg-black/20">
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                        className="flex-1 py-3 bg-red-500/10 rounded-xl flex items-center justify-center text-red-500 active:scale-95 "
+                    >
+                        <Trash2 size={20} />
+                    </button>
+                    <button 
+                         onClick={(e) => { e.stopPropagation(); onDetails(); }}
+                        className="flex-1 py-3 bg-white/5 rounded-xl flex items-center justify-center text-neutral-400 active:scale-95 "
+                    >
+                        <Info size={20} />
+                    </button>
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); onDone(); }}
+                        className="flex-1 py-3 bg-green-500/10 rounded-xl flex items-center justify-center text-green-500 active:scale-95 "
+                    >
+                        <CheckCircle2 size={20} />
+                    </button>
                 </div>
             </Card>
-        </motion.div>
+        </div>
     );
 }

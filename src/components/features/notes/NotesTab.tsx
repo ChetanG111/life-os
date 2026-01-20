@@ -1,12 +1,8 @@
+'use client';
+
 import { NoteCard } from './NoteCard';
-import { motion, Variants, AnimatePresence } from 'framer-motion';
-import { Note } from '@/types';
 import clsx from 'clsx';
-import { useSlimySpring } from '@/hooks/use-slimy-spring';
 import { StickyNote } from 'lucide-react';
-
-import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants } from '@/utils/animations';
-
 import { useData } from '@/context/DataContext';
 
 export const NotesTab = ({
@@ -19,41 +15,28 @@ export const NotesTab = ({
     onOpenQuickAdd: (type?: 'task' | 'note') => void
 }) => {
     const { notes } = useData();
-    const springConfig = useSlimySpring();
-
-    const containerVariants = UNIVERSAL_STAGGER_CONTAINER('standard');
-    const itemVariants = createStaggerItemVariants(springConfig);
 
     return (
         <div className="w-full min-h-screen bg-background pb-32 flex flex-col items-center">
             <header className="w-full sticky top-0 z-30 flex justify-center items-center py-4 px-6 bg-background border-b border-white/5 mb-4">
-                <motion.button
-                    whileTap={{ scale: 0.97 }}
+                <button
                     onClick={onOpenSettings}
-                    className="group flex flex-col items-center gap-1 focus:outline-none"
+                    className="group flex flex-col items-center gap-1 focus:outline-none active:scale-95 "
                 >
-                    <h1 className="text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200 transition-colors">
+                    <h1 className="text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200 ">
                         Notes
                     </h1>
-                </motion.button>
+                </button>
             </header>
 
-            <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="show"
+            <div
                 className={clsx(
                     "flex-1 pb-8",
                     notes.length > 0 ? "grid grid-cols-2 gap-3 auto-rows-max" : "flex flex-col"
                 )}
             >
-                {notes.map((note, index) => (
-                    <motion.div
-                        key={note.id}
-                        variants={itemVariants}
-                        custom={index}
-                        exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                    >
+                {notes.map((note) => (
+                    <div key={note.id}>
                         <NoteCard note={note} onTap={() => onOpenDetails({
                             id: note.id,
                             title: note.title || 'Untitled Note',
@@ -61,36 +44,21 @@ export const NotesTab = ({
                             content: note.content,
                             tags: note.tags
                         })} />
-                    </motion.div>
+                    </div>
                 ))}
 
-                {/* Empty state handles - Integrated into stagger */}
+                {/* Empty state handles */}
                 {notes.length === 0 && (
-                    <motion.div
-                        variants={{
-                            hidden: { opacity: 0 },
-                            show: {
-                                opacity: 1,
-                                transition: {
-                                    staggerChildren: 0.1,
-                                    delayChildren: 0.1
-                                }
-                            }
-                        }}
-                        className="flex-1 flex flex-col items-center justify-center text-neutral-600 pb-24 col-span-full"
-                    >
-                        <motion.div variants={itemVariants}>
+                    <div className="flex-1 flex flex-col items-center justify-center text-neutral-600 pb-24 col-span-full">
+                        <div>
                             <StickyNote size={48} className="mb-6 opacity-20" />
-                        </motion.div>
-                        <motion.p
-                            variants={itemVariants}
-                            className="text-sm font-medium uppercase tracking-[0.2em]"
-                        >
+                        </div>
+                        <p className="text-sm font-medium uppercase tracking-[0.2em]">
                             No notes yet
-                        </motion.p>
-                    </motion.div>
+                        </p>
+                    </div>
                 )}
-            </motion.div>
+            </div>
         </div>
     );
 };

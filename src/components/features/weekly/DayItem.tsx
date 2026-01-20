@@ -1,6 +1,5 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { Task } from '@/types';
 import { TaskCard } from '@/components/features/tasks/TaskCard';
 import { ChevronDown } from 'lucide-react';
@@ -38,10 +37,10 @@ export const DayItem = ({ dayName, dayNumber, tasks, summary, isToday = false }:
 
     return (
         <div className="mb-2">
-            <motion.button
+            <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={clsx(
-                    "w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-200",
+                    "w-full flex items-center justify-between p-4 rounded-2xl  ",
                     isOpen ? "bg-[var(--surface)]" : "bg-transparent hover:bg-white/5"
                 )}
             >
@@ -97,60 +96,28 @@ export const DayItem = ({ dayName, dayNumber, tasks, summary, isToday = false }:
                     <ChevronDown
                         size={16}
                         className={clsx(
-                            "text-neutral-500 transition-transform duration-300",
+                            "text-neutral-500  ",
                             isOpen && "rotate-180"
                         )}
                     />
                 </div>
-            </motion.button>
+            </button>
 
-            <AnimatePresence>
-                {isOpen && tasks.length > 0 && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ type: "spring", stiffness: 180, damping: 22 }}
-                        className="overflow-hidden"
-                    >
-                        <motion.div
-                            initial="hidden"
-                            animate="show"
-                            variants={{
-                                hidden: { opacity: 0 },
-                                show: {
-                                    opacity: 1,
-                                    transition: {
-                                        staggerChildren: 0.08
-                                    }
-                                }
-                            }}
-                            className="pt-2 px-2 pb-4 space-y-2"
-                        >
-                            {tasks.map(task => (
-                                <motion.div
-                                    key={task.id}
-                                    variants={{
-                                        hidden: { opacity: 0, y: 30, scale: 0.9 },
-                                        show: {
-                                            opacity: 1,
-                                            y: 0,
-                                            scale: 1,
-                                            transition: { type: "spring", stiffness: 350, damping: 18 }
-                                        }
-                                    }}
-                                >
-                                    <TaskCard
-                                        task={task}
-                                        onComplete={() => handleComplete(task.id)}
-                                        onDelete={() => handleDelete(task.id)}
-                                    />
-                                </motion.div>
-                            ))}
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {isOpen && tasks.length > 0 && (
+                <div className="overflow-hidden">
+                    <div className="pt-2 px-2 pb-4 space-y-2">
+                        {tasks.map(task => (
+                            <div key={task.id}>
+                                <TaskCard
+                                    task={task}
+                                    onComplete={() => handleComplete(task.id)}
+                                    onDelete={() => handleDelete(task.id)}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

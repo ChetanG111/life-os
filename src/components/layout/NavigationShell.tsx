@@ -1,11 +1,17 @@
 'use client';
 
-import { useState, useRef, useEffect, useMemo, Suspense } from 'react';
-import { motion, AnimatePresence, Variants, useMotionValue, useTransform } from 'framer-motion';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { TabId, TABS, Note } from '@/types';
 import { BottomNav } from './BottomNav';
 import { vibrate } from '@/utils/haptics';
 import dynamic from 'next/dynamic';
+import { useData } from '@/context/DataContext';
+import { SettingsModal } from '../features/settings/SettingsModal';
+import { QuickAddModal } from '../features/overview/QuickAddModal';
+import { CardDetailModal } from '../features/cards/CardDetailModal';
+import { StatePopup } from '../features/overview/StatePopup';
+import { MemoryReviewCards } from '../features/overview/MemoryReviewCards';
+import { Plus, Brain } from 'lucide-react';
 
 // Lazy load tab components per performance_rules.lazy_load_tabs
 const Feed = dynamic(() => import('@/components/features/overview/Feed').then(mod => ({ default: mod.Feed })), {
@@ -27,23 +33,7 @@ const ChatTab = dynamic(() => import('@/components/features/chat/ChatTab').then(
 // Loading state for lazy-loaded tabs
 const TabLoadingState = () => (
     <div className="flex items-center justify-center h-full">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-    </div>
-);
-
-import { SettingsModal } from '../features/settings/SettingsModal';
-import { QuickAddModal } from '../features/overview/QuickAddModal';
-import { CardDetailModal } from '../features/cards/CardDetailModal';
-import { StatePopup } from '../features/overview/StatePopup';
-import { MemoryReviewCards } from '../features/overview/MemoryReviewCards';
-import { Plus, Brain } from 'lucide-react';
-import { useSlimySpring } from '@/hooks/use-slimy-spring';
-
-// Placeholder content - To be replaced by actual Feature components
-const PlaceholderTab = ({ text }: { text: string }) => (
-    <div className="flex flex-col items-center justify-center h-full p-6 text-center space-y-4">
-        <h1 className="text-xl font-bold tracking-tight text-white">{text}</h1>
-        <p className="text-neutral-500 text-sm">Coming soon</p>
+        <span className="text-neutral-500 text-sm font-medium uppercase tracking-widest">Loading...</span>
     </div>
 );
 
@@ -68,16 +58,11 @@ const TabContent = ({
     }
 };
 
-import { useData } from '@/context/DataContext';
-
 export function NavigationShell() {
-    const { settings, updateSettings, removeTask, removeNote, addTask, addNote, stateHistory, saveState, currentState, tasks, notes } = useData();
-    const springConfig = useSlimySpring();
+    const { settings, updateSettings, removeTask, removeNote, stateHistory, saveState, currentState, notes } = useData();
     const showBottomNav = settings.showBottomNav;
     const [activeTab, setActiveTab] = useState<TabId>('overview');
-    const [direction, setDirection] = useState(0);
-    const [isDragging, setIsDragging] = useState(false);
-
+    
     const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
     const [quickAddType, setQuickAddType] = useState<'task' | 'note'>('task');
     const [selectedItem, setSelectedItem] = useState<any | null>(null);
@@ -120,89 +105,9 @@ export function NavigationShell() {
 
     const isModalOpen = isQuickAddOpen || !!selectedItem || isSettingsOpen || isStatePopupOpen || isMemoryReviewOpen;
 
-    // Apple-level depth variables
-    const shellScale = isModalOpen ? 0.94 : 1;
-    const shellRadius = isModalOpen ? '32px' : '0px';
-
-    // Track drag physics for BottomNav
-    const x = useMotionValue(0);
-    // Invert the x movement for the navbar indicator so it moves towards the target tab
-    // Distance between tabs is roughly 56px (w-12 + gap-2)
-    // Screen width swipe (~375px) should map to ~56px
-    const navX = useTransform(x, (latest) => latest * -0.15);
-
-    // Lockout to prevent rapid double-swipes skipping tabs
-    const isLocked = useRef(false);
-
     const handleTabChange = (newTab: TabId) => {
-        if (isLocked.current) return;
-
-        const currentIndex = TABS.indexOf(activeTab);
-        const newIndex = TABS.indexOf(newTab);
-
-        if (newIndex === currentIndex) return;
-
-        isLocked.current = true;
-        // Unlock after transition approx time (300ms + buffer)
-        setTimeout(() => {
-            isLocked.current = false;
-        }, 350);
-
         vibrate('light'); // Haptic feedback on tab switch
-        setDirection(newIndex > currentIndex ? 1 : -1);
         setActiveTab(newTab);
-    };
-
-    // Simple swipe logic
-    const handleDragEnd = (event: any, info: any) => {
-        setIsDragging(false);
-        x.set(0); // Reset parallax value
-        const swipeThreshold = 50;
-        const velocityThreshold = 500;
-        const currentIndex = TABS.indexOf(activeTab);
-
-        const isSwipeLeft = info.offset.x < -swipeThreshold || info.velocity.x < -velocityThreshold;
-        const isSwipeRight = info.offset.x > swipeThreshold || info.velocity.x > velocityThreshold;
-
-        if (isSwipeLeft && currentIndex < TABS.length - 1) {
-            handleTabChange(TABS[currentIndex + 1]);
-        } else if (isSwipeRight && currentIndex > 0) {
-            handleTabChange(TABS[currentIndex - 1]);
-        }
-    };
-
-    const variants: Variants = {
-        enter: (direction: number) => ({
-            x: direction > 0 ? '100%' : '-100%',
-            opacity: 0,
-            scale: 0.95, // Depth effect on entry
-            zIndex: 0,
-            pointerEvents: 'none',
-        }),
-        center: {
-            zIndex: 1,
-            x: 0,
-            opacity: 1,
-            scale: 1,
-            pointerEvents: 'auto',
-            transition: {
-                x: { type: "spring", stiffness: 280, damping: 28 }, // Snappier spring
-                opacity: { duration: 0.35, ease: "easeOut" },
-                scale: { duration: 0.35, ease: "easeOut" }
-            }
-        },
-        exit: (direction: number) => ({
-            zIndex: 0,
-            x: direction < 0 ? '100%' : '-100%',
-            opacity: 0,
-            scale: 0.95, // Depth effect on exit
-            pointerEvents: 'none',
-            transition: {
-                x: { type: "spring", stiffness: 280, damping: 28 },
-                opacity: { duration: 0.2 },
-                scale: { duration: 0.3 }
-            }
-        })
     };
 
     // Memory Review attention indicator logic - notes older than 7 days
@@ -217,78 +122,43 @@ export function NavigationShell() {
     }, [notes]);
 
     return (
-        <div className="relative h-[100dvh] w-full overflow-hidden bg-background" >
-            {/* Main Application Shell with Depth Effect */}
-            <motion.div
-                animate={{
-                    scale: shellScale,
-                    borderRadius: shellRadius,
-                }}
-                transition={springConfig}
-                className="relative h-full w-full overflow-hidden bg-background origin-center"
-            >
-                <AnimatePresence initial={false} custom={direction} mode="popLayout">
-                    <motion.main
-                        key={activeTab}
-                        custom={direction}
-                        variants={variants}
-                        initial="enter"
-                        animate="center"
-                        exit="exit"
-                        // Drag configuration for swipe support. Disable if ANY modal is open.
-                        drag={isModalOpen ? false : "x"}
-                        dragConstraints={{ left: 0, right: 0 }}
-                        dragElastic={{
-                            left: activeTab === 'weekly' ? 0.4 : 0.1, // Stronger resistance at the very end
-                            right: activeTab === 'tasks' ? 0.4 : 0.1, // Stronger resistance at the very start
-                            top: 0,
-                            bottom: 0
-                        }}
-                        onDragStart={() => {
+        <div className="relative h-[100dvh] w-full overflow-hidden bg-background">
+            {/* Main Application Shell */}
+            <div className="relative h-full w-full overflow-hidden bg-background">
+                <main className="absolute inset-0 h-full w-full bg-background overflow-y-auto overflow-x-hidden">
+                    <TabContent
+                        activeTab={activeTab}
+                        onOpenSettings={() => {
                             vibrate('light');
-                            setIsDragging(true);
+                            setIsSettingsOpen(true);
                         }}
-                        onDragEnd={handleDragEnd}
-                        className="absolute inset-0 h-full w-full touch-pan-y will-change-transform bg-background overflow-y-auto overflow-x-hidden"
-                    >
-                        <TabContent
-                            activeTab={activeTab}
-                            onOpenSettings={() => {
-                                vibrate('light');
-                                setIsSettingsOpen(true);
-                            }}
-                            onOpenDetails={(item) => {
-                                const modalItem = {
-                                    ...item,
-                                    type: item.type || (activeTab === 'tasks' ? 'task' : 'note'),
-                                    content: item.content || item.description || ''
-                                };
-                                setSelectedItem(modalItem);
-                            }}
-                            onOpenQuickAdd={(type) => {
-                                if (type) setQuickAddType(type);
-                                setIsQuickAddOpen(true);
-                            }}
-                        />
-                    </motion.main>
-                </AnimatePresence>
-            </motion.div>
+                        onOpenDetails={(item) => {
+                            const modalItem = {
+                                ...item,
+                                type: item.type || (activeTab === 'tasks' ? 'task' : 'note'),
+                                content: item.content || item.description || ''
+                            };
+                            setSelectedItem(modalItem);
+                        }}
+                        onOpenQuickAdd={(type) => {
+                            if (type) setQuickAddType(type);
+                            setIsQuickAddOpen(true);
+                        }}
+                    />
+                </main>
+            </div>
 
             {/* Global FAB - Hidden on clean screens */}
             {['tasks', 'notes', 'overview'].includes(activeTab) && !isModalOpen && (
                 <div className="fixed bottom-10 right-6 flex flex-col gap-3 z-40">
                     {/* Memory Review FAB - Only on Overview */}
                     {activeTab === 'overview' && (
-                        <motion.button
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0, opacity: 0 }}
-                            whileHover={{ scale: 1.05 }}
-                            onTap={() => {
+                        <button
+                            onClick={() => {
                                 vibrate('medium');
                                 setIsMemoryReviewOpen(true);
                             }}
-                            className="relative w-12 h-12 bg-neutral-800 text-white rounded-2xl shadow-2xl flex items-center justify-center border border-white/10 active:scale-95 transition-transform"
+                            className="relative w-12 h-12 bg-neutral-800 text-white rounded-2xl shadow-2xl flex items-center justify-center border border-white/10 active:scale-95 "
                         >
                             <Brain size={20} />
                             {expiringNotesCount > 0 && (
@@ -296,25 +166,21 @@ export function NavigationShell() {
                                     {expiringNotesCount}
                                 </span>
                             )}
-                        </motion.button>
+                        </button>
                     )}
 
                     {/* Main Add FAB */}
-                    <motion.button
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0, opacity: 0 }}
-                        whileHover={{ scale: 1.05 }}
-                        onTap={() => {
+                    <button
+                        onClick={() => {
                             vibrate('medium');
                             const defaultType = activeTab === 'notes' ? 'note' : 'task';
                             setQuickAddType(defaultType);
                             setIsQuickAddOpen(true);
                         }}
-                        className="w-12 h-12 bg-white text-black rounded-2xl shadow-2xl flex items-center justify-center active:scale-95 transition-transform"
+                        className="w-12 h-12 bg-white text-black rounded-2xl shadow-2xl flex items-center justify-center active:scale-95 "
                     >
                         <Plus size={24} strokeWidth={2.5} />
-                    </motion.button>
+                    </button>
                 </div>
             )}
 
@@ -343,8 +209,6 @@ export function NavigationShell() {
                 <BottomNav
                     activeTab={activeTab}
                     onTabChange={handleTabChange}
-                    isVisible={isDragging}
-                    offset={navX}
                 />
             )}
 
@@ -367,14 +231,12 @@ export function NavigationShell() {
             )}
 
             {/* Memory Review Modal */}
-            <AnimatePresence>
-                {isMemoryReviewOpen && (
-                    <MemoryReviewCards
-                        isOpen={isMemoryReviewOpen}
-                        onClose={() => setIsMemoryReviewOpen(false)}
-                    />
-                )}
-            </AnimatePresence>
+            {isMemoryReviewOpen && (
+                <MemoryReviewCards
+                    isOpen={isMemoryReviewOpen}
+                    onClose={() => setIsMemoryReviewOpen(false)}
+                />
+            )}
         </div>
     );
 }

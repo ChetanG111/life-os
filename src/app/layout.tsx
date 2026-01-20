@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fredoka } from "next/font/google";
 import "./globals.css";
-import { MotionProvider } from "@/context/MotionContext";
 import { SettingsProvider } from "@/context/SettingsContext";
 import { DataProvider } from "@/context/DataContext";
 import { ToastProvider } from "@/context/ToastContext";
@@ -43,11 +42,9 @@ export default function RootLayout({
       >
         <DataProvider>
           <SettingsProvider>
-            <MotionProvider>
               <ToastProvider>
                 {children}
               </ToastProvider>
-            </MotionProvider>
           </SettingsProvider>
         </DataProvider>
       </body>

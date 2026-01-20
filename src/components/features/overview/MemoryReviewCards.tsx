@@ -1,14 +1,11 @@
 'use client';
 
-import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform, Variants, useDragControls } from 'framer-motion';
 import { vibrate } from '@/utils/haptics';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
 import { useMemo, useState, useEffect } from 'react';
-import { Archive, Trash2, Bookmark, Clock, Layers, List as ListIcon, CheckCircle2 } from 'lucide-react';
-import { useSlimySpring } from '@/hooks/use-slimy-spring';
+import { Archive, Trash2, Bookmark, Layers, List as ListIcon, CheckCircle2 } from 'lucide-react';
 import { Note } from '@/types';
-import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants, UNIVERSAL_MODAL_VARIANTS } from '@/utils/animations';
 import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
 import clsx from 'clsx';
 
@@ -24,8 +21,6 @@ type ViewMode = 'stack' | 'list';
 export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
     const { notes, removeNote } = useData();
     const { showToast } = useToast();
-    const springConfig = useSlimySpring();
-    const dragControls = useDragControls();
     const [viewMode, setViewMode] = useState<ViewMode>('stack');
     const [processedIds, setProcessedIds] = useState<Set<string>>(new Set());
 
@@ -35,8 +30,6 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
     useEffect(() => {
         if (isOpen) {
             vibrate('light');
-            const timer = setTimeout(() => vibrate('soft'), 150);
-            return () => clearTimeout(timer);
         }
     }, [isOpen]);
 
@@ -74,51 +67,31 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
         setViewMode(prev => prev === 'stack' ? 'list' : 'stack');
     };
 
-    const modalVariants = UNIVERSAL_MODAL_VARIANTS(springConfig);
-    const slimyItem = createStaggerItemVariants(springConfig);
-
     // Check if review is complete (all processed)
     useEffect(() => {
         if (expiringNotes.length === 0 && processedIds.size > 0 && notes.length > 0) {
             // Only show toast if user actually processed items
             showToast('Memory review complete! ✨', 'success');
-            // We don't auto close anymore to allow user to see "all caught up" state
         }
     }, [expiringNotes.length, processedIds.size, showToast, notes.length]);
 
     // No expiring notes at all
     const isEmpty = expiringNotes.length === 0;
 
+    if (!isOpen) return null;
+
     return (
         <>
             {/* Backdrop */}
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+            <div
                 onClick={onClose}
                 className="fixed inset-0 bg-black/60 z-50 overflow-hidden"
             >
                 <div className="absolute inset-0 noise-overlay opacity-[0.015]" />
-            </motion.div>
+            </div>
 
             {/* Modal */}
-            <motion.div
-                variants={modalVariants}
-                initial="hidden"
-                animate="show"
-                exit="exit"
-                drag="y"
-                dragControls={dragControls}
-                dragListener={false}
-                dragConstraints={{ top: 0, bottom: 0 }}
-                dragElastic={{ top: 0.05, bottom: 0.7 }}
-                onDragEnd={(_, info) => {
-                    if (info.offset.y > 100 || info.velocity.y > 300) {
-                        vibrate('light');
-                        onClose();
-                    }
-                }}
+            <div
                 className={clsx(
                     "fixed inset-x-0 bottom-0 bg-background rounded-t-[32px] z-50 flex flex-col shadow-[0_-8px_32px_rgba(0,0,0,0.4)] border-t border-white/5",
                     isEmpty ? "h-[60vh] items-center justify-center" : "h-[75vh]"
@@ -127,68 +100,50 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
                 {isEmpty ? (
                     <>
                         <div className="w-12 h-1.5 bg-neutral-700 rounded-full absolute top-6" />
-                        <motion.div variants={slimyItem}><CheckCircle2 size={48} className="text-neutral-600 mb-4" /></motion.div>
-                        <motion.p variants={slimyItem} className="text-neutral-500 text-sm font-medium">No notes to review</motion.p>
-                        <motion.button
-                            variants={slimyItem}
+                        <div><CheckCircle2 size={48} className="text-neutral-600 mb-4 mx-auto" /></div>
+                        <p className="text-neutral-500 text-sm font-medium">No notes to review</p>
+                        <button
                             onClick={onClose}
                             className="mt-6 px-6 py-3 bg-white/10 rounded-full text-white text-sm font-medium"
                         >
                             Close
-                        </motion.button>
+                        </button>
                     </>
                 ) : (
                     <>
-                        {/* Header & Drag Handle */}
-                        <div
-                            onPointerDown={(e) => dragControls.start(e)}
-                            className="flex-none px-6 pt-3 pb-4 cursor-grab active:cursor-grabbing touch-none bg-background rounded-t-[32px] border-b border-white/5"
-                        >
+                        {/* Header */}
+                        <div className="flex-none px-6 pt-3 pb-4 bg-background rounded-t-[32px] border-b border-white/5">
                             <div className="w-12 h-1.5 bg-neutral-700/50 rounded-full mx-auto mb-4" />
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <motion.h2 custom={0} variants={slimyItem} className="text-xl font-bold text-white leading-tight">Memory Review</motion.h2>
-                                    <motion.p custom={1} variants={slimyItem} className="text-sm text-neutral-500">
+                                    <h2 className="text-xl font-bold text-white leading-tight">Memory Review</h2>
+                                    <p className="text-sm text-neutral-500">
                                         {expiringNotes.length} notes due
-                                    </motion.p>
+                                    </p>
                                 </div>
-                                <motion.div custom={2} variants={slimyItem} className="flex items-center gap-3">
-                                    <motion.button
-                                        whileTap={{ scale: 0.9 }}
+                                <div className="flex items-center gap-3">
+                                    <button
                                         onClick={toggleViewMode}
-                                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 "
                                     >
-                                        <AnimatePresence mode="wait" initial={false}>
-                                            <motion.div
-                                                key={viewMode}
-                                                initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
-                                                animate={{ rotate: 0, opacity: 1, scale: 1 }}
-                                                exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
-                                                transition={{ duration: 0.2 }}
-                                            >
-                                                {viewMode === 'stack' ? <ListIcon size={18} /> : <Layers size={18} />}
-                                            </motion.div>
-                                        </AnimatePresence>
-                                    </motion.button>
-                                </motion.div>
+                                        {viewMode === 'stack' ? <ListIcon size={18} /> : <Layers size={18} />}
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
                         {/* Content Area */}
-                        <motion.div custom={3} variants={slimyItem} className="flex-1 relative overflow-hidden mb-6">
+                        <div className="flex-1 relative overflow-hidden mb-6">
                             <div className="h-full w-full overscroll-contain touch-pan-y">
                                 {viewMode === 'stack' ? (
                                     <StackView
-                                        key="stack"
                                         notes={expiringNotes}
                                         onSave={handleSavePermanently}
                                         onArchive={handleArchive}
                                         onDelete={handleDelete}
-                                        springConfig={springConfig}
                                     />
                                 ) : (
                                     <ListView
-                                        key="list"
                                         notes={expiringNotes}
                                         onSave={handleSavePermanently}
                                         onArchive={handleArchive}
@@ -196,168 +151,74 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
                                     />
                                 )}
                             </div>
-                        </motion.div>
+                        </div>
                     </>
                 )}
-            </motion.div>
+            </div>
         </>
     );
 }
 
-// Stack View - Cards stacked like SwipeFeed with stagger
+// Stack View - Top card only with buttons
 function StackView({
     notes,
     onSave,
     onArchive,
-    onDelete,
-    springConfig
+    onDelete
 }: {
     notes: Note[];
     onSave: (id: string) => void;
     onArchive: (id: string) => void;
     onDelete: (id: string) => void;
-    springConfig: any;
 }) {
     const topNote = notes[0];
 
-    const containerVariants = UNIVERSAL_STAGGER_CONTAINER('modal');
+    if (!topNote) return null;
 
     return (
-        <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
-            className="relative h-full w-full max-w-sm mx-auto flex flex-col justify-start items-center p-4 pt-2"
-        >
-            {/* Card Stack Container */}
+        <div className="relative h-full w-full max-w-sm mx-auto flex flex-col justify-start items-center p-4 pt-2">
+            {/* Card Container */}
             <div className="relative w-full aspect-[4/5] max-h-[380px]">
-                <AnimatePresence>
-                    {notes.slice(0, 3).reverse().map((note, index) => {
-                        const isTop = note.id === topNote.id;
-                        const stackIndex = notes.slice(0, 3).length - 1 - index;
-
-                        return (
-                            <StackCard
-                                key={note.id}
-                                note={note}
-                                isTop={isTop}
-                                stackIndex={stackIndex}
-                                onSave={() => onSave(note.id)}
-                                onArchive={() => onArchive(note.id)}
-                                onDelete={() => onDelete(note.id)}
-                                springConfig={springConfig}
-                            />
-                        );
-                    })}
-                </AnimatePresence>
+                <StackCard note={topNote} />
             </div>
 
-            {/* Swipe Hints */}
-            <div className="mt-4 flex justify-center gap-6 text-xs text-neutral-600 font-medium uppercase tracking-wider">
-                <span>← Archive</span>
-                <span>↓ Delete</span>
-                <span>Save →</span>
+            {/* Action Buttons */}
+            <div className="mt-6 flex justify-center gap-4 w-full px-4">
+                <button
+                    onClick={() => onArchive(topNote.id)}
+                    className="flex-1 py-3 bg-white/5 rounded-2xl flex flex-col items-center justify-center gap-1 active:scale-95 "
+                >
+                    <Archive size={20} className="text-neutral-400" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Archive</span>
+                </button>
+                <button
+                    onClick={() => onDelete(topNote.id)}
+                    className="flex-1 py-3 bg-red-500/10 rounded-2xl flex flex-col items-center justify-center gap-1 active:scale-95 "
+                >
+                    <Trash2 size={20} className="text-red-500" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-red-500">Delete</span>
+                </button>
+                <button
+                    onClick={() => onSave(topNote.id)}
+                    className="flex-1 py-3 bg-green-500/10 rounded-2xl flex flex-col items-center justify-center gap-1 active:scale-95 "
+                >
+                    <Bookmark size={20} className="text-green-500" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-green-500">Save</span>
+                </button>
             </div>
-        </motion.div>
+        </div>
     );
 }
 
 // Individual Stack Card
 function StackCard({
-    note,
-    isTop,
-    stackIndex,
-    onSave,
-    onArchive,
-    onDelete,
-    springConfig
+    note
 }: {
     note: Note;
-    isTop: boolean;
-    stackIndex: number;
-    onSave: () => void;
-    onArchive: () => void;
-    onDelete: () => void;
-    springConfig: any;
 }) {
-    const x = useMotionValue(0);
-    const y = useMotionValue(0);
-    const rotate = useTransform(x, [-200, 200], [-8, 8]);
-
-    // Visual indicators
-    const bgRightOpacity = useTransform(x, [40, 120], [0, 1]);
-    const bgLeftOpacity = useTransform(x, [-120, -40], [1, 0]);
-    const bgDownOpacity = useTransform(y, [40, 100], [0, 1]);
-
-    const handleDragEnd = (event: any, info: PanInfo) => {
-        const threshold = 100;
-        const { x: offsetX, y: offsetY } = info.offset;
-
-        if (offsetX > threshold) {
-            onSave();
-        } else if (offsetX < -threshold) {
-            onArchive();
-        } else if (offsetY > 80) {
-            onDelete();
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 30, scale: 0.9 },
-        show: (i: number) => ({
-            opacity: 1,
-            y: stackIndex * 12,
-            scale: 1 - (stackIndex * 0.03),
-            zIndex: 10 - stackIndex,
-            transition: {
-                ...springConfig,
-                delay: i * 0.02 + (Math.pow(i, 1.2) * 0.005)
-            }
-        }),
-        exit: {
-            x: x.get() > 50 ? 400 : (x.get() < -50 ? -400 : 0),
-            y: y.get() > 50 ? 400 : 0,
-            opacity: 0,
-            transition: { duration: 0.2 }
-        }
-    };
-
     return (
-        <motion.div
-            variants={itemVariants}
-            custom={stackIndex}
-            style={{
-                x: isTop ? x : 0,
-                rotate: isTop ? rotate : 0,
-            }}
-            drag={isTop}
-            dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-            dragElastic={0.6}
-            onDragStart={() => vibrate('light')}
-            onDragEnd={handleDragEnd}
-            className="absolute inset-0 cursor-grab active:cursor-grabbing will-change-transform"
-        >
-            <div className="h-full bg-surface rounded-3xl p-6 border border-white/5 shadow-2xl flex flex-col relative overflow-hidden">
-                {/* Swipe Indicators */}
-                <motion.div
-                    style={{ opacity: bgRightOpacity }}
-                    className="absolute inset-0 bg-green-500/10 flex items-center justify-center pointer-events-none z-20"
-                >
-                    <Bookmark size={48} className="text-green-500/30" />
-                </motion.div>
-                <motion.div
-                    style={{ opacity: bgLeftOpacity }}
-                    className="absolute inset-0 bg-white/5 flex items-center justify-center pointer-events-none z-20"
-                >
-                    <Archive size={48} className="text-white/20" />
-                </motion.div>
-                <motion.div
-                    style={{ opacity: bgDownOpacity }}
-                    className="absolute inset-0 bg-red-500/10 flex items-center justify-center pointer-events-none z-20"
-                >
-                    <Trash2 size={48} className="text-red-500/30" />
-                </motion.div>
-
+        <div className="absolute inset-0">
+            <div className="h-full bg-surface rounded-3xl p-6 border border-white/5 shadow-2xl flex flex-col relative overflow-hidden bg-[#121212]">
                 {/* Content */}
                 <div className="relative z-10 flex-1">
                     <div className="flex items-center justify-between mb-3">
@@ -391,11 +252,11 @@ function StackCard({
                     )}
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 }
 
-// List View with stagger animation
+// List View
 function ListView({
     notes,
     onSave,
@@ -407,22 +268,11 @@ function ListView({
     onArchive: (id: string) => void;
     onDelete: (id: string) => void;
 }) {
-    const springConfig = useSlimySpring();
-    const containerVariants = UNIVERSAL_STAGGER_CONTAINER('modal');
-    const itemVariants = createStaggerItemVariants(springConfig);
-
     return (
-        <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
-            className="h-full overflow-y-auto px-6 pb-8 space-y-3"
-        >
-            {notes.map((note, index) => (
-                <motion.div
+        <div className="h-full overflow-y-auto px-6 pb-8 space-y-3">
+            {notes.map((note) => (
+                <div
                     key={note.id}
-                    variants={itemVariants}
-                    custom={index}
                     className="bg-surface rounded-2xl p-4 border border-white/5"
                 >
                     <div className="flex items-start justify-between gap-4">
@@ -437,26 +287,26 @@ function ListView({
                         <div className="flex items-center gap-1 flex-shrink-0">
                             <button
                                 onClick={() => onSave(note.id)}
-                                className="p-2 rounded-xl text-green-400 hover:bg-green-500/10 transition-colors"
+                                className="p-2 rounded-xl text-green-400 hover:bg-green-500/10 "
                             >
                                 <Bookmark size={16} />
                             </button>
                             <button
                                 onClick={() => onArchive(note.id)}
-                                className="p-2 rounded-xl text-neutral-400 hover:bg-white/5 transition-colors"
+                                className="p-2 rounded-xl text-neutral-400 hover:bg-white/5 "
                             >
                                 <Archive size={16} />
                             </button>
                             <button
                                 onClick={() => onDelete(note.id)}
-                                className="p-2 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors"
+                                className="p-2 rounded-xl text-red-400 hover:bg-red-500/10 "
                             >
                                 <Trash2 size={16} />
                             </button>
                         </div>
                     </div>
-                </motion.div>
+                </div>
             ))}
-        </motion.div>
+        </div>
     );
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, AlertCircle, AlertTriangle, Info, X } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
 
@@ -94,28 +93,13 @@ function ToastContainer({ toasts, onDismiss }: { toasts: Toast[], onDismiss: (id
 
     return (
         <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 max-w-sm w-full pointer-events-none">
-            <AnimatePresence mode="popLayout">
                 {toasts.map(toast => (
-                    <motion.div
+                    <div
                         key={toast.id}
-                        layout
-                        initial={{ opacity: 0, x: 100, scale: 0.9 }}
-                        animate={{ opacity: 1, x: 0, scale: 1 }}
-                        exit={{ opacity: 0, x: 100, scale: 0.9 }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                        drag="x"
-                        dragConstraints={{ left: 0, right: 0 }}
-                        dragElastic={0.5}
-                        onDragEnd={(_, info) => {
-                            // Dismiss if swiped far enough in either direction
-                            if (Math.abs(info.offset.x) > 80) {
-                                onDismiss(toast.id);
-                            }
-                        }}
                         className={`
                             bg-[var(--surface)] backdrop-blur-xl rounded-2xl p-4 
                             border ${getBorderColor(toast.type)} 
-                            shadow-2xl pointer-events-auto cursor-grab active:cursor-grabbing
+                            shadow-2xl pointer-events-auto
                             flex items-start gap-3
                         `}
                     >
@@ -127,13 +111,12 @@ function ToastContainer({ toasts, onDismiss }: { toasts: Toast[], onDismiss: (id
                         </p>
                         <button
                             onClick={() => onDismiss(toast.id)}
-                            className="flex-shrink-0 text-neutral-500 hover:text-white transition-colors"
+                            className="flex-shrink-0 text-neutral-500 hover:text-white "
                         >
                             <X size={16} />
                         </button>
-                    </motion.div>
+                    </div>
                 ))}
-            </AnimatePresence>
         </div>
     );
 }

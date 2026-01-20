@@ -3,7 +3,6 @@
 import { useState, useMemo } from 'react';
 import { FeedItem, SwipeFeed } from './SwipeFeed';
 import { ListFeed } from './ListFeed';
-import { motion, AnimatePresence } from 'framer-motion';
 import { vibrate } from '@/utils/haptics';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
@@ -112,57 +111,42 @@ export function Feed({ onOpenSettings, onOpenDetails, onOpenQuickAdd }: FeedProp
                 {/* Header Actions */}
                 <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2">
                     {/* Settings: Desktop Only */}
-                    <motion.button
-                        whileTap={{ scale: 0.9 }}
+                    <button
                         onClick={onOpenSettings}
-                        className="hidden md:flex w-10 h-10 items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                        className="hidden md:flex w-10 h-10 items-center justify-center rounded-full bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10  active:scale-90"
                     >
                         <SettingsIcon size={20} />
-                    </motion.button>
+                    </button>
 
-                    <motion.button
-                        whileTap={{ scale: 0.9 }}
+                    <button
                         onClick={toggleView}
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-white/40 hover:text-white transition-colors"
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-white/40 hover:text-white  active:scale-90"
                     >
                         {viewMode === 'stack' ? <ListIcon size={18} /> : <Layers size={18} />}
-                    </motion.button>
+                    </button>
                 </div>
 
-                <motion.button
-                    whileTap={{ scale: 0.97 }}
+                <button
                     onClick={onOpenSettings}
-                    className="group focus:outline-none"
+                    className="group focus:outline-none active:scale-95 "
                 >
-                    <h1 className="text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200 transition-colors">
+                    <h1 className="text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200 ">
                         Overview
                     </h1>
-                </motion.button>
+                </button>
             </header>
 
             {/* Main Feed Content */}
             <div className="flex-1 relative overflow-hidden">
                 <div className="h-full w-full">
                     {viewMode === 'stack' ? (
-                        <motion.div
-                            key="stack"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.15 }}
-                            className="h-full pb-16"
-                        >
+                        <div className="h-full pb-16">
                             <SwipeFeed items={sortedItems} onSwipe={handleSwipe} onDetails={(item) => onOpenDetails(item)} />
-                        </motion.div>
+                        </div>
                     ) : (
-                        <motion.div
-                            key="list"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.15 }}
-                            className="h-full"
-                        >
+                        <div className="h-full">
                             <ListFeed items={sortedItems} onSwipe={handleSwipe} onDetails={(item) => onOpenDetails(item)} />
-                        </motion.div>
+                        </div>
                     )}
                 </div>
             </div>

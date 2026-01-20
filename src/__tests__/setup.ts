@@ -1,33 +1,6 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
-// Mock framer-motion to avoid animation-related test issues
-vi.mock('framer-motion', async () => {
-    const actual = await vi.importActual('framer-motion');
-    return {
-        ...actual,
-        AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
-        motion: {
-            div: 'div',
-            button: 'button',
-            main: 'main',
-            span: 'span',
-            p: 'p',
-            h1: 'h1',
-            h2: 'h2',
-            h3: 'h3',
-        },
-        useAnimation: () => ({
-            start: vi.fn().mockResolvedValue(undefined),
-        }),
-        useMotionValue: (initial: number) => ({
-            get: () => initial,
-            set: vi.fn(),
-        }),
-        useTransform: () => 0,
-    };
-});
-
 // Mock haptics
 vi.mock('@/utils/haptics', () => ({
     vibrate: vi.fn(),

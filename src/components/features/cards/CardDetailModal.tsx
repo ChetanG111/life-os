@@ -1,15 +1,12 @@
 'use client';
 
-import { motion, AnimatePresence, useDragControls, Variants } from 'framer-motion';
-import { Calendar, Clock, Tag, CheckCircle2, Trash2, Pencil } from 'lucide-react';
+import { Calendar, Clock, CheckCircle2, Trash2, Pencil, X } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
 import { useBackToClose } from '@/hooks/use-back-to-close';
 import { useState, useEffect } from 'react';
 import { useLockBodyScroll } from '@/hooks/use-lock-body-scroll';
-import { useSlimySpring } from '@/hooks/use-slimy-spring';
 import { useSettings } from '@/context/SettingsContext';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
-import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants, UNIVERSAL_MODAL_VARIANTS } from '@/utils/animations';
 
 interface CardDetailModalProps {
     isOpen: boolean;
@@ -30,36 +27,9 @@ interface CardDetailModalProps {
 }
 
 export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }: CardDetailModalProps) {
-    const dragControls = useDragControls();
-    const springConfig = useSlimySpring();
     const { confirmDelete } = useSettings();
     const [activeItem, setActiveItem] = useState(item);
     const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
-    const staggerContainer = UNIVERSAL_STAGGER_CONTAINER('modal');
-    const slimyItem = createStaggerItemVariants(springConfig);
-
-    const modalVariants: Variants = {
-        hidden: { y: '100%', opacity: 0 },
-        show: {
-            y: 0,
-            opacity: 1,
-            transition: {
-                ...springConfig,
-                delayChildren: 0,
-                staggerChildren: 0.05
-            }
-        },
-        exit: {
-            y: '100%',
-            opacity: 0,
-            transition: {
-                type: 'spring',
-                damping: 30,
-                stiffness: 450,
-                mass: 0.8
-            }
-        }
-    };
 
     useBackToClose(isOpen, onClose);
     useLockBodyScroll(isOpen);
@@ -73,11 +43,7 @@ export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }:
     // Multi-stage Haptics (Suggestion 5)
     useEffect(() => {
         if (isOpen) {
-            // Stage 1: Initial pop
             vibrate('light');
-            // Stage 2: Settling haptic (timed to peak of spring)
-            const timer = setTimeout(() => vibrate('soft'), 150);
-            return () => clearTimeout(timer);
         }
     }, [isOpen]);
 
@@ -89,8 +55,6 @@ export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }:
         low: 'bg-blue-500'
     };
 
-    // Suggestion 6: Friction-Matched Scrolling
-    // Standardizing on native momentum scrolling with high-performance overrides
     const scrollClass = "flex-1 overflow-y-auto scrollbar-hide overscroll-contain touch-pan-y [web-kit-overflow-scrolling:touch]";
 
     if (!isOpen) return null;
@@ -98,39 +62,20 @@ export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }:
     return (
         <>
             {/* Backdrop */}
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+            <div
                 onClick={onClose}
                 className="fixed inset-0 bg-black/60 z-50 overflow-hidden"
             >
                 <div className="absolute inset-0 noise-overlay opacity-[0.015]" />
-            </motion.div>
+            </div>
 
             {/* Modal Content */}
-            <motion.div
-                variants={modalVariants}
-                initial="hidden"
-                animate="show"
-                exit="exit"
-                drag="y"
-                dragControls={dragControls}
-                dragListener={false}
-                dragConstraints={{ top: 0, bottom: 0 }}
-                dragElastic={{ top: 0.05, bottom: 0.7 }}
-                onDragEnd={(_, info) => {
-                    if (info.offset.y > 100 || info.velocity.y > 300) {
-                        vibrate('light');
-                        onClose();
-                    }
-                }}
+            <div
                 className="fixed inset-x-0 bottom-0 z-50 h-[85vh] bg-background rounded-t-[32px] overflow-hidden flex flex-col shadow-[0_-8px_32px_rgba(0,0,0,0.4)] border-t border-white/5"
             >
-                {/* Header & Drag Handle */}
+                {/* Header */}
                 <div
-                    onPointerDown={(e) => dragControls.start(e)}
-                    className="flex-none pt-4 pb-2 px-6 flex flex-col items-center cursor-grab active:cursor-grabbing touch-none bg-background rounded-t-[32px] border-b border-white/5"
+                    className="flex-none pt-4 pb-2 px-6 flex flex-col items-center bg-background rounded-t-[32px] border-b border-white/5 relative"
                 >
                     <div className="w-12 h-1.5 bg-neutral-700 rounded-full mb-4" />
                     <div className="w-full flex items-center justify-center relative">
@@ -143,17 +88,20 @@ export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }:
                             )}
                         </div>
                     </div>
+                    <button onClick={onClose} className="absolute right-6 top-6 text-neutral-500">
+                        <X size={24} />
+                    </button>
                 </div>
 
                 {/* Content Area */}
                 <div className={scrollClass + " px-6 py-6"}>
-                    <motion.h2 custom={0} variants={slimyItem} className="text-2xl font-bold text-white mb-6 leading-tight tracking-tight">
+                    <h2 className="text-2xl font-bold text-white mb-6 leading-tight tracking-tight">
                         {activeItem.title}
-                    </motion.h2>
+                    </h2>
 
                     <div className="space-y-8">
                         {/* Meta Data Grid */}
-                        <motion.div custom={1} variants={slimyItem} className="flex flex-wrap gap-3">
+                        <div className="flex flex-wrap gap-3">
                             {(activeItem.dueDate || activeItem.dueTime) && (
                                 <div className="flex items-center gap-2 text-sm bg-white/5 px-4 py-2 rounded-2xl border border-white/5 text-neutral-300">
                                     <Clock size={16} className="text-neutral-500" />
@@ -168,11 +116,11 @@ export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }:
                                     {activeItem.dueDate ? new Date(activeItem.dueDate).toLocaleDateString('en-US', { weekday: 'long' }) : 'Today'}
                                 </span>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Images Section */}
                         {activeItem.images && activeItem.images.length > 0 && (
-                            <motion.div custom={2} variants={slimyItem} className="flex flex-col gap-3">
+                            <div className="flex flex-col gap-3">
                                 <h4 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest px-1">Attachments</h4>
                                 <div className="grid grid-cols-2 gap-3">
                                     {activeItem.images.map((img, i) => (
@@ -181,21 +129,21 @@ export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }:
                                         </div>
                                     ))}
                                 </div>
-                            </motion.div>
+                            </div>
                         )}
 
                         {/* Main Body Text */}
-                        <motion.div custom={3} variants={slimyItem} className="space-y-4">
+                        <div className="space-y-4">
                             <div className="text-lg text-neutral-300 leading-relaxed font-medium">
                                 {activeItem.content}
                             </div>
-                        </motion.div>
+                        </div>
                     </div>
                 </div>
 
                 {/* Sticky Action Footer */}
-                <motion.div custom={4} variants={slimyItem} className="p-6 pb-12 bg-background border-t border-white/10 flex gap-3">
-                    <button className="flex-1 h-14 bg-white text-black rounded-2xl font-bold text-lg flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                <div className="p-6 pb-12 bg-background border-t border-white/10 flex gap-3">
+                    <button className="flex-1 h-14 bg-white text-black rounded-2xl font-bold text-lg flex items-center justify-center gap-2 active:scale-95 "
                         onClick={() => {
                             vibrate('success');
                             if (onComplete) onComplete();
@@ -206,13 +154,13 @@ export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }:
                         <span>Complete</span>
                     </button>
 
-                    <button className="h-14 w-16 bg-white/5 text-neutral-400 rounded-2xl flex items-center justify-center active:scale-95 transition-transform"
+                    <button className="h-14 w-16 bg-white/5 text-neutral-400 rounded-2xl flex items-center justify-center active:scale-95 "
                         onClick={() => vibrate('light')}
                     >
                         <Pencil size={22} />
                     </button>
 
-                    <button className="h-14 w-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center active:scale-95 transition-transform"
+                    <button className="h-14 w-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center active:scale-95 "
                         onClick={() => {
                             vibrate('medium');
                             if (confirmDelete) {
@@ -225,8 +173,8 @@ export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }:
                     >
                         <Trash2 size={24} />
                     </button>
-                </motion.div>
-            </motion.div>
+                </div>
+            </div>
 
             <ConfirmDeleteModal
                 isOpen={isConfirmingDelete}
@@ -239,4 +187,3 @@ export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }:
         </>
     );
 }
-

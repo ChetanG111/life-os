@@ -1,22 +1,12 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { motion, Variants } from 'framer-motion';
+import { useMemo } from 'react';
 import { DayItem } from './DayItem';
-import { Task } from '@/types';
-import { Calendar as CalendarIcon, Trophy, TrendingUp, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
-import { useSlimySpring } from '@/hooks/use-slimy-spring';
-
-import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants } from '@/utils/animations';
-
+import { Trophy, TrendingUp, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 
 export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) => {
     const { tasks } = useData();
-    const springConfig = useSlimySpring();
-
-    const containerVariants = UNIVERSAL_STAGGER_CONTAINER('standard');
-    const itemVariants = createStaggerItemVariants(springConfig);
 
     // Generate current week days
     const weekData = useMemo(() => {
@@ -52,15 +42,14 @@ export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) =>
     return (
         <div className="w-full min-h-screen bg-background pb-32 flex flex-col items-center">
             <header className="w-full sticky top-0 z-30 flex justify-center items-center py-4 px-6 bg-background border-b border-white/5 mb-4">
-                <motion.button
-                    whileTap={{ scale: 0.97 }}
+                <button
                     onClick={onOpenSettings}
-                    className="group flex flex-col items-center gap-1 focus:outline-none"
+                    className="group flex flex-col items-center gap-1 focus:outline-none active:scale-95 "
                 >
-                    <h1 className="text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200 transition-colors">
+                    <h1 className="text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200 ">
                         Weekly
                     </h1>
-                </motion.button>
+                </button>
             </header>
 
             <div className="w-full max-w-7xl px-6 md:px-10 py-4 flex flex-col md:flex-row gap-12">
@@ -90,7 +79,7 @@ export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) =>
                                         strokeDasharray={2 * Math.PI * 34}
                                         strokeDashoffset={2 * Math.PI * 34 * (1 - completionPercentage / 100)}
                                         strokeLinecap="round"
-                                        className="transition-all duration-1000"
+                                        className=" "
                                     />
                                 </svg>
                                 <span className="absolute text-xl font-black text-white">{completionPercentage}%</span>
@@ -127,9 +116,8 @@ export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) =>
                                 <span className="text-xs font-black text-white">12 Days</span>
                             </div>
                             <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
-                                <motion.div
-                                    initial={{ width: 0 }}
-                                    animate={{ width: '40%' }}
+                                <div
+                                    style={{ width: '40%' }}
                                     className="h-full bg-amber-500"
                                 />
                             </div>
@@ -145,7 +133,7 @@ export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) =>
                         <p className="text-sm text-neutral-400 leading-relaxed mb-6">
                             Team capacity is currently at 85%. You've completed 0 out of 24 planned story points.
                         </p>
-                        <button className="w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+                        <button className="w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-black uppercase tracking-widest ">
                             View Backlog
                         </button>
                     </div>
@@ -158,10 +146,10 @@ export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) =>
                             Weekly Agenda
                         </h2>
                         <div className="flex gap-4">
-                            <button className="p-2 text-neutral-500 hover:text-white transition-colors">
+                            <button className="p-2 text-neutral-500 hover:text-white ">
                                 <ChevronLeft size={24} />
                             </button>
-                            <button className="p-2 text-neutral-500 hover:text-white transition-colors">
+                            <button className="p-2 text-neutral-500 hover:text-white ">
                                 <ChevronRight size={24} />
                             </button>
                         </div>
@@ -195,14 +183,9 @@ export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) =>
                     </div>
 
                     {/* Days List */}
-                    <motion.div
-                        variants={containerVariants}
-                        initial="hidden"
-                        animate="show"
-                        className="space-y-4 md:space-y-3"
-                    >
+                    <div className="space-y-4 md:space-y-3">
                         {weekData.map((day, index) => (
-                            <motion.div key={index} variants={itemVariants}>
+                            <div key={index}>
                                 <DayItem
                                     dayName={day.dayName}
                                     dayNumber={day.dayNumber}
@@ -210,9 +193,9 @@ export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) =>
                                     isToday={day.isToday}
                                     summary={day.tasks.length > 0 ? "Product & Design" : "Rest & Review"}
                                 />
-                            </motion.div>
+                            </div>
                         ))}
-                    </motion.div>
+                    </div>
 
                     {/* Page Footer */}
                     <div className="mt-12 flex justify-center opacity-30">

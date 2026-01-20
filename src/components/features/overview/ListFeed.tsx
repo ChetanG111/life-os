@@ -1,13 +1,12 @@
 'use client';
 
-import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'framer-motion';
 import { FeedItem } from './SwipeFeed';
-import { CheckCircle2, Trash2, Hash, Sparkles, ArrowUp, Clock, Calendar } from 'lucide-react';
+import { CheckCircle2, Trash2, Hash, Sparkles, Clock } from 'lucide-react';
 import { vibrate } from '@/utils/haptics';
 import { useSettings } from '@/context/SettingsContext';
 import clsx from 'clsx';
-import { useSlimySpring } from '@/hooks/use-slimy-spring';
-import { UNIVERSAL_STAGGER_CONTAINER, createStaggerItemVariants } from '@/utils/animations';
+import { ConfirmDeleteModal } from '../cards/ConfirmDeleteModal';
+import { useState } from 'react';
 
 interface ListFeedProps {
     items: FeedItem[];
@@ -25,28 +24,18 @@ export function ListFeed({ items, onSwipe, onDetails }: ListFeedProps) {
         );
     }
 
-    const springConfig = useSlimySpring();
-    const containerVariants = UNIVERSAL_STAGGER_CONTAINER('standard');
-
     return (
-        <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
-            className="flex flex-col gap-3 px-2 pb-24 overflow-y-auto h-full touch-pan-y"
-        >
-            <AnimatePresence mode='popLayout'>
-                {items.map((item, index) => (
-                    <ListItem
-                        key={item.id}
-                        item={item}
-                        index={index}
-                        onSwipe={onSwipe}
-                        onDetails={onDetails}
-                    />
-                ))}
-            </AnimatePresence>
-        </motion.div>
+        <div className="flex flex-col gap-3 px-2 pb-24 overflow-y-auto h-full touch-pan-y">
+            {items.map((item, index) => (
+                <ListItem
+                    key={item.id}
+                    item={item}
+                    index={index}
+                    onSwipe={onSwipe}
+                    onDetails={onDetails}
+                />
+            ))}
+        </div>
     );
 }
 
@@ -61,28 +50,8 @@ function ListItem({
     onSwipe: (id: string, action: 'done' | 'dismiss' | 'delete') => void;
     onDetails: (item: FeedItem) => void;
 }) {
-    const x = useMotionValue(0);
     const { confirmDelete } = useSettings();
-    const springConfig = useSlimySpring();
-
-    // Swipe Thresholds
-    const SWIPE_THRESHOLD = 80;
-
-    // Visual indicators
-    const bgLeftOpacity = useTransform(x, [0, SWIPE_THRESHOLD], [0, 1]);
-    const bgRightOpacity = useTransform(x, [0, -SWIPE_THRESHOLD], [0, 1]);
-
-    const handleDragEnd = (event: any, info: PanInfo) => {
-        const offset = info.offset.x;
-
-        if (offset > SWIPE_THRESHOLD) {
-            vibrate('success');
-            onSwipe(item.id, 'done');
-        } else if (offset < -SWIPE_THRESHOLD) {
-            vibrate('medium');
-            onSwipe(item.id, 'delete');
-        }
-    };
+    const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
     const getIcon = () => {
         switch (item.type) {
@@ -92,79 +61,91 @@ function ListItem({
         }
     };
 
-    const itemVariants = createStaggerItemVariants(springConfig);
+    const handleDelete = () => {
+        if (confirmDelete) {
+            setItemToDelete(item.id);
+        } else {
+            onSwipe(item.id, 'delete');
+        }
+    };
 
     return (
-        <motion.div
-            layout
-            variants={itemVariants}
-            custom={index}
-            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-            className="relative group"
-        >
-            {/* Background Actions */}
-            <div className="absolute inset-0 rounded-2xl overflow-hidden flex z-0">
-                <motion.div
-                    style={{ opacity: bgLeftOpacity }}
-                    className="flex-1 bg-green-500/20 flex items-center justify-start pl-4"
+        <>
+            <div className="relative group">
+                <div
+                    onClick={() => onDetails(item)}
+                    className={clsx(
+                        "relative z-10 bg-[var(--surface)] border border-white/5 rounded-2xl p-4 flex items-center gap-4 cursor-pointer active:bg-white/5 ",
+                        item.priority === 'high' ? "shadow-[inset_4px_0_0_0_#EF4444]" :
+                            item.priority === 'medium' ? "shadow-[inset_4px_0_0_0_#F59E0B]" : ""
+                    )}
                 >
-                    <CheckCircle2 className="text-green-500" size={24} />
-                </motion.div>
-                <motion.div
-                    style={{ opacity: bgRightOpacity }}
-                    className="flex-1 bg-red-500/20 flex items-center justify-end pr-4"
-                >
-                    <Trash2 className="text-red-500" size={24} />
-                </motion.div>
-            </div>
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className="text-neutral-500">{getIcon()}</span>
+                            <h4 className="text-base font-bold text-white truncate leading-tight">
+                                {item.title}
+                            </h4>
+                            {item.dueTime && (
+                                <span className="ml-auto flex items-center gap-1 text-[10px] font-bold text-neutral-500 uppercase tracking-wider bg-white/5 px-1.5 py-0.5 rounded">
+                                    <Clock size={10} /> {item.dueTime}
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-sm text-neutral-400 line-clamp-2 leading-relaxed font-medium">
+                            {item.content}
+                        </p>
 
-            {/* Foreground Card */}
-            <motion.div
-                style={{ x }}
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={0.1} // Stiff drag
-                onDragEnd={handleDragEnd}
-                // Stop propagation to prevent tab swipe
-                onPointerDownCapture={(e) => e.stopPropagation()}
-                onClick={() => {
-                    if (Math.abs(x.get()) < 5) onDetails(item);
-                }}
-                className={clsx(
-                    "relative z-10 bg-[var(--surface)] border border-white/5 rounded-2xl p-4 flex items-start gap-4 active:cursor-grabbing cursor-grab touch-pan-y",
-                    item.priority === 'high' ? "shadow-[inset_4px_0_0_0_#EF4444]" :
-                        item.priority === 'medium' ? "shadow-[inset_4px_0_0_0_#F59E0B]" : ""
-                )}
-            >
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className="text-neutral-500">{getIcon()}</span>
-                        <h4 className="text-base font-bold text-white truncate leading-tight">
-                            {item.title}
-                        </h4>
-                        {item.dueTime && (
-                            <span className="ml-auto flex items-center gap-1 text-[10px] font-bold text-neutral-500 uppercase tracking-wider bg-white/5 px-1.5 py-0.5 rounded">
-                                <Clock size={10} /> {item.dueTime}
-                            </span>
+                        {/* Tags */}
+                        {item.tags && item.tags.length > 0 && (
+                            <div className="flex gap-2 mt-3">
+                                {item.tags.map(tag => (
+                                    <span key={tag} className="text-[10px] text-neutral-500 bg-white/5 px-2 py-0.5 rounded-full font-medium tracking-wide">
+                                        #{tag}
+                                    </span>
+                                ))}
+                            </div>
                         )}
                     </div>
-                    <p className="text-sm text-neutral-400 line-clamp-2 leading-relaxed font-medium">
-                        {item.content}
-                    </p>
 
-                    {/* Tags */}
-                    {item.tags && item.tags.length > 0 && (
-                        <div className="flex gap-2 mt-3">
-                            {item.tags.map(tag => (
-                                <span key={tag} className="text-[10px] text-neutral-500 bg-white/5 px-2 py-0.5 rounded-full font-medium tracking-wide">
-                                    #{tag}
-                                </span>
-                            ))}
-                        </div>
-                    )}
+                    {/* Action Buttons (Right Side) */}
+                    <div className="flex items-center gap-2 pl-2 border-l border-white/5">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                vibrate('success');
+                                onSwipe(item.id, 'done');
+                            }}
+                            className="p-2 text-neutral-500 hover:text-green-500 hover:bg-green-500/10 rounded-xl "
+                        >
+                            <CheckCircle2 size={20} />
+                        </button>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                vibrate('medium');
+                                handleDelete();
+                            }}
+                            className="p-2 text-neutral-500 hover:text-red-500 hover:bg-red-500/10 rounded-xl "
+                        >
+                            <Trash2 size={20} />
+                        </button>
+                    </div>
                 </div>
-            </motion.div>
-        </motion.div>
+            </div>
+
+            <ConfirmDeleteModal
+                isOpen={!!itemToDelete}
+                onClose={() => setItemToDelete(null)}
+                onConfirm={() => {
+                    if (itemToDelete) {
+                        onSwipe(itemToDelete, 'delete');
+                        setItemToDelete(null);
+                    }
+                }}
+                title="Delete Item?"
+            />
+        </>
     );
 }
