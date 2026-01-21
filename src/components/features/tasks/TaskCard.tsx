@@ -25,8 +25,8 @@ export const TaskCard = ({ task, onComplete, onDelete, onTap }: TaskCardProps) =
 
     const handleDragEnd = (event: any, info: PanInfo) => {
         const offset = info.offset.x;
-        const threshold = 80;
-        const autoTrigger = 200;
+        const threshold = 100;
+        const autoTrigger = 180;
 
         if (offset > autoTrigger) {
             vibrate('warning');
@@ -52,7 +52,7 @@ export const TaskCard = ({ task, onComplete, onDelete, onTap }: TaskCardProps) =
     return (
         <motion.div
             layout // Enable layout projection for smooth list reordering
-            variants={LEFT_STAGGER_VARIANT} 
+            variants={LEFT_STAGGER_VARIANT}
             // Removed manual initial/animate/exit to allow variants to work
             className="relative w-full overflow-hidden mb-3"
         >
@@ -65,7 +65,7 @@ export const TaskCard = ({ task, onComplete, onDelete, onTap }: TaskCardProps) =
                             <Check className="text-white w-6 h-6" />
                         </motion.div>
                     </motion.div>
-                    
+
                     {/* Delete (Right) */}
                     <motion.div style={{ opacity: deleteOpacity }} className="absolute inset-y-0 right-0 w-full bg-red-500 flex items-center justify-end pr-6">
                         <motion.div style={{ scale: deleteScale }}>
@@ -79,7 +79,7 @@ export const TaskCard = ({ task, onComplete, onDelete, onTap }: TaskCardProps) =
                     style={{ x }}
                     drag="x"
                     dragConstraints={{ left: 0, right: 0 }}
-                    dragElastic={0.1} // High resistance like Apple
+                    dragElastic={0.4} // ~40% allowance as requested
                     onDragEnd={handleDragEnd}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {

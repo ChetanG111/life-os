@@ -13,30 +13,43 @@ export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) =>
     // Generate current week days
     const weekData = useMemo(() => {
         const days = [];
-        const today = new Date();
-        const currentDay = today.getDay(); // 0 is Sunday
-        const diff = today.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
+        const now = new Date();
 
-        const monday = new Date(today.setDate(diff));
+        // Find Monday of the current week
+        const monday = new Date(now);
+        const day = now.getDay();
+        const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+        monday.setDate(diff);
+        monday.setHours(0, 0, 0, 0);
 
         for (let i = 0; i < 7; i++) {
             const date = new Date(monday);
             date.setDate(monday.getDate() + i);
+
+            // Format to YYYY-MM-DD in local time
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const dayNum = String(date.getDate()).padStart(2, '0');
+            const localDateStr = `${year}-${month}-${dayNum}`;
 
             days.push({
                 date: date,
                 dayName: date.toLocaleDateString('en-US', { weekday: 'long' }),
                 dayNumber: date.getDate().toString(),
                 isToday: date.toDateString() === new Date().toDateString(),
-                tasks: tasks.filter((_, index) => index % 7 === i)
+                // Only show tasks that HAVE a dueDate/time and match this day
+                tasks: tasks.filter(task => task.dueDate && task.dueDate.startsWith(localDateStr))
             });
         }
         return days;
     }, [tasks]);
 
-    const totalTasks = tasks.length;
-    const completedTasks = tasks.filter(t => t.isCompleted).length;
-    const completionPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+    const weeklyTasks = useMemo(() => weekData.flatMap(d => d.tasks), [weekData]);
+    const completedWeeklyTasks = useMemo(() => weeklyTasks.filter(t => t.isCompleted), [weeklyTasks]);
+
+    const totalWeeklyCount = weeklyTasks.length;
+    const completedCount = completedWeeklyTasks.length;
+    const completionPercentage = totalWeeklyCount === 0 ? 0 : Math.round((completedCount / totalWeeklyCount) * 100);
 
     return (
         <div className="w-full min-h-screen bg-background pb-32 flex flex-col items-center">
@@ -108,7 +121,7 @@ export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) =>
                                 <span className="text-xs font-black text-white">12 Days</span>
                             </div>
                             <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
-                                <div style={{ width: '40%' }} className="h-full bg-amber-500" />
+                                <div style={{ width: `${completionPercentage}%` }} className="h-full bg-amber-500" />
                             </div>
                         </div>
                     </div>
@@ -118,7 +131,7 @@ export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) =>
                             <h3 className="text-xs font-black uppercase tracking-[0.2em]">Sprint Insights</h3>
                         </div>
                         <p className="text-sm text-neutral-400 leading-relaxed mb-6">
-                            Team capacity is currently at 85%. You've completed 0 out of 24 planned story points.
+                            You've completed {completedCount} out of {totalWeeklyCount} tasks this week. {completionPercentage > 50 ? "Great momentum!" : "Keep pushing!"}
                         </p>
                         <button className="w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all">
                             View Backlog
@@ -169,7 +182,7 @@ export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) =>
                     </div>
 
                     {/* Days List (Waterfall) */}
-                    <motion.div 
+                    <motion.div
                         variants={STAGGER_CHILDREN}
                         initial="hidden"
                         animate="show"
@@ -182,7 +195,9 @@ export const WeeklyTab = ({ onOpenSettings }: { onOpenSettings: () => void }) =>
                                     dayNumber={day.dayNumber}
                                     tasks={day.tasks}
                                     isToday={day.isToday}
-                                    summary={day.tasks.length > 0 ? "Product & Design" : "Rest & Review"}
+                                    summary={day.tasks.length === 0 ? "No tasks scheduled" :
+                                        day.tasks.every(t => t.isCompleted) ? "All tasks completed ✨" :
+                                            `${day.tasks.filter(t => t.isCompleted).length}/${day.tasks.length} Completed`}
                                 />
                             </motion.div>
                         ))}

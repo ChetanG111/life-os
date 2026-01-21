@@ -65,9 +65,9 @@ export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
 
     if (items.length === 0) {
         return (
-            <motion.div 
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={SLIMY_CONFIG}
                 className="flex h-full flex-col items-center justify-center text-neutral-600 pb-24"
             >
@@ -99,7 +99,7 @@ export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
                         <DesktopCard item={items[(currentIndex + 1) % items.length]} />
                     </div>
                 </div>
-                
+
                 <div className="flex flex-col items-center gap-8">
                     <div className="flex items-center gap-10">
                         <button onClick={prev} className="flex flex-col items-center gap-2 group">
@@ -127,7 +127,7 @@ export function SwipeFeed({ items, onSwipe, onDetails }: SwipeFeedProps) {
                             const isTop = item.id === items[0].id;
                             // Reverse index: Top is 1 (length-1), Back is 0
                             const stackIndex = items.slice(0, 2).length - 1 - index;
-                            
+
                             return (
                                 <DeckCard
                                     key={item.id}
@@ -174,11 +174,11 @@ function DeckCard({
     const x = useMotionValue(0);
     const y = useMotionValue(0);
     const rotate = useTransform(x, [-200, 200], [-12, 12]);
-    
+
     const handleDragEnd = (event: any, info: PanInfo) => {
         const threshold = 120;
         const { x: offsetX, y: offsetY } = info.offset;
-        
+
         if (Math.abs(offsetX) > Math.abs(offsetY)) {
             // Horizontal
             if (offsetX > threshold) {
@@ -218,35 +218,40 @@ function DeckCard({
             whileTap={{ cursor: "grabbing" }}
             initial={{ scale: 0.9, y: 30, opacity: 0 }}
             animate={{ scale: isTop ? 1 : 1 - (stackIndex * 0.05), y: isTop ? 0 : (stackIndex * 15), opacity: 1 }}
-            exit={{ 
+            exit={{
                 x: x.get() > 50 ? 500 : (x.get() < -50 ? -500 : 0),
                 y: y.get() > 50 ? 500 : 0,
                 opacity: 0,
                 transition: { duration: 0.2 }
             }}
             transition={SLIMY_CONFIG}
-            className="absolute inset-0 h-full w-full cursor-grab active:cursor-grabbing"
+            className="absolute inset-0 h-full w-full cursor-grab active:cursor-grabbing bg-[var(--surface)] squircle shadow-2xl"
         >
             {/* Inner Content */}
-            <div className="h-full flex flex-col justify-between bg-[var(--surface)] relative overflow-hidden">
-                <div 
+            <div className="h-full flex flex-col justify-between relative">
+                <div
                     onClick={() => {
                         if (Math.abs(x.get()) < 5) onDetails();
                     }}
-                    className="relative z-10 p-6 pt-8 flex-1 cursor-pointer active:bg-white/5 transition-colors"
+                    className="relative z-10 p-10 pt-12 flex-1 cursor-pointer active:bg-white/5 transition-colors"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">
                             {item.type}
                         </span>
-                        <div className="h-1.5 w-1.5 rounded-full bg-[#EF4444]" />
+                        <div className={clsx(
+                            "h-2 w-2 rounded-full",
+                            item.priority === 'high' ? 'bg-red-500' :
+                                item.priority === 'medium' ? 'bg-amber-500' :
+                                    item.priority === 'low' ? 'bg-blue-500' : 'bg-neutral-800'
+                        )} />
                     </div>
                     <h3 className="text-xl font-bold text-white mb-2 leading-tight uppercase tracking-wide">{item.title}</h3>
                     <p className="text-sm text-neutral-400 leading-relaxed font-medium line-clamp-6">{item.content}</p>
                 </div>
-                
+
                 {/* Visual Indicator (Optional) */}
-                <div className="relative z-10 mt-auto p-6 pb-8">
+                <div className="relative z-10 mt-auto p-10 pb-12">
                     <div className="h-[2px] w-full bg-white/5 rounded-full overflow-hidden">
                         <motion.div
                             className="h-full bg-white/10"
@@ -261,22 +266,26 @@ function DeckCard({
 }
 
 function DesktopCard({ item, onSwipe, onDetails }: { item: FeedItem, onSwipe?: any, onDetails?: any }) {
-    // ... (Keep existing desktop card)
     return (
-        <div className="h-full flex flex-col justify-between bg-neutral-900 overflow-hidden relative shadow-2xl rounded-[32px] p-10">
+        <div className="h-full flex flex-col justify-between bg-[var(--surface)] squircle relative shadow-2xl p-10">
             <div className="relative z-10">
                 <div className="flex items-center justify-between mb-8">
                     <span className="text-xs font-black uppercase tracking-[0.3em] text-neutral-500">
                         {item.type}
                     </span>
-                    <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                    <div className={clsx(
+                        "h-3 w-3 rounded-full",
+                        item.priority === 'high' ? 'bg-red-500' :
+                            item.priority === 'medium' ? 'bg-amber-500' :
+                                item.priority === 'low' ? 'bg-blue-500' : 'bg-neutral-800'
+                    )} />
                 </div>
                 <h3 className="text-4xl font-black text-white mb-6 uppercase tracking-tight leading-none">{item.title}</h3>
                 <p className="text-xl text-neutral-400 leading-relaxed font-medium">{item.content}</p>
             </div>
             <div className="relative z-10 mt-auto">
-                <div className="h-1 w-full bg-neutral-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-neutral-700" style={{ width: "60%" }} />
+                <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-white/10" style={{ width: "60%" }} />
                 </div>
             </div>
         </div>

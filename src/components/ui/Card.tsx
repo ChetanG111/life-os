@@ -29,8 +29,8 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(({
         <div
             ref={ref}
             className={clsx(
-                "w-full overflow-hidden rounded-3xl p-6",
-                "bg-neutral-900 shadow-xl", 
+                "w-full overflow-hidden",
+                "shadow-xl",
                 !className?.includes('absolute') && !className?.includes('fixed') && "relative",
                 className
             )}
@@ -54,8 +54,7 @@ export const MotionCard = forwardRef<HTMLDivElement, MotionCardProps>(({
         <motion.div
             ref={ref}
             className={clsx(
-                "overflow-hidden rounded-3xl p-6",
-                "bg-neutral-900 shadow-xl hardware-accelerated", // Added Optimization
+                "overflow-hidden hardware-accelerated",
                 !className?.includes('absolute') && !className?.includes('fixed') && "relative w-full",
                 className
             )}

@@ -65,20 +65,20 @@ export function MemoryReviewCards({ isOpen, onClose }: MemoryReviewProps) {
     // But we can check empty state and show "All Caught Up"
     useEffect(() => {
         if (isEmpty && processedIds.size > 0 && isOpen) {
-             showToast('Memory review complete! ✨', 'success');
+            showToast('Memory review complete! ✨', 'success');
         }
     }, [isEmpty, processedIds.size, isOpen, showToast]);
 
     return (
-        <ModalShell 
-            isOpen={isOpen} 
+        <ModalShell
+            isOpen={isOpen}
             onClose={onClose}
             heightClass={isEmpty ? "h-[60vh]" : "h-[75vh]"}
         >
             {isEmpty ? (
                 <div className="flex flex-col items-center justify-center h-full pb-12">
-                    <motion.div 
-                        initial={{ scale: 0.9, opacity: 0 }} 
+                    <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={SLIMY_CONFIG}
                         className="flex flex-col items-center"
@@ -162,8 +162,8 @@ function StackView({
                         const stackIndex = displayNotes.length - 1 - index;
 
                         return (
-                            <StackCard 
-                                key={note.id} 
+                            <StackCard
+                                key={note.id}
                                 note={note}
                                 isTop={isTop}
                                 stackIndex={stackIndex}
@@ -234,16 +234,16 @@ function StackCard({
             onDragEnd={handleDragEnd}
             initial={{ scale: 0.9, opacity: 0, y: 30 }}
             animate={{ scale: isTop ? 1 : 1 - (stackIndex * 0.05), opacity: 1, y: isTop ? 0 : (stackIndex * 15) }}
-            exit={{ 
+            exit={{
                 x: x.get() > 50 ? 500 : (x.get() < -50 ? -500 : 0),
                 y: y.get() > 50 ? 500 : 0,
                 opacity: 0,
                 transition: { duration: 0.2 }
             }}
             transition={SLIMY_CONFIG}
-            className="absolute inset-0 h-full w-full cursor-grab active:cursor-grabbing"
+            className="absolute inset-0 h-full w-full cursor-grab active:cursor-grabbing bg-[var(--surface)] squircle shadow-2xl"
         >
-            <div className="h-full bg-[var(--surface)] rounded-3xl p-6 border border-white/5 shadow-2xl flex flex-col relative overflow-hidden">
+            <div className="h-full p-10 flex flex-col relative">
                 <div className="relative z-10 flex-1">
                     <div className="flex items-center justify-between mb-3">
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">
@@ -297,7 +297,7 @@ function ListView({
             {notes.map((note) => (
                 <div
                     key={note.id}
-                    className="bg-[var(--surface)] rounded-2xl p-4 border border-white/5"
+                    className="bg-[var(--surface)] rounded-2xl p-4"
                 >
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">

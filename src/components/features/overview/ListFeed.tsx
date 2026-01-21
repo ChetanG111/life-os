@@ -19,7 +19,7 @@ interface ListFeedProps {
 export function ListFeed({ items, onSwipe, onDetails }: ListFeedProps) {
     if (items.length === 0) {
         return (
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={SLIMY_CONFIG}
@@ -34,7 +34,7 @@ export function ListFeed({ items, onSwipe, onDetails }: ListFeedProps) {
     }
 
     return (
-        <motion.div 
+        <motion.div
             variants={STAGGER_CHILDREN}
             initial="hidden"
             animate="show"
@@ -95,7 +95,7 @@ function ListItem({
             <div
                 onClick={() => { vibrate('light'); onDetails(item); }}
                 className={clsx(
-                    "relative z-10 bg-[var(--surface)] border border-white/5 rounded-2xl p-4 flex items-center gap-4 cursor-pointer active:bg-white/5 transition-colors",
+                    "relative z-10 bg-[var(--surface)] rounded-2xl p-6 flex items-center gap-4 cursor-pointer active:bg-white/5 transition-colors",
                     item.priority === 'high' ? "shadow-[inset_4px_0_0_0_#EF4444]" :
                         item.priority === 'medium' ? "shadow-[inset_4px_0_0_0_#F59E0B]" : ""
                 )}

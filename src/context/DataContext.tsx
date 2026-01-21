@@ -49,8 +49,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const [stateHistory, setStateHistory] = useState<StateEntry[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
 
-    // ⚠️ TESTING MODE: Set to true to enable localStorage persistence
-    const PERSIST_DATA = false;
+    // ⚠️ PERSISTENCE MODE: Set to true to enable localStorage saving
+    const PERSIST_DATA = true;
 
     // Initial Load
     useEffect(() => {

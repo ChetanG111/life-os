@@ -91,7 +91,8 @@ export function QuickAddModal({
     };
 
     const handleSubmit = () => {
-        if (!text.trim() && images.length === 0) return;
+        const hasContent = title.trim() || text.trim() || images.length > 0;
+        if (!hasContent) return;
 
         vibrate('medium');
         setStatus('processing');
@@ -169,7 +170,7 @@ export function QuickAddModal({
             <input type="datetime-local" ref={dateInputRef} className="hidden" onChange={(e) => { setDueDate(e.target.value); vibrate('success'); }} />
             <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleImageSelect} />
 
-            <motion.div 
+            <motion.div
                 variants={STAGGER_CHILDREN}
                 initial="hidden"
                 animate="show"
@@ -201,7 +202,7 @@ export function QuickAddModal({
                     </div>
                 </div>
 
-                <div 
+                <div
                     className="flex md:hidden flex-none pt-4 pb-2 px-6 flex-col items-center relative"
                 >
                     <div className="w-12 h-1.5 bg-neutral-700/50 rounded-full mb-4 md:hidden" />
@@ -240,7 +241,7 @@ export function QuickAddModal({
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Title (Optional)"
+                            placeholder="Title"
                             className="w-full bg-transparent text-xl font-bold text-white placeholder-neutral-700 outline-none mb-2 md:mb-0 px-1"
                         />
                         <motion.textarea
@@ -285,7 +286,16 @@ export function QuickAddModal({
                             <button onClick={cyclePriority} className={clsx("w-12 h-12 rounded-2xl flex items-center justify-center bg-neutral-800", priority === 'high' ? "bg-red-500/10" : priority === 'medium' ? "bg-amber-500/10" : "bg-blue-500/10")}>
                                 <div className={clsx("w-4 h-4 rounded-full", priority === 'high' ? "bg-red-500" : priority === 'medium' ? "bg-amber-500" : "bg-blue-500")} />
                             </button>
-                            <button onClick={handleSubmit} disabled={(!text.trim() && images.length === 0) || status !== 'idle'} className={clsx("w-12 h-12 rounded-2xl flex items-center justify-center", (text.trim() || images.length > 0) && status === 'idle' ? "bg-neutral-800 hover:bg-neutral-700 text-white active:scale-95" : "bg-neutral-800 text-neutral-600 cursor-not-allowed")}>
+                            <button
+                                onClick={handleSubmit}
+                                disabled={(!title.trim() && !text.trim() && images.length === 0) || status !== 'idle'}
+                                className={clsx(
+                                    "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
+                                    (title.trim() || text.trim() || images.length > 0) && status === 'idle'
+                                        ? "bg-white text-black hover:bg-neutral-200 active:scale-90 shadow-lg shadow-white/5"
+                                        : "bg-neutral-800 text-neutral-600 cursor-not-allowed"
+                                )}
+                            >
                                 <ArrowUp size={20} strokeWidth={3} />
                             </button>
                         </div>

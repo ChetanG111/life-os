@@ -77,4 +77,9 @@ body {
     -webkit-backdrop-filter: blur(40px) saturate(200%);
     border-top: 1px solid rgba(255, 255, 255, 0.15);
   }
+
+  .squircle {
+    border-radius: 40px;
+    overflow: hidden;
+  }
 }
