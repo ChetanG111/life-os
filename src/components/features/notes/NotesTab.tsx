@@ -14,7 +14,8 @@ export const NotesTab = ({
 }: {
     onOpenSettings: () => void,
     onOpenDetails: (item: any) => void,
-    onOpenQuickAdd: (type?: 'task' | 'note') => void
+    onOpenQuickAdd: (type?: 'task' | 'note') => void,
+    onEdit: (item: any) => void
 }) => {
     const { notes } = useData();
 
@@ -51,10 +52,12 @@ export const NotesTab = ({
                         >
                             <NoteCard note={note} onTap={() => onOpenDetails({
                                 id: note.id,
+                                originalId: note.id,
                                 title: note.title || 'Untitled Note',
                                 type: 'note',
                                 content: note.content,
-                                tags: note.tags
+                                tags: note.tags,
+                                images: note.images
                             })} />
                         </motion.div>
                     ))}
@@ -62,7 +65,7 @@ export const NotesTab = ({
 
                 {/* Empty state handles */}
                 {notes.length === 0 && (
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={SLIMY_CONFIG}

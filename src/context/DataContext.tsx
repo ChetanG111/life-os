@@ -29,8 +29,10 @@ interface DataContextType {
     addTask: (task: Omit<Task, 'id' | 'isCompleted'>) => void;
     completeTask: (id: string) => void;
     removeTask: (id: string) => void;
+    updateTask: (id: string, updates: Partial<Task>) => void;
     addNote: (note: Omit<Note, 'id' | 'date'>) => void;
     removeNote: (id: string) => void;
+    updateNote: (id: string, updates: Partial<Note>) => void;
     updateSettings: (updates: Partial<AppSettings>) => void;
     saveState: (emoji: string, timeOfDay: 'morning' | 'evening') => void;
 }
@@ -163,6 +165,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         ));
     };
 
+    const updateTask = (id: string, updates: Partial<Task>) => {
+        setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+    };
+
     const removeTask = (id: string) => {
         setTasks(prev => prev.filter(t => t.id !== id));
     };
@@ -178,6 +184,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     const removeNote = (id: string) => {
         setNotes(prev => prev.filter(n => n.id !== id));
+    };
+
+    const updateNote = (id: string, updates: Partial<Note>) => {
+        setNotes(prev => prev.map(n => n.id === id ? { ...n, ...updates } : n));
     };
 
     const dismissItem = (id: string) => {
@@ -210,8 +220,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
             addTask,
             completeTask,
             removeTask,
+            updateTask,
             addNote,
             removeNote,
+            updateNote,
             updateSettings,
             saveState
         }}>

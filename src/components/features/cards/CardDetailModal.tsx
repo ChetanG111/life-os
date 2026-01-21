@@ -16,6 +16,7 @@ interface CardDetailModalProps {
     onClose: () => void;
     onDelete?: () => void;
     onComplete?: () => void;
+    onEdit?: (item: any) => void;
     item: {
         id: string;
         title: string;
@@ -29,7 +30,7 @@ interface CardDetailModalProps {
     } | null;
 }
 
-export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }: CardDetailModalProps) {
+export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, onEdit, item }: CardDetailModalProps) {
     const { confirmDelete } = useSettings();
     const [activeItem, setActiveItem] = useState(item);
     const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
@@ -149,7 +150,10 @@ export function CardDetailModal({ isOpen, onClose, onDelete, onComplete, item }:
                         </motion.button>
 
                         <motion.button variants={OVERSHOOT_VARIANT} className="h-14 w-16 bg-white/5 text-neutral-400 rounded-2xl flex items-center justify-center active:scale-95 transition-transform"
-                            onClick={() => vibrate('light')}
+                            onClick={() => {
+                                vibrate('light');
+                                if (onEdit) onEdit(activeItem);
+                            }}
                         >
                             <Pencil size={22} />
                         </motion.button>

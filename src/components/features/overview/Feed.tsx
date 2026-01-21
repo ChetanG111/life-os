@@ -12,11 +12,12 @@ interface FeedProps {
     onOpenSettings: () => void;
     onOpenDetails: (item: any) => void;
     onOpenQuickAdd: (type?: 'task' | 'note') => void;
+    onEdit: (item: any) => void;
 }
 
 type ViewMode = 'stack' | 'list';
 
-export function Feed({ onOpenSettings, onOpenDetails, onOpenQuickAdd }: FeedProps) {
+export function Feed({ onOpenSettings, onOpenDetails, onOpenQuickAdd, onEdit }: FeedProps) {
     const { tasks, notes, removeTask, removeNote, completeTask, dismissedIds, dismissItem } = useData();
     const { showToast } = useToast();
     const [viewMode, setViewMode] = useState<ViewMode>('stack');
@@ -44,7 +45,8 @@ export function Feed({ onOpenSettings, onOpenDetails, onOpenQuickAdd }: FeedProp
                 title: n.title || 'Untitled Note',
                 type: 'note' as const,
                 content: n.content,
-                tags: n.tags
+                tags: n.tags,
+                images: n.images
             }))
         ];
     }, [tasks, notes]);

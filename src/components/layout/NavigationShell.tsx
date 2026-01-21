@@ -42,17 +42,19 @@ const TabContent = ({
     activeTab,
     onOpenSettings,
     onOpenDetails,
-    onOpenQuickAdd
+    onOpenQuickAdd,
+    onEdit
 }: {
     activeTab: TabId,
     onOpenSettings: () => void,
     onOpenDetails: (item: any) => void,
-    onOpenQuickAdd: (type?: 'task' | 'note') => void
+    onOpenQuickAdd: (type?: 'task' | 'note') => void,
+    onEdit: (item: any) => void
 }) => {
     switch (activeTab) {
-        case 'tasks': return <TasksTab onOpenSettings={onOpenSettings} onOpenDetails={onOpenDetails} onOpenQuickAdd={onOpenQuickAdd} />;
-        case 'notes': return <NotesTab onOpenSettings={onOpenSettings} onOpenDetails={onOpenDetails} onOpenQuickAdd={onOpenQuickAdd} />;
-        case 'overview': return <Feed onOpenSettings={onOpenSettings} onOpenDetails={onOpenDetails} onOpenQuickAdd={onOpenQuickAdd} />;
+        case 'tasks': return <TasksTab onOpenSettings={onOpenSettings} onOpenDetails={onOpenDetails} onOpenQuickAdd={onOpenQuickAdd} onEdit={onEdit} />;
+        case 'notes': return <NotesTab onOpenSettings={onOpenSettings} onOpenDetails={onOpenDetails} onOpenQuickAdd={onOpenQuickAdd} onEdit={onEdit} />;
+        case 'overview': return <Feed onOpenSettings={onOpenSettings} onOpenDetails={onOpenDetails} onOpenQuickAdd={onOpenQuickAdd} onEdit={onEdit} />;
         case 'chat': return <ChatTab onOpenSettings={onOpenSettings} />;
         case 'weekly': return <WeeklyTab onOpenSettings={onOpenSettings} />;
         default: return null;
@@ -67,9 +69,10 @@ export function NavigationShell() {
     const x = useMotionValue(0);
     const isLocked = useRef(false);
     const [isDragging, setIsDragging] = useState(false);
-    
+
     const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
     const [quickAddType, setQuickAddType] = useState<'task' | 'note'>('task');
+    const [editItem, setEditItem] = useState<any | null>(null);
     const [selectedItem, setSelectedItem] = useState<any | null>(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isStatePopupOpen, setIsStatePopupOpen] = useState(false);
@@ -114,10 +117,10 @@ export function NavigationShell() {
 
     const handleTabChange = (newTab: TabId) => {
         if (isLocked.current) return;
-        
+
         const currentIndex = TABS.indexOf(activeTab);
         const newIndex = TABS.indexOf(newTab);
-        
+
         if (newIndex === currentIndex) return;
 
         isLocked.current = true;
@@ -178,11 +181,11 @@ export function NavigationShell() {
     return (
         <div className="relative h-[100dvh] w-full overflow-hidden bg-black">
             {/* Main Application Shell - Now scaling properly */}
-            <motion.div 
-                animate={{ 
-                    scale: shellScale, 
+            <motion.div
+                animate={{
+                    scale: shellScale,
                     borderRadius: shellRadius,
-                    opacity: shellOpacity 
+                    opacity: shellOpacity
                 }}
                 transition={IOS_SPRING}
                 className="relative h-full w-full overflow-hidden bg-background origin-top hardware-accelerated"
@@ -220,7 +223,12 @@ export function NavigationShell() {
                                 setSelectedItem(modalItem);
                             }}
                             onOpenQuickAdd={(type) => {
+                                setEditItem(null); // Ensure we are NOT editing
                                 if (type) setQuickAddType(type);
+                                setIsQuickAddOpen(true);
+                            }}
+                            onEdit={(item) => {
+                                setEditItem(item);
                                 setIsQuickAddOpen(true);
                             }}
                         />
@@ -277,12 +285,6 @@ export function NavigationShell() {
             </AnimatePresence>
 
             {/* Global Modals */}
-            <QuickAddModal
-                isOpen={isQuickAddOpen}
-                onClose={() => setIsQuickAddOpen(false)}
-                initialType={quickAddType}
-            />
-
             <CardDetailModal
                 isOpen={!!selectedItem}
                 onClose={() => setSelectedItem(null)}
@@ -293,7 +295,24 @@ export function NavigationShell() {
                 onComplete={() => {
                     if (selectedItem?.type === 'task') removeTask(selectedItem.originalId || selectedItem.id);
                 }}
+                onEdit={(item) => {
+                    setSelectedItem(null);
+                    setTimeout(() => {
+                        setEditItem(item);
+                        setIsQuickAddOpen(true);
+                    }, 100);
+                }}
                 item={selectedItem}
+            />
+
+            <QuickAddModal
+                isOpen={isQuickAddOpen}
+                onClose={() => {
+                    setIsQuickAddOpen(false);
+                    setEditItem(null);
+                }}
+                initialType={quickAddType}
+                editItem={editItem}
             />
 
             <AnimatePresence>

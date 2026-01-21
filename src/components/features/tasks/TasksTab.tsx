@@ -17,7 +17,8 @@ export const TasksTab = ({
 }: {
     onOpenSettings: () => void,
     onOpenDetails: (item: any) => void,
-    onOpenQuickAdd: (type?: 'task' | 'note') => void
+    onOpenQuickAdd: (type?: 'task' | 'note') => void,
+    onEdit: (item: any) => void
 }) => {
     const { tasks, removeTask, completeTask } = useData();
     const { showToast } = useToast();
@@ -68,7 +69,7 @@ export const TasksTab = ({
                 </motion.button>
             </header>
 
-            <motion.div 
+            <motion.div
                 layout
                 variants={STAGGER_CHILDREN}
                 initial="hidden"
@@ -98,7 +99,7 @@ export const TasksTab = ({
 
                 {/* Empty state handles */}
                 {sortedTasks.length === 0 && (
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={SLIMY_CONFIG}

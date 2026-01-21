@@ -29,12 +29,14 @@ export function QuickAddModal({
     isOpen,
     onClose,
     onAdd,
-    initialType
+    initialType,
+    editItem
 }: {
     isOpen: boolean;
     onClose: () => void;
     onAdd?: (item: FeedItem) => void;
     initialType?: ItemType;
+    editItem?: FeedItem;
 }) {
     const [title, setTitle] = useState('');
     const [text, setText] = useState('');
@@ -50,27 +52,39 @@ export function QuickAddModal({
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const { autoFocusQuickAdd } = useSettings();
-    const { addTask, addNote } = useData();
+    const { addTask, addNote, updateTask, updateNote } = useData();
     const { showToast } = useToast();
 
     useBackToClose(isOpen, onClose);
     useLockBodyScroll(isOpen);
 
+    // Initialize from editItem
     useEffect(() => {
-        if (isOpen) {
-            setStatus('idle');
-            setText('');
+        if (isOpen && editItem) {
+            setTitle(editItem.title || '');
+            setText(editItem.content || '');
+            setSelectedType(editItem.type === 'task' ? 'task' : 'note');
+            setPriority(editItem.priority || 'medium');
+            setDueDate(editItem.dueDate || '');
+            setImages(editItem.images || []);
+        } else if (isOpen) {
+            // Reset for new item
             setTitle('');
+            setText('');
+            setSelectedType(initialType || 'task');
+            setPriority(initialType === 'goal' ? 'high' : 'medium');
             setDueDate('');
             setImages([]);
-            if (initialType) setSelectedType(initialType);
-            setPriority(initialType === 'goal' ? 'high' : 'medium');
+        }
+
+        if (isOpen) {
+            setStatus('idle');
             if (autoFocusQuickAdd) {
                 setTimeout(() => inputRef.current?.focus(), 400); // Delay for animation
             }
             vibrate('light');
         }
-    }, [isOpen, autoFocusQuickAdd, initialType]);
+    }, [isOpen, editItem, initialType, autoFocusQuickAdd]);
 
     const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -97,46 +111,68 @@ export function QuickAddModal({
         vibrate('medium');
         setStatus('processing');
 
-        if (selectedType === 'task' || selectedType === 'goal') {
-            addTask({
-                title: title.trim() || (selectedType === 'task' ? 'New Task' : 'New Goal'),
-                priority: priority,
-                tags: [selectedType],
-                description: text,
-                dueDate: dueDate || undefined
-            });
+        if (editItem) {
+            // Update mode
+            if (editItem.type === 'task') {
+                updateTask(editItem.originalId!, {
+                    title: title.trim(),
+                    description: text,
+                    priority: priority,
+                    dueDate: dueDate || undefined
+                });
+            } else {
+                updateNote(editItem.originalId!, {
+                    title: title.trim(),
+                    content: text,
+                    priority: priority,
+                    images: images
+                });
+            }
         } else {
-            const typeLabels: Record<string, string> = {
-                note: 'New Note',
-                idea: 'New Idea',
-                identity: 'Identity Update'
-            };
-            addNote({
-                title: title.trim() || typeLabels[selectedType] || 'New Note',
-                content: text,
-                type: images.length > 0 ? 'image' : 'text',
-                tags: [selectedType],
-                images: images
-            });
-        }
+            // Create mode
+            if (selectedType === 'task' || selectedType === 'goal') {
+                addTask({
+                    title: title.trim() || (selectedType === 'task' ? 'New Task' : 'New Goal'),
+                    priority: priority,
+                    tags: [selectedType],
+                    description: text,
+                    dueDate: dueDate || undefined
+                });
+            } else {
+                const typeLabels: Record<string, string> = {
+                    note: 'New Note',
+                    idea: 'New Idea',
+                    identity: 'Identity Update'
+                };
+                addNote({
+                    title: title.trim() || typeLabels[selectedType] || 'New Note',
+                    content: text,
+                    type: images.length > 0 ? 'image' : 'text',
+                    tags: [selectedType],
+                    images: images,
+                    priority: priority
+                });
+            }
 
-        if (onAdd) {
-            const newItem: FeedItem = {
-                id: Date.now().toString(),
-                title: title.trim() || (selectedType === 'task' ? 'New Task' : 'New Note'),
-                type: selectedType === 'task' || selectedType === 'goal' ? 'task' : 'note',
-                content: text,
-                color: 'bg-blue-500',
-                tags: [selectedType],
-                priority: priority
-            };
-            onAdd(newItem);
+            if (onAdd) {
+                const newItem: FeedItem = {
+                    id: Date.now().toString(),
+                    title: title.trim() || (selectedType === 'task' ? 'New Task' : 'New Note'),
+                    type: selectedType === 'task' || selectedType === 'goal' ? 'task' : 'note',
+                    content: text,
+                    color: 'bg-blue-500',
+                    tags: [selectedType],
+                    priority: priority
+                };
+                onAdd(newItem);
+            }
         }
 
         setStatus('success');
         vibrate('success');
+        const actionLabel = editItem ? 'updated' : 'added';
         const typeLabel = selectedType.charAt(0).toUpperCase() + selectedType.slice(1);
-        showToast(`${typeLabel} added successfully`, 'success');
+        showToast(`${typeLabel} ${actionLabel} successfully`, 'success');
         onClose();
     };
 
@@ -176,63 +212,80 @@ export function QuickAddModal({
                 animate="show"
                 className="flex-1 overflow-y-auto overscroll-contain touch-pan-y [web-kit-overflow-scrolling:touch] flex flex-col scrollbar-hide"
             >
-                <div className="hidden md:flex flex-none pt-8 pb-4 px-8 flex-col items-center relative">
-                    <div className="w-12 h-1 bg-neutral-800 rounded-full mb-6 opacity-50" />
-                    <motion.h2 variants={OVERSHOOT_VARIANT} className="text-2xl font-bold text-white mb-8">New Task</motion.h2>
+                {!editItem && (
+                    <div className="hidden md:flex flex-none pt-8 pb-4 px-8 flex-col items-center relative">
+                        <div className="w-12 h-1 bg-neutral-800 rounded-full mb-6 opacity-50" />
+                        <motion.h2 variants={OVERSHOOT_VARIANT} className="text-2xl font-bold text-white mb-8">New Item</motion.h2>
 
-                    <div className="w-full grid grid-cols-4 gap-4 mb-8">
-                        {ITEM_TYPES.filter(t => t.id !== 'identity').map((type) => {
-                            const Icon = type.icon;
-                            const isSelected = selectedType === type.id;
-                            return (
-                                <motion.button
-                                    variants={OVERSHOOT_VARIANT}
-                                    key={type.id}
-                                    onClick={() => { vibrate('light'); setSelectedType(type.id); }}
-                                    className={clsx(
-                                        "flex flex-col items-center justify-center gap-2 py-6 rounded-2xl border",
-                                        isSelected ? "bg-white text-black border-white" : "bg-white/5 text-neutral-500 border-transparent hover:bg-white/10 hover:text-neutral-300"
-                                    )}
-                                >
-                                    <Icon size={24} strokeWidth={isSelected ? 2.5 : 2} />
-                                    <span className="text-xs font-bold uppercase tracking-widest">{type.label}</span>
-                                </motion.button>
-                            );
-                        })}
+                        <div className="w-full grid grid-cols-4 gap-4 mb-8">
+                            {ITEM_TYPES.filter(t => t.id !== 'identity').map((type) => {
+                                const Icon = type.icon;
+                                const isSelected = selectedType === type.id;
+                                return (
+                                    <motion.button
+                                        variants={OVERSHOOT_VARIANT}
+                                        key={type.id}
+                                        onClick={() => { vibrate('light'); setSelectedType(type.id); }}
+                                        className={clsx(
+                                            "flex flex-col items-center justify-center gap-2 py-6 rounded-2xl",
+                                            isSelected ? "bg-white text-black" : "bg-white/5 text-neutral-500 hover:bg-white/10"
+                                        )}
+                                    >
+                                        <Icon size={24} strokeWidth={isSelected ? 2.5 : 2} />
+                                        <span className="text-xs font-bold uppercase tracking-widest">{type.label}</span>
+                                    </motion.button>
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <div
                     className="flex md:hidden flex-none pt-4 pb-2 px-6 flex-col items-center relative"
                 >
                     <div className="w-12 h-1.5 bg-neutral-700/50 rounded-full mb-4 md:hidden" />
                     <div className="w-full flex items-center justify-center">
-                        <motion.h2 variants={OVERSHOOT_VARIANT} className="text-xl font-bold text-white capitalize">New {selectedType}</motion.h2>
+                        <motion.h2 variants={OVERSHOOT_VARIANT} className="text-xl font-bold text-white capitalize">
+                            {editItem ? `Edit ${editItem.type}` : `New ${selectedType}`}
+                        </motion.h2>
                     </div>
                 </div>
 
-                <div className="px-6 py-2 block md:hidden">
-                    <div className="grid grid-cols-5 gap-2">
-                        {ITEM_TYPES.map((type, i) => {
-                            const Icon = type.icon;
-                            const isSelected = selectedType === type.id;
-                            return (
-                                <motion.button
-                                    variants={OVERSHOOT_VARIANT}
-                                    key={type.id}
-                                    onClick={() => { vibrate('light'); setSelectedType(type.id); }}
-                                    className={clsx(
-                                        "flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl relative overflow-hidden",
-                                        isSelected ? "bg-white text-black" : "bg-white/5 text-neutral-500 hover:bg-white/10 hover:text-neutral-300"
-                                    )}
-                                >
-                                    <Icon size={24} strokeWidth={isSelected ? 2.5 : 2} />
-                                    <span className="text-[11px] font-medium tracking-wide relative z-10">{type.label}</span>
-                                </motion.button>
-                            );
-                        })}
+                {!editItem && (
+                    <div className="px-4 py-2 block md:hidden w-full">
+                        <div className="relative flex items-center bg-[#050505] rounded-[20px] p-1.5 ring-1 ring-white/10">
+                            {ITEM_TYPES.map((type) => {
+                                const Icon = type.icon;
+                                const isSelected = selectedType === type.id;
+                                return (
+                                    <button
+                                        key={type.id}
+                                        onClick={() => { vibrate('light'); setSelectedType(type.id); }}
+                                        className="relative flex-1 flex flex-col items-center justify-center gap-1.5 py-3 z-10 group"
+                                    >
+                                        {isSelected && (
+                                            <motion.div
+                                                layoutId="active-indicator"
+                                                className="absolute inset-0 bg-white rounded-2xl shadow-lg"
+                                                transition={{
+                                                    type: "spring",
+                                                    stiffness: 350,
+                                                    damping: 25
+                                                }}
+                                            />
+                                        )}
+                                        <span className={clsx("relative z-20 transition-colors duration-200", isSelected ? "text-black" : "text-[#666666] group-hover:text-[#AAAAAA]")}>
+                                            <Icon size={22} strokeWidth={2.5} />
+                                        </span>
+                                        <span className={clsx("relative z-20 text-[10px] font-bold uppercase tracking-wide transition-colors duration-200", isSelected ? "text-black" : "text-[#666666] group-hover:text-[#AAAAAA]")}>
+                                            {type.label}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <div className="flex flex-col px-6 md:px-10 relative pb-12 md:pb-10 flex-1">
                     <div className="flex flex-col md:gap-4 mt-4 flex-1">

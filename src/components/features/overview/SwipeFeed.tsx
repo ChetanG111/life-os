@@ -21,6 +21,7 @@ export interface FeedItem {
     priority?: 'high' | 'medium' | 'low';
     dueTime?: string;
     dueDate?: string;
+    images?: string[];
 }
 
 // Mock Data

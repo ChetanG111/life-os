@@ -28,6 +28,7 @@ export interface Note {
     date: string;
     title?: string;
     images?: string[];
+    priority?: Priority;
 }
 
 export const TABS: TabId[] = ['tasks', 'notes', 'overview', 'chat', 'weekly'];
