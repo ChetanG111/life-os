@@ -17,7 +17,7 @@ interface FeedProps {
 type ViewMode = 'stack' | 'list';
 
 export function Feed({ onOpenSettings, onOpenDetails, onOpenQuickAdd }: FeedProps) {
-    const { tasks, notes, removeTask, removeNote, completeTask } = useData();
+    const { tasks, notes, removeTask, removeNote, completeTask, dismissedIds, dismissItem } = useData();
     const { showToast } = useToast();
     const [viewMode, setViewMode] = useState<ViewMode>('stack');
 
@@ -50,33 +50,36 @@ export function Feed({ onOpenSettings, onOpenDetails, onOpenQuickAdd }: FeedProp
     }, [tasks, notes]);
 
     // 3. Sort Items: Overdue -> High Priority -> Medium -> Low -> Notes
-    const sortedItems = useMemo(() => {
-        return [...rawItems].sort((a, b) => {
-            const now = new Date().getTime();
+    // 4. Filter Dismissed Items
+    const filteredSortedItems = useMemo(() => {
+        return [...rawItems]
+            .filter(item => !dismissedIds.includes(item.id))
+            .sort((a, b) => {
+                const now = new Date().getTime();
 
-            // Helper to check overdue
-            const isOverdue = (item: FeedItem) => item.dueDate && new Date(item.dueDate).getTime() < now;
+                // Helper to check overdue
+                const isOverdue = (item: FeedItem) => item.dueDate && new Date(item.dueDate).getTime() < now;
 
-            const aOverdue = isOverdue(a);
-            const bOverdue = isOverdue(b);
+                const aOverdue = isOverdue(a);
+                const bOverdue = isOverdue(b);
 
-            if (aOverdue && !bOverdue) return -1;
-            if (!aOverdue && bOverdue) return 1;
+                if (aOverdue && !bOverdue) return -1;
+                if (!aOverdue && bOverdue) return 1;
 
-            // Priority Sorting
-            const priorityScore = { high: 3, medium: 2, low: 1, undefined: 0 };
-            const aScore = priorityScore[a.priority || 'undefined'] || 0;
-            const bScore = priorityScore[b.priority || 'undefined'] || 0;
+                // Priority Sorting
+                const priorityScore = { high: 3, medium: 2, low: 1, undefined: 0 };
+                const aScore = priorityScore[a.priority || 'undefined'] || 0;
+                const bScore = priorityScore[b.priority || 'undefined'] || 0;
 
-            if (aScore > bScore) return -1;
-            if (aScore < bScore) return 1;
+                if (aScore > bScore) return -1;
+                if (aScore < bScore) return 1;
 
-            return 0;
-        });
-    }, [rawItems]);
+                return 0;
+            });
+    }, [rawItems, dismissedIds]);
 
     const handleSwipe = (id: string, action: 'done' | 'dismiss' | 'delete') => {
-        const item = sortedItems.find(i => i.id === id);
+        const item = rawItems.find(i => i.id === id);
         if (!item) return;
 
         if (action === 'delete') {
@@ -96,6 +99,10 @@ export function Feed({ onOpenSettings, onOpenDetails, onOpenQuickAdd }: FeedProp
                 removeNote(item.originalId!);
                 showToast('Note saved', 'success');
             }
+        } else if (action === 'dismiss') {
+            vibrate('light');
+            dismissItem(id);
+            showToast('Dismissed for today', 'info');
         }
     };
 
@@ -141,11 +148,11 @@ export function Feed({ onOpenSettings, onOpenDetails, onOpenQuickAdd }: FeedProp
                 <div className="h-full w-full">
                     {viewMode === 'stack' ? (
                         <div className="h-full pb-16">
-                            <SwipeFeed items={sortedItems} onSwipe={handleSwipe} onDetails={(item) => onOpenDetails(item)} />
+                            <SwipeFeed items={filteredSortedItems} onSwipe={handleSwipe} onDetails={(item) => onOpenDetails(item)} />
                         </div>
                     ) : (
                         <div className="h-full">
-                            <ListFeed items={sortedItems} onSwipe={handleSwipe} onDetails={(item) => onOpenDetails(item)} />
+                            <ListFeed items={filteredSortedItems} onSwipe={handleSwipe} onDetails={(item) => onOpenDetails(item)} />
                         </div>
                     )}
                 </div>

@@ -24,6 +24,8 @@ interface DataContextType {
     settings: AppSettings;
     stateHistory: StateEntry[];
     currentState: StateEntry | null;
+    dismissedIds: string[];
+    dismissItem: (id: string) => void;
     addTask: (task: Omit<Task, 'id' | 'isCompleted'>) => void;
     completeTask: (id: string) => void;
     removeTask: (id: string) => void;
@@ -47,6 +49,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const [notes, setNotes] = useState<Note[]>([]);
     const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
     const [stateHistory, setStateHistory] = useState<StateEntry[]>([]);
+    const [dismissedIds, setDismissedIds] = useState<string[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
 
     // ⚠️ PERSISTENCE MODE: Set to true to enable localStorage saving
@@ -60,6 +63,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
                     const savedTasks = localStorage.getItem('life-os-tasks');
                     const savedNotes = localStorage.getItem('life-os-notes');
                     const savedSettings = localStorage.getItem('life-os-settings');
+                    const savedDismissed = localStorage.getItem('life-os-dismissed');
 
                     if (savedTasks) {
                         const parsed = JSON.parse(savedTasks);
@@ -77,6 +81,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
                     if (savedSettings) {
                         setSettings(JSON.parse(savedSettings));
+                    }
+
+                    if (savedDismissed) {
+                        const { ids, lastReset } = JSON.parse(savedDismissed);
+                        const today = new Date().toDateString();
+                        // Reset if it's a new day
+                        if (lastReset === today) {
+                            setDismissedIds(ids);
+                        } else {
+                            localStorage.removeItem('life-os-dismissed');
+                            setDismissedIds([]);
+                        }
                     }
 
                     const savedStateHistory = localStorage.getItem('life-os-state-history');
@@ -122,9 +138,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         if (isLoaded && PERSIST_DATA) {
-            localStorage.setItem('life-os-state-history', JSON.stringify(stateHistory));
+            localStorage.setItem('life-os-dismissed', JSON.stringify({
+                ids: dismissedIds,
+                lastReset: new Date().toDateString()
+            }));
         }
-    }, [stateHistory, isLoaded]);
+    }, [dismissedIds, isLoaded]);
 
     // Get the most recent state entry
     const currentState = stateHistory.length > 0 ? stateHistory[stateHistory.length - 1] : null;
@@ -161,6 +180,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         setNotes(prev => prev.filter(n => n.id !== id));
     };
 
+    const dismissItem = (id: string) => {
+        setDismissedIds(prev => [...new Set([...prev, id])]);
+    };
+
     const updateSettings = (updates: Partial<AppSettings>) => {
         setSettings(prev => ({ ...prev, ...updates }));
     };
@@ -182,6 +205,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
             settings,
             stateHistory,
             currentState,
+            dismissedIds,
+            dismissItem,
             addTask,
             completeTask,
             removeTask,
